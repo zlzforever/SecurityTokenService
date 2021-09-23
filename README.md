@@ -1,1 +1,2 @@
-# SecurityTokenService
+dotnet ef migrations add SecurityTokenServiceInit --context SecurityTokenServiceDbContext  --output-dir Data/Migrations
+dotnet ef migrations add PersistedGrantInit --context PersistedGrantDbContext --output-dir Data/Migrations
