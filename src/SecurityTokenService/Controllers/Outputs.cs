@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 
 namespace SecurityTokenService.Controllers
 {
@@ -7,19 +8,6 @@ namespace SecurityTokenService.Controllers
     {
         public static class V1
         {
-            public class ProcessConsentResult
-            {
-                public bool IsRedirect => RedirectUri != null;
-                public string RedirectUri { get; set; }
-                public string ClientId { get; set; }
-
-                public bool ShowView => ViewModel != null;
-                public object ViewModel { get; set; }
-
-                public bool HasValidationError => ValidationError != null;
-                public string ValidationError { get; set; }
-            }
-
             public class ConsentOutput
             {
                 public string ReturnUrl { get; set; }
@@ -27,7 +15,6 @@ namespace SecurityTokenService.Controllers
                 public string ClientUrl { get; set; }
                 public string ClientLogoUrl { get; set; }
                 public bool AllowRememberConsent { get; set; }
-
                 public IEnumerable<ScopeOutput> IdentityScopes { get; set; }
                 public IEnumerable<ScopeOutput> ResourceScopes { get; set; }
             }
@@ -92,9 +79,7 @@ namespace SecurityTokenService.Controllers
                 public string PostLogoutRedirectUri { get; set; }
                 public string ClientName { get; set; }
                 public string SignOutIframeUrl { get; set; }
-
                 public bool AutomaticRedirectAfterSignOut { get; set; }
-
                 public string LogoutId { get; set; }
                 public bool TriggerExternalSignout => ExternalAuthenticationScheme != null;
                 public string ExternalAuthenticationScheme { get; set; }

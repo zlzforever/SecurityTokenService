@@ -1,3 +1,4 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 namespace SecurityTokenService.Controllers
 {
     public class ApiResult

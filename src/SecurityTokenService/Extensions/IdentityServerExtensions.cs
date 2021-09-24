@@ -1,15 +1,19 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using IdentityServer4;
 using IdentityServer4.Models;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using SecurityTokenService.Data;
 using SecurityTokenService.Identity;
 
 namespace SecurityTokenService.Extensions
 {
-    public static class IdentityServerBuilderExtensions
+    public static class IdentityServerExtensions
     {
         class Config
         {
@@ -108,17 +112,19 @@ namespace SecurityTokenService.Extensions
             };
         }
 
-        public static IIdentityServerBuilder AddJsonConfig(this IIdentityServerBuilder builder)
+        public static IIdentityServerBuilder AddStore(this IIdentityServerBuilder builder,
+            IConfiguration configuration)
         {
-            var path = "sts.json";
-            if (File.Exists(path))
+            if (configuration.GetSection("identityResources").GetChildren().Any())
             {
-                var json = File.ReadAllText("sts.json");
-                var config = JsonConvert.DeserializeObject<Config>(json);
-                builder.AddInMemoryIdentityResources(config.IdentityResources)
-                    .AddInMemoryApiScopes(config.ApiScopes)
-                    .AddInMemoryApiResources(config.ApiResources)
-                    .AddInMemoryClients(config.Clients);
+                var ids = configuration.GetSection("identityResources").Get<List<IdentityResource>>();
+                var apiScopes = configuration.GetSection("apiScopes").Get<List<ApiScope>>();
+                var apiResources = configuration.GetSection("apiResources").Get<List<ApiResource>>();
+                var clients = configuration.GetSection("clients").Get<List<Client>>();
+                builder.AddInMemoryIdentityResources(ids)
+                    .AddInMemoryApiScopes(apiScopes)
+                    .AddInMemoryApiResources(apiResources)
+                    .AddInMemoryClients(clients);
             }
             else
             {
@@ -130,6 +136,14 @@ namespace SecurityTokenService.Extensions
             }
 
             return builder;
+        }
+
+        public static void LoadIdentityServerData(this IApplicationBuilder app)
+        {
+            using var scope = app.ApplicationServices.CreateScope();
+
+            using var persistedGrantDbContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
+            persistedGrantDbContext.Database.Migrate();
         }
     }
 }

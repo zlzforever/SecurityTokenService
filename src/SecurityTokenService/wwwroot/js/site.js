@@ -35,14 +35,50 @@ $(document).ready(() => {
         initConsent();
     } else if (url.indexOf("redirect.html") >= 0) {
         initRedirect();
+    } else if (url.indexOf("error.html") >= 0) {
+        initSession();
+        initError();
     } else {
         initSession();
     }
 })
 
+function initError() {
+    const errorId = getQueryValue('errorId');
+    switch (errorId) {
+        case "4001": {
+            $('#message').text('不支持双因素认证')
+            break;
+        }
+        case "4002": {
+            $('#message').text('用户被禁止登录')
+            break;
+        }
+        case "4003": {
+            $('#message').text('用户被锁定')
+            break;
+        }
+        case "4004": {
+            $('#message').text('用户名或密码不正确')
+            break;
+        }
+        case "4005": {
+            $('#message').text('不支持 NativeClient')
+            break;
+        }
+        case "4006": {
+            $('#message').text('返回地址不合法')
+            break;
+        }
+        case "4007": {
+            $('#message').text('选择的操作不正确')
+            break;
+        }
+    }
+}
+
 function initRedirect() {
-    // todo: 是否可以直接跳转？
-    const url = getQueryValue('redirectUrl')
+    const url = decodeURIComponent(getQueryValue('redirectUrl'));
     const meta = $('#meta');
     meta.attr('content', '0;url=' + url)
     meta.attr('data-url', url)
@@ -65,7 +101,6 @@ function initConsent() {
             }
 
             $('#returnUrl').val(res.returnUrl);
-            debugger
             if (res.identityScopes && res.identityScopes.length > 0) {
                 for (let i = 0; i < res.identityScopes.length; ++i) {
                     const scope = res.identityScopes[i];
@@ -92,7 +127,6 @@ function initConsent() {
             }
         },
         error: function (XMLHttpRequest, textStatus, errorThrown) {
-
         }
     });
 }
@@ -104,12 +138,13 @@ function appendScope(id, scope) {
     name="ScopesConsented"
     id="scopes_${scope.name}"
     value="${scope.name}"
-    checked="${scope.checked}"
-    disabled="${scope.required}" />
+    ${scope.checked ? 'checked="checked"' : ''}
+    ${scope.required ? 'disabled="disabled"' : ''} />
     <strong>${scope.displayName}</strong>
+    ${scope.required ? '<input type="hidden" name="ScopesConsented" value="' + scope.name + '"/>' : ''}
 </label>
-${scope.required ? "<span><em>(required)</em></span>" : ""}
-${scope.description ? '<div class="consent-description"><label for="scopes_' + scope.name + '">' + scope.description + '</label></div>' : ""}
+${scope.required ? '<span><em>(required)</em></span>' : ''}
+${scope.description ? '<div class="consent-description"><label for="scopes_' + scope.name + '">' + scope.description + '</label></div>' : ''}
 </li>`;
     $('#' + id).append(html);
 }
@@ -120,8 +155,6 @@ function initDiagnostics() {
         type: "GET",
         url: "diagnostics",
         success: function (res) {
-            debugger
-
             if (res.claims && res.claims.length > 0) {
                 const claimsEl = $("#claims");
                 for (let i = 0; i < res.claims.length; ++i) {
@@ -139,7 +172,7 @@ function initDiagnostics() {
                 }
             }
         },
-        error: function (XMLHttpRequest, textStatus, errorThrown) {
+        error: function (XMLHttpRequest) {
             if (XMLHttpRequest.status === 401) {
                 window.location.href = 'login.html?returnUrl=/diagnostics.html'
             }

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using IdentityServer4;
 using IdentityServer4.Configuration;
@@ -14,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using SecurityTokenService.Data;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
@@ -35,24 +33,7 @@ namespace SecurityTokenService
         {
             services.AddControllers();
 
-            services.AddDbContextPool<SecurityTokenServiceDbContext>(b =>
-            {
-                b.UseNpgsql(Configuration.GetConnectionString("Identity"),
-                    o =>
-                    {
-                        o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
-                        o.MigrationsHistoryTable("_identity_migrations_history");
-                    });
-            });
-            services.AddDbContext<PersistedGrantDbContext>(b =>
-            {
-                b.UseNpgsql(Configuration.GetConnectionString("IdentityServer"),
-                    o =>
-                    {
-                        o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
-                        o.MigrationsHistoryTable("_identity_server_migrations_history");
-                    });
-            });
+            ConfigureDbContext(services);
 
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
@@ -71,10 +52,9 @@ namespace SecurityTokenService
                 .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
 
             var builder = services.AddIdentityServer()
-                    .AddJsonConfig()
-                    .AddOperationalStore<PersistedGrantDbContext>()
-                    .AddAspNetIdentity<IdentityUser>()
-                ;
+                .AddStore(Configuration)
+                .AddOperationalStore<PersistedGrantDbContext>()
+                .AddAspNetIdentity<IdentityUser>();
 
             // not recommended for production - you need to store your key material somewhere secure
             // https 证书？
@@ -90,7 +70,6 @@ namespace SecurityTokenService
 
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddScoped<SeedData>();
- 
 
             services.Configure<IdentityOptions>(Configuration.GetSection("Identity"));
             services.Configure<IdentityExtensionOptions>(Configuration.GetSection("Identity"));
@@ -110,27 +89,14 @@ namespace SecurityTokenService
                 Configuration.GetSection("IdentityServerExternalCookieAuthentication"));
             services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.DefaultCheckSessionCookieName,
                 Configuration.GetSection("IdentityServerCheckSessionCookieAuthentication"));
-           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            using var scope = app.ApplicationServices.CreateScope();
-
-            var persistedGrantDbContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
-
-            persistedGrantDbContext.Database.Migrate();
-
-            if (string.Equals(Configuration["Identity:SelfHost"], "true", StringComparison.InvariantCultureIgnoreCase))
-            {
-                var securityTokenServiceDbContext =
-                    scope.ServiceProvider.GetRequiredService<SecurityTokenServiceDbContext>();
-                securityTokenServiceDbContext.Database.Migrate();
-            }
-
-            var seedData = scope.ServiceProvider.GetRequiredService<SeedData>();
-            seedData.Load();
+            app.LoadIdentityData();
+            app.LoadUserQuerySql();
+            app.LoadIdentityServerData();
 
             if (env.IsDevelopment())
             {
@@ -154,6 +120,28 @@ namespace SecurityTokenService
             app.UseIdentityServer();
             app.UseAuthorization();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        }
+
+        private void ConfigureDbContext(IServiceCollection services)
+        {
+            services.AddDbContextPool<SecurityTokenServiceDbContext>(b =>
+            {
+                b.UseNpgsql(Configuration.GetConnectionString("Identity"),
+                    o =>
+                    {
+                        o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
+                        o.MigrationsHistoryTable("_identity_migrations_history");
+                    });
+            });
+            services.AddDbContext<PersistedGrantDbContext>(b =>
+            {
+                b.UseNpgsql(Configuration.GetConnectionString("IdentityServer"),
+                    o =>
+                    {
+                        o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
+                        o.MigrationsHistoryTable("_identity_server_migrations_history");
+                    });
+            });
         }
     }
 }

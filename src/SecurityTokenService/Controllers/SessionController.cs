@@ -7,11 +7,11 @@ namespace SecurityTokenService.Controllers
 {
     [Route("[controller]")]
     [SecurityHeaders]
+    [Authorize]
     public class SessionController : ControllerBase
     {
         [HttpGet]
-        [Authorize]
-        public Task<IActionResult> IndexAsync()
+        public ValueTask<IActionResult> IndexAsync()
         {
             IActionResult a = new ObjectResult(new ApiResult
             {
@@ -19,7 +19,7 @@ namespace SecurityTokenService.Controllers
                 Data = HttpContext.User.Claims.Where(x => x.Type != "AspNet.Identity.SecurityStamp")
                     .ToDictionary(x => x.Type, x => x.Value)
             });
-            return Task.FromResult(a);
+            return ValueTask.FromResult(a);
         }
     }
 }

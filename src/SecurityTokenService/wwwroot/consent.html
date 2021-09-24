@@ -4,30 +4,18 @@
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no"/>
-
     <title>SecurityTokenService</title>
-
     <link rel="icon" type="image/x-icon" href="favicon.ico"/>
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico"/>
-
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="css/site.min.css"/>
-    <style>
-        input.error {
-            border: 1px solid red;
-        }
-
-        label.error {
-            padding-top: 5px;
-            color: #EA5200;
-        }
-    </style>
 </head>
 <body>
 <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
         <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
                 <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
@@ -40,10 +28,9 @@
                     </span>
             </a>
         </div>
-
         <ul class="nav navbar-nav" id="userNav" style="display: none">
             <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown"  id="user"><b class="caret"></b></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="user"><b class="caret"></b></a>
                 <ul class="dropdown-menu">
                     <li><a href="account/logout">Logout</a></li>
                 </ul>
@@ -51,7 +38,6 @@
         </ul>
     </div>
 </div>
-
 <div class="container body-container">
     <div class="page-consent">
         <div class="row page-header">
@@ -62,16 +48,12 @@
                 </h1>
             </div>
         </div>
-  
-
         <div class="row">
             <div class="col-sm-8">
 
                 <form method="post" action="consent" class="consent-form">
                     <input type="hidden" id="returnUrl" name="returnUrl"/>
-
                     <div>Uncheck the permissions you do not wish to grant.</div>
-
                     <div id="identityScopes" class="panel panel-default consent-buttons" style="display: none">
                         <div class="panel-heading">
                             <span class="glyphicon glyphicon-user"></span>
@@ -80,24 +62,21 @@
                         <ul class="list-group" id="identityScopeList">
                         </ul>
                     </div>
-
                     <div id="resourceScopes" class="panel panel-default" style="display: none">
                         <div class="panel-heading">
                             <span class="glyphicon glyphicon-tasks"></span>
                             Application Access
                         </div>
                         <ul class="list-group" id="resourceScopeList">
-
                         </ul>
                     </div>
-
                     <div id="rememberConsentDiv" class="consent-remember" style="display: none">
                         <label>
-                            <input class="consent-scopecheck" id="rememberConsent" name="rememberConsent" type="checkbox" checked="checked"/>
+                            <input class="consent-scopecheck" id="RememberConsent" name="RememberConsent"
+                                   type="checkbox" checked="checked"/>
                             <strong>Remember My Decision</strong>
                         </label>
                     </div>
-
                     <div class="consent-buttons">
                         <button name="button" value="yes" class="btn btn-primary" autofocus>Yes, Allow</button>
                         <button name="button" value="no" class="btn">No, Do Not Allow</button>
@@ -114,6 +93,6 @@
 <script src="lib/jquery/dist/jquery.min.js"></script>
 <script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="lib/jquery-validation/dist/jquery.validate.min.js"></script>
-<script src="js/site.js"></script>
+<script src="js/site.min.js"></script>
 </body>
 </html>

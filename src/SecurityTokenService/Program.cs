@@ -1,7 +1,9 @@
 using System;
+using System.IO;
+using System.Text;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -12,7 +14,14 @@ namespace SecurityTokenService
     {
         public static int Main(string[] args)
         {
-            var a = JsonConvert.SerializeObject(TimeSpan.FromMinutes(5));
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            var logFile = Environment.GetEnvironmentVariable("LOG");
+            if (string.IsNullOrEmpty(logFile))
+            {
+                logFile = Path.Combine(AppContext.BaseDirectory, "logs/sts.log");
+            }
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -20,13 +29,9 @@ namespace SecurityTokenService
                 .MinimumLevel.Override("System", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Information)
                 .Enrich.FromLogContext()
-                // uncomment to write to Azure diagnostics stream
-                //.WriteTo.File(
-                //    @"D:\home\LogFiles\Application\identityserver.txt",
-                //    fileSizeLimitBytes: 1_000_000,
-                //    rollOnFileSizeLimit: true,
-                //    shared: true,
-                //    flushToDiskInterval: TimeSpan.FromSeconds(1))
+                .WriteTo.RollingFile(logFile,
+                    outputTemplate:
+                    "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
                 .WriteTo.Console(
                     outputTemplate:
                     "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
@@ -52,6 +57,19 @@ namespace SecurityTokenService
 
         internal static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((context, builder) =>
+                {
+                    var path = "sts.json";
+                    if (File.Exists(path))
+                    {
+                        builder.AddJsonFile(path);
+                    }
+
+                    if (context.HostingEnvironment.IsProduction())
+                    {
+                        builder.AddNacosV2Configuration(context.Configuration);
+                    }
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     //

@@ -14,22 +14,30 @@
     <link rel="stylesheet" href="css/site.min.css"/>
 </head>
 <body>
-<div class="nav-page">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-
-        <a href="/" class="navbar-brand">
-            <img src="icon.png" class="icon-banner" alt="">
-            SecurityTokenService
-        </a>
-    </nav>
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="/">
+                    <span class="navbar-brand">
+                        <img src="" class="icon-banner" alt="">
+                        SecurityTokenService
+                    </span>
+            </a>
+        </div>
+    </div>
 </div>
-
 <div class="container body-container">
-    <div class="alert alert-danger" id="message">错误！请进行一些更改。</div>
+    <div class="alert alert-danger" id="message"></div>
 </div>
 <script src="lib/jquery/dist/jquery.min.js"></script>
-<script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="js/site.min.js"></script>
-<script src="js/error.min.js"></script>
 </body>
 </html>

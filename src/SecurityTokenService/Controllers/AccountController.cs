@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using IdentityModel;
@@ -11,7 +10,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using SecurityTokenService.Data;
@@ -32,7 +30,6 @@ namespace SecurityTokenService.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly SecurityTokenServiceOptions _options;
 
-        
         public AccountController(IIdentityServerInteractionService interaction, IEventService events,
             SecurityTokenServiceDbContext dbContext,
             IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
@@ -68,7 +65,7 @@ namespace SecurityTokenService.Controllers
 
                         return new ObjectResult(new ApiResult
                         {
-                            Code = Errors.NativeClientIsNotSupported,
+                            Code = Errors.IdentityNativeClientIsNotSupported,
                         });
                     }
 
@@ -91,25 +88,14 @@ namespace SecurityTokenService.Controllers
 
             if (ModelState.IsValid)
             {
-                // TODO: cache this sql
-                var storeObjectIdentifier = StoreObjectIdentifier.SqlQuery(_dbContext.Users.EntityType);
-                var name = _dbContext.Users.EntityType.GetProperty("UserName").GetColumnName(in storeObjectIdentifier);
-                var email = _dbContext.Users.EntityType.GetProperty("Email").GetColumnName(in storeObjectIdentifier);
-                var phone = _dbContext.Users.EntityType.GetProperty("PhoneNumber")
-                    .GetColumnName(in storeObjectIdentifier);
-
-                var sql = string.IsNullOrEmpty(_identityExtensionOptions.SoftDeleteColumn)
-                    ? $"SELECT * FROM {_dbContext.Users.EntityType.GetTableName()} WHERE {name} = @Name OR {email} = @Name OR {phone} = @Name LIMIT 1"
-                    : $"SELECT * FROM {_dbContext.Users.EntityType.GetTableName()} WHERE ({name} = @Name OR {email} = @Name OR {phone} = @Name) AND {_identityExtensionOptions.SoftDeleteColumn} == false LIMIT 1";
-
-                var user = await _dbContext.Users.FromSqlRaw(sql, new NpgsqlParameter("Name", model.Username))
+                var user = await _dbContext.Users.FromSqlRaw(Constants.LoginUserQuerySql, new NpgsqlParameter("Name", model.Username))
                     .FirstOrDefaultAsync();
 
                 if (user == null)
                 {
                     return new ObjectResult(new ApiResult
                     {
-                        Code = Errors.InvalidCredentials
+                        Code = Errors.IdentityInvalidCredentials
                     });
                 }
 
@@ -128,7 +114,7 @@ namespace SecurityTokenService.Controllers
                             // return the response is for better UX for the end user.
                             return new ObjectResult(new ApiResult
                             {
-                                Code = Errors.NativeClientIsNotSupported
+                                Code = Errors.IdentityNativeClientIsNotSupported
                             });
                         }
 
@@ -171,7 +157,7 @@ namespace SecurityTokenService.Controllers
                 {
                     return new ObjectResult(new ApiResult
                     {
-                        Code = Errors.TwoFactorIsNotSupported,
+                        Code = Errors.IdentityTwoFactorIsNotSupported,
                     });
                 }
 
@@ -179,14 +165,14 @@ namespace SecurityTokenService.Controllers
                 {
                     return new ObjectResult(new ApiResult
                     {
-                        Code = Errors.UserIsNotAllowed,
+                        Code = Errors.IdentityUserIsNotAllowed,
                     });
                 }
                 else if (result.IsLockedOut)
                 {
                     return new ObjectResult(new ApiResult
                     {
-                        Code = Errors.UserIsLockedOut,
+                        Code = Errors.IdentityUserIsLockedOut,
                     });
                 }
                 else
@@ -195,7 +181,7 @@ namespace SecurityTokenService.Controllers
                         clientId: context?.Client.ClientId));
                     return new ObjectResult(new ApiResult
                     {
-                        Code = Errors.InvalidCredentials,
+                        Code = Errors.IdentityInvalidCredentials,
                     });
                 }
             }
@@ -270,7 +256,7 @@ namespace SecurityTokenService.Controllers
             {
                 AutomaticRedirectAfterSignOut = _options.AutomaticRedirectAfterSignOut,
                 PostLogoutRedirectUri = logout?.PostLogoutRedirectUri,
-                ClientName = string.IsNullOrEmpty(logout?.ClientName) ? logout?.ClientId : logout?.ClientName,
+                ClientName = string.IsNullOrEmpty(logout?.ClientName) ? logout?.ClientId : logout.ClientName,
                 SignOutIframeUrl = logout?.SignOutIFrameUrl,
                 LogoutId = logoutId
             };

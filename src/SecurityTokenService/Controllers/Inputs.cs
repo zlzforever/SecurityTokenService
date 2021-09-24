@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 
 namespace SecurityTokenService.Controllers
 {
@@ -11,7 +12,7 @@ namespace SecurityTokenService.Controllers
             {
                 public string Button { get; set; }
                 public IEnumerable<string> ScopesConsented { get; set; }
-                public bool RememberConsent { get; set; }
+                public string RememberConsent { get; set; }
                 public string ReturnUrl { get; set; }
                 public string Description { get; set; }
             }

@@ -1,11 +1,8 @@
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using IdentityModel;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace SecurityTokenService.Controllers
 {

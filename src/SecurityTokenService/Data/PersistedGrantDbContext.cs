@@ -1,9 +1,6 @@
 using IdentityServer4.EntityFramework.Options;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.Options;
 using SecurityTokenService.Extensions;
-using SecurityTokenService.Identity;
 
 namespace SecurityTokenService.Data
 {

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
@@ -51,46 +52,51 @@ namespace SecurityTokenService.Controllers
                     var resources = await _resourceStore.FindEnabledResourcesByScopeAsync(request.Client.AllowedScopes);
                     if (resources != null && (resources.IdentityResources.Any() || resources.ApiResources.Any()))
                     {
+                        var output = await CreateConsentOutputAsync(returnUrl, client, resources);
                         return new ObjectResult(new ApiResult
                         {
-                            Data = await CreateConsentOutputAsync(returnUrl, client, resources)
+                            Data = output
                         });
                     }
                     else
                     {
                         error = $"No scopes matching: {request.Client.AllowedScopes.Aggregate((x, y) => x + ", " + y)}";
                         _logger.LogError(error);
+                        return new ObjectResult(new ApiResult
+                        {
+                            Message = error,
+                            Code = Errors.ConsentNoScopesMatching
+                        });
                     }
                 }
                 else
                 {
                     error = $"Invalid client id: {request.Client.ClientId}";
                     _logger.LogError(error);
+                    return new ObjectResult(new ApiResult
+                    {
+                        Message = error,
+                        Code = Errors.InvalidClientId
+                    });
                 }
             }
             else
             {
                 error = $"No consent request matching request: {returnUrl}";
                 _logger.LogError(error);
+                return new ObjectResult(new ApiResult
+                {
+                    Message = error,
+                    Code = Errors.NoConsentRequestMatchingRequest
+                });
             }
-
-            return new ObjectResult(new ApiResult
-            {
-                Message = error,
-                Code = 3999
-            });
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(Inputs.V1.ConsentInput model)
         {
             // validate return url is still valid
             var request = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
-            if (request == null)
-            {
-                return Redirect("error.html?errorId=");
-            }
 
             ConsentResponse grantedConsent;
 
@@ -118,7 +124,7 @@ namespace SecurityTokenService.Controllers
 
                     grantedConsent = new ConsentResponse
                     {
-                        RememberConsent = model.RememberConsent,
+                        RememberConsent = model.RememberConsent == "on",
                         ScopesValuesConsented = scopes.ToArray(),
                         Description = model.Description
                     };
@@ -136,8 +142,7 @@ namespace SecurityTokenService.Controllers
             }
             else
             {
-                // result.ValidationError = ConsentOptions.InvalidSelectionErrorMessage;
-                return Redirect("error.html?errorId=");
+                return Redirect("~/error.html?errorId=" + Errors.ConsentInvalidSelection);
             }
 
             // communicate outcome of consent back to identityserver
@@ -152,16 +157,14 @@ namespace SecurityTokenService.Controllers
                 {
                     // if the client is PKCE then we assume it's native, so this change in how to
                     // return the response is for better UX for the end user.
-                    //todo: redirect
-                    // return View("Redirect", new RedirectViewModel { RedirectUrl = result.RedirectUri });
-                    return Redirect("/redirect.html?redirectUrl=" + redirectUrl);
+                    return Redirect("~/redirect.html?redirectUrl=" + HttpUtility.UrlEncode(redirectUrl));
                 }
 
                 return Redirect(redirectUrl);
             }
 
             // 重新询问
-            return Redirect(HttpContext.Request.Path);
+            return Redirect(HttpContext.Request.Headers["Referer"]);
         }
 
         private async Task<Outputs.V1.ConsentOutput> CreateConsentOutputAsync(string returnUrl,
@@ -175,25 +178,25 @@ namespace SecurityTokenService.Controllers
                 ClientLogoUrl = client.LogoUri,
                 AllowRememberConsent = client.AllowRememberConsent,
                 IdentityScopes = resources.IdentityResources
-                    .Select(x => CreateScopeOutput(x, false)).ToArray()
+                    .Select(x => CreateIdentityResourceScopeOutput(x, true)).ToArray()
             };
 
             var scopeNames = resources.ApiResources.SelectMany(x => x.Scopes).ToHashSet();
             var apiScopes = await _resourceStore.FindApiScopesByNameAsync(scopeNames);
             vm.ResourceScopes = apiScopes.Select(x =>
-                CreateScopeOutput(x, false)).ToArray();
+                CreateApiScopeOutput(x, true)).ToArray();
             if (ConsentOptions.EnableOfflineAccess && resources.OfflineAccess)
             {
                 vm.ResourceScopes = vm.ResourceScopes.Union(new[]
                 {
-                    CreateScopeOutput(false)
+                    CreateScopeOutput(true)
                 });
             }
 
             return vm;
         }
 
-        private Outputs.V1.ScopeOutput CreateScopeOutput(IdentityResource identity, bool check)
+        private Outputs.V1.ScopeOutput CreateIdentityResourceScopeOutput(IdentityResource identity, bool check)
         {
             return new Outputs.V1.ScopeOutput
             {
@@ -206,7 +209,7 @@ namespace SecurityTokenService.Controllers
             };
         }
 
-        public Outputs.V1.ScopeOutput CreateScopeOutput(ApiScope scope, bool check)
+        public Outputs.V1.ScopeOutput CreateApiScopeOutput(ApiScope scope, bool check)
         {
             return new Outputs.V1.ScopeOutput
             {
