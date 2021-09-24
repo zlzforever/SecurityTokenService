@@ -1,0 +1,125 @@
+{
+  "identityResources": [
+    {
+      "Required": true,
+      "Name": "openid",
+      "DisplayName": "用户标识",
+      "UserClaims": [
+        "sub"
+      ]
+    },
+    {
+      "Emphasize": true,
+      "Name": "profile",
+      "DisplayName": "用户数据",
+      "Description": "您的用户数据如 (姓, 名, 邮箱 等.)",
+      "UserClaims": [
+        "name",
+        "family_name",
+        "given_name",
+        "middle_name",
+        "nickname",
+        "preferred_username",
+        "profile",
+        "picture",
+        "website",
+        "gender",
+        "birthdate",
+        "zoneinfo",
+        "locale",
+        "updated_at"
+      ]
+    },
+    {
+      "Emphasize": true,
+      "Name": "role",
+      "DisplayName": "角色",
+      "Description": "您的角色信息",
+      "UserClaims": [
+        "role"
+      ]
+    }
+  ],
+  "apiScopes": [
+    {
+      "name": "api1",
+      "displayName": "My API"
+    }
+  ],
+  "apiResources": [
+    {
+      "name": "api1",
+      "displayName": "My API",
+      "scopes": [
+        "api1"
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "ClientId": "client",
+      "ClientSecrets": [
+        {
+          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
+          "Type": "SharedSecret"
+        }
+      ],
+      "AllowedGrantTypes": [
+        "client_credentials"
+      ],
+      "AllowedScopes": [
+        "api1"
+      ]
+    },
+    {
+      "ClientId": "mvc",
+      "ClientSecrets": [
+        {
+          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
+          "Type": "SharedSecret"
+        }
+      ],
+      "AllowedGrantTypes": [
+        "authorization_code"
+      ],
+      "RequireConsent": false,
+      "RequirePkce": true,
+      "RedirectUris": [
+        "http://localhost:8002/signin-oidc"
+      ],
+      "PostLogoutRedirectUris": [
+        "http://localhost:8002/signout-callback-oidc"
+      ],
+      "AllowedScopes": [
+        "openid",
+        "profile",
+        "api1"
+      ],
+      "AllowOfflineAccess": true
+    },
+    {
+      "ClientId": "js",
+      "Client Name": "JavaScript Client",
+      "AllowedGrantTypes": [
+        "authorization_code"
+      ],
+      "RequirePkce": true,
+      "RequireConsent": true,
+      "RequireClientSecret": false,
+      "RedirectUris": [
+        "http://localhost:8003/callback.html"
+      ],
+      "PostLogoutRedirectUris": [
+        "http://localhost:8003/index.html"
+      ],
+      "AllowedCorsOrigins": [
+        "http://localhost:8003"
+      ],
+      "AllowedScopes": [
+        "openid",
+        "profile",
+        "api1"
+      ]
+    }
+  ]
+}

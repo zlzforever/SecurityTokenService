@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no"/>
+
+    <title>SecurityTokenService</title>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico"/>
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico"/>
+
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/site.min.css"/>
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="/">
+                    <span class="navbar-brand">
+                        <img src="" class="icon-banner" alt="">
+                        SecurityTokenService
+                    </span>
+            </a>
+        </div>
+
+        <ul class="nav navbar-nav" id="userNav" style="display: none">
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown"  id="user"><b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                    <li><a href="account/logout">Logout</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="container body-content">
+    <h1>Authentication cookie</h1>
+
+    <h3>Claims</h3>
+
+    <dl id="claims">
+    </dl>
+    <h3>Properties</h3>
+    <dl id="properties">
+    </dl>
+</div>
+
+<script src="lib/jquery/dist/jquery.min.js"></script>
+<script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>
