@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -65,9 +66,10 @@ namespace SecurityTokenService
                         builder.AddJsonFile(path);
                     }
 
-                    if (context.HostingEnvironment.IsProduction())
+                    var nacos = context.Configuration.GetSection("Nacos");
+                    if (nacos.GetChildren().Any())
                     {
-                        builder.AddNacosV2Configuration(context.Configuration);
+                        builder.AddNacosV2Configuration(nacos);
                     }
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
