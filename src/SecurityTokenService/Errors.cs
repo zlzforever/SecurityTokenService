@@ -12,5 +12,6 @@ namespace SecurityTokenService
         public const int ConsentNoScopesMatching = 4008;
         public const int InvalidClientId = 4009;
         public const int NoConsentRequestMatchingRequest = 4010;
+        public const int IdentityLoginFailed = 4011;
     }
 }

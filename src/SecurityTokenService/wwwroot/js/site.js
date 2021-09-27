@@ -74,6 +74,22 @@ function initError() {
             $('#message').text('选择的操作不正确')
             break;
         }
+        case "4008": {
+            $('#message').text('没有 Scope 可匹配')
+            break;
+        }
+        case "4009": {
+            $('#message').text('客户端标识出错')
+            break;
+        }
+        case "4010": {
+            $('#message').text('授权请求链接不正确')
+            break;
+        }
+        case "4011": {
+            $('#message').text('登录失败')
+            break;
+        }
     }
 }
 
@@ -273,6 +289,10 @@ function initLogin() {
                                 }
                                 case 4006: {
                                     message.text('返回地址不合法')
+                                    break;
+                                }
+                                case 4011: {
+                                    message.text('登录失败')
                                     break;
                                 }
                             }

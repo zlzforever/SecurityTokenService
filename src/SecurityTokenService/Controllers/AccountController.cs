@@ -14,11 +14,9 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 using SecurityTokenService.Data;
 using SecurityTokenService.Extensions;
-using SecurityTokenService.Identity;
 
 namespace SecurityTokenService.Controllers
 {
-    [Route("[controller]")]
     [SecurityHeaders]
     [AllowAnonymous]
     public class AccountController : ControllerBase
@@ -26,13 +24,11 @@ namespace SecurityTokenService.Controllers
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IEventService _events;
         private readonly SecurityTokenServiceDbContext _dbContext;
-        private readonly IdentityExtensionOptions _identityExtensionOptions;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly SecurityTokenServiceOptions _options;
 
         public AccountController(IIdentityServerInteractionService interaction, IEventService events,
             SecurityTokenServiceDbContext dbContext,
-            IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
             SignInManager<IdentityUser> signInManager, IOptionsMonitor<SecurityTokenServiceOptions> options)
         {
             _interaction = interaction;
@@ -40,10 +36,10 @@ namespace SecurityTokenService.Controllers
             _dbContext = dbContext;
             _signInManager = signInManager;
             _options = options.CurrentValue;
-            _identityExtensionOptions = identityExtensionOptions.CurrentValue;
         }
 
         [HttpPost("Login")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(Inputs.V1.LoginInput model)
         {
             var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
@@ -66,36 +62,39 @@ namespace SecurityTokenService.Controllers
                         return new ObjectResult(new ApiResult
                         {
                             Code = Errors.IdentityNativeClientIsNotSupported,
+                            Message = "不支持 NativeClient"
                         });
                     }
 
-                    return new ObjectResult(new ApiResult
+                    return new ObjectResult(new
                     {
                         Code = 302,
-                        Data = model.ReturnUrl
+                        Location = model.ReturnUrl
                     });
                 }
                 else
                 {
                     // since we don't have a valid context, then we just go back to the home page
-                    return new ObjectResult(new ApiResult
+                    return new ObjectResult(new
                     {
                         Code = 302,
-                        Data = "/"
+                        Location = "/"
                     });
                 }
             }
 
             if (ModelState.IsValid)
             {
-                var user = await _dbContext.Users.FromSqlRaw(Constants.LoginUserQuerySql, new NpgsqlParameter("Name", model.Username))
+                var user = await _dbContext.Users
+                    .FromSqlRaw(Constants.LoginUserQuerySql, new NpgsqlParameter("Name", model.Username))
                     .FirstOrDefaultAsync();
 
                 if (user == null)
                 {
                     return new ObjectResult(new ApiResult
                     {
-                        Code = Errors.IdentityInvalidCredentials
+                        Code = Errors.IdentityInvalidCredentials,
+                        Message = "用户名或密码不正确"
                     });
                 }
 
@@ -114,50 +113,52 @@ namespace SecurityTokenService.Controllers
                             // return the response is for better UX for the end user.
                             return new ObjectResult(new ApiResult
                             {
-                                Code = Errors.IdentityNativeClientIsNotSupported
+                                Code = Errors.IdentityNativeClientIsNotSupported,
+                                Message = "不支持 NativeClient"
                             });
                         }
 
                         // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
-                        return new ObjectResult(new ApiResult
+                        return new ObjectResult(new
                         {
                             Code = 302,
-                            Data = model.ReturnUrl
+                            Location = model.ReturnUrl
                         });
                     }
 
                     // request for a local page
                     if (Url.IsLocalUrl(model.ReturnUrl))
                     {
-                        return new ObjectResult(new ApiResult
+                        return new ObjectResult(new
                         {
                             Code = 302,
-                            Data = model.ReturnUrl
+                            Location = model.ReturnUrl
                         });
                     }
                     else if (string.IsNullOrEmpty(model.ReturnUrl))
                     {
-                        return new ObjectResult(new ApiResult
+                        return new ObjectResult(new
                         {
                             Code = 302,
-                            Data = "/"
+                            Location = "/"
                         });
                     }
                     else
                     {
-                        return new ObjectResult(new ApiResult
+                        return new ObjectResult(new
                         {
                             Code = Errors.InvalidReturnUrl,
-                            Data = "/"
+                            Location = "/error.html?errorId=" + Errors.InvalidReturnUrl
                         });
                     }
                 }
 
                 if (result.RequiresTwoFactor)
                 {
-                    return new ObjectResult(new ApiResult
+                    return new ObjectResult(new
                     {
                         Code = Errors.IdentityTwoFactorIsNotSupported,
+                        Location = "/error.html?errorId=" + Errors.IdentityTwoFactorIsNotSupported
                     });
                 }
 
@@ -189,14 +190,15 @@ namespace SecurityTokenService.Controllers
             // something went wrong, show form with error
             // var vm = await BuildLoginViewModelAsync(model);
             // return View(vm);
-            return new ObjectResult(new ApiResult
+            return new ObjectResult(new
             {
                 Code = 302,
-                Data = "/"
+                Location = "/error.html?errorId=" + Errors.IdentityLoginFailed
             });
         }
 
         [HttpGet("Logout")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout(string logoutId)
         {
             var vm = await BuildLogoutOutputAsync(logoutId);
@@ -215,7 +217,7 @@ namespace SecurityTokenService.Controllers
         }
 
         [HttpPost("Logout")]
-        public async Task<IActionResult> Logout([FromForm]Inputs.V1.LogoutInput model)
+        public async Task<IActionResult> Logout([FromForm] Inputs.V1.LogoutInput model)
         {
             // build a model so the logged out page knows what to display
             var vm = await BuildLoggedOutOutputAsync(model.LogoutId);
@@ -247,7 +249,7 @@ namespace SecurityTokenService.Controllers
             return Redirect(
                 $"~/loggedout.html?" + HttpUtility.UrlPathEncode(query));
         }
-        
+
         private async Task<Outputs.V1.LoggedOutOutput> BuildLoggedOutOutputAsync(string logoutId)
         {
             var logout = await _interaction.GetLogoutContextAsync(logoutId);

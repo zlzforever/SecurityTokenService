@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SecurityTokenService.Controllers
 {
-    [Route("[controller]")]
+    [SecurityHeaders]
     [Authorize]
     public class DiagnosticsController : ControllerBase
     {

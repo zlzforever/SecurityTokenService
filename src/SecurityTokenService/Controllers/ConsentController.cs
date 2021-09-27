@@ -13,9 +13,8 @@ using SecurityTokenService.Extensions;
 
 namespace SecurityTokenService.Controllers
 {
-    [Route("[controller]")]
-    [Authorize]
     [SecurityHeaders]
+    [Authorize]
     public class ConsentController : ControllerBase
     {
         private readonly IIdentityServerInteractionService _interaction;
@@ -93,6 +92,7 @@ namespace SecurityTokenService.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(Inputs.V1.ConsentInput model)
         {
             // validate return url is still valid
