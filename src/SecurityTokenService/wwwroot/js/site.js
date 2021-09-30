@@ -44,51 +44,58 @@ $(document).ready(() => {
 })
 
 function initError() {
-    const errorId = getQueryValue('errorId');
+    const errorId = parseInt(getQueryValue('errorId'));
+    printError(errorId);
+}
+
+function printError(errorId) {
     switch (errorId) {
-        case "4001": {
+        case 4001: {
             $('#message').text('不支持双因素认证')
             break;
         }
-        case "4002": {
+        case 4002: {
             $('#message').text('用户被禁止登录')
             break;
         }
-        case "4003": {
+        case 4003: {
             $('#message').text('用户被锁定')
             break;
         }
-        case "4004": {
+        case 4004: {
             $('#message').text('用户名或密码不正确')
             break;
         }
-        case "4005": {
+        case 4005: {
             $('#message').text('不支持 NativeClient')
             break;
         }
-        case "4006": {
+        case 4006: {
             $('#message').text('返回地址不合法')
             break;
         }
-        case "4007": {
+        case 4007: {
             $('#message').text('选择的操作不正确')
             break;
         }
-        case "4008": {
+        case 4008: {
             $('#message').text('没有 Scope 可匹配')
             break;
         }
-        case "4009": {
+        case 4009: {
             $('#message').text('客户端标识出错')
             break;
         }
-        case "4010": {
+        case 4010: {
             $('#message').text('授权请求链接不正确')
             break;
         }
-        case "4011": {
+        case 4011: {
             $('#message').text('登录失败')
             break;
+        }
+        default: {
+            $('#message').text('未知错误')
         }
     }
 }
@@ -197,7 +204,6 @@ function initDiagnostics() {
 }
 
 function initLoggedOut() {
-    debugger
     const postLogoutRedirectUri = getQueryValue('postLogoutRedirectUri');
     const clientName = getQueryValue('clientName');
     const signOutIframeUrl = getQueryValue('signOutIframeUrl');
@@ -254,54 +260,31 @@ function initLogin() {
                         // $("#login").css("display", "none");
                     },
                     success: function (res) {
+                        debugger
                         if (res.code === 301 || res.code === 302) {
-                            const url = res.data;
+                            const url = res.location;
                             if (url) {
                                 let win = window;
                                 while (win !== win.top) {
                                     win = win.top;
                                 }
-                                console.log("redirect: " + url)
                                 win.location.href = url;
                             }
                         } else if (res.code !== 200) {
                             message.show();
-                            switch (res.code) {
-                                case 4001: {
-                                    message.text('不支持双因素认证')
-                                    break;
-                                }
-                                case 4002: {
-                                    message.text('用户被禁止登录')
-                                    break;
-                                }
-                                case 4003: {
-                                    message.text('用户被锁定')
-                                    break;
-                                }
-                                case 4004: {
-                                    message.text('用户名或密码不正确')
-                                    break;
-                                }
-                                case 4005: {
-                                    message.text('不支持 NativeClient')
-                                    break;
-                                }
-                                case 4006: {
-                                    message.text('返回地址不合法')
-                                    break;
-                                }
-                                case 4011: {
-                                    message.text('登录失败')
-                                    break;
-                                }
+                            if (!res.message) {
+                                printError(res.code);
+                            } else {
+                                message.text(res.message)
                             }
                         } else {
+                            // 返回首地址
                             window.location.href = "/";
                         }
                     },
-                    error: function () {
-                        console.log('error')
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        message.show();
+                        message.text('服务器出小差')
                     }
                 });
             },
@@ -311,7 +294,6 @@ function initLogin() {
 
 function initLogout() {
     const logoutId = getQueryValue('logoutId');
-    debugger
     $("#logoutId").val(logoutId);
 }
 

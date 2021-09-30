@@ -14,6 +14,7 @@ using SecurityTokenService.Extensions;
 namespace SecurityTokenService.Controllers
 {
     [SecurityHeaders]
+    [Route("[controller]")]
     [Authorize]
     public class ConsentController : ControllerBase
     {
@@ -92,7 +93,6 @@ namespace SecurityTokenService.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(Inputs.V1.ConsentInput model)
         {
             // validate return url is still valid

@@ -16,6 +16,7 @@ ProjectSection(SolutionItems) = preProject
 	README.md = README.md
 	.gitignore = .gitignore
 	build.sh = build.sh
+	publish.sh = publish.sh
 	restart.sh = restart.sh
 EndProjectSection
 EndProject

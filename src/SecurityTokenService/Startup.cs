@@ -60,14 +60,6 @@ namespace SecurityTokenService
             // https 证书？
             builder.AddDeveloperSigningCredential();
 
-            services.AddAntiforgery(x =>
-            {
-                x.Cookie.Name = "X-CSRF-TOKEN";
-                x.HeaderName = "X-CSRF-TOKEN";
-                x.FormFieldName = "__AntiforgeryToken";
-                x.SuppressXFrameOptionsHeader = false;
-            });
-
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddScoped<SeedData>();
 

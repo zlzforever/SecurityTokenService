@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using IdentityModel;
@@ -5,6 +6,7 @@ using IdentityServer4.Events;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
+using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -19,6 +21,7 @@ namespace SecurityTokenService.Controllers
 {
     [SecurityHeaders]
     [AllowAnonymous]
+    [Route("[controller]")]
     public class AccountController : ControllerBase
     {
         private readonly IIdentityServerInteractionService _interaction;
@@ -26,20 +29,22 @@ namespace SecurityTokenService.Controllers
         private readonly SecurityTokenServiceDbContext _dbContext;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly SecurityTokenServiceOptions _options;
+        private readonly IClientStore _clientStore;
 
         public AccountController(IIdentityServerInteractionService interaction, IEventService events,
             SecurityTokenServiceDbContext dbContext,
-            SignInManager<IdentityUser> signInManager, IOptionsMonitor<SecurityTokenServiceOptions> options)
+            SignInManager<IdentityUser> signInManager, IOptionsMonitor<SecurityTokenServiceOptions> options,
+            IClientStore clientStore)
         {
             _interaction = interaction;
             _events = events;
             _dbContext = dbContext;
             _signInManager = signInManager;
+            _clientStore = clientStore;
             _options = options.CurrentValue;
         }
 
         [HttpPost("Login")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(Inputs.V1.LoginInput model)
         {
             var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
@@ -86,11 +91,14 @@ namespace SecurityTokenService.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _dbContext.Users
-                    .FromSqlRaw(Constants.LoginUserQuerySql, new NpgsqlParameter("Name", model.Username))
+                    .FromSqlRaw(Constants.LoginUserQuerySql, model.Username)
+                    .OrderBy(x => x.Id)
                     .FirstOrDefaultAsync();
 
                 if (user == null)
                 {
+                    await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
+                        clientId: context?.Client.ClientId));
                     return new ObjectResult(new ApiResult
                     {
                         Code = Errors.IdentityInvalidCredentials,
@@ -107,23 +115,21 @@ namespace SecurityTokenService.Controllers
 
                     if (context != null)
                     {
-                        if (context.IsNativeClient())
+                        if (await _clientStore.IsPkceClientAsync(context.Client.ClientId))
                         {
-                            // The client is native, so this change in how to
+                            // if the client is PKCE then we assume it's native, so this change in how to
                             // return the response is for better UX for the end user.
-                            return new ObjectResult(new ApiResult
+                            return Redirect("~/redirect.html?redirectUrl=" + HttpUtility.UrlEncode(model.ReturnUrl));
+                        }
+                        else
+                        {
+                            // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
+                            return new ObjectResult(new
                             {
-                                Code = Errors.IdentityNativeClientIsNotSupported,
-                                Message = "不支持 NativeClient"
+                                Code = 302,
+                                Location = model.ReturnUrl
                             });
                         }
-
-                        // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
-                        return new ObjectResult(new
-                        {
-                            Code = 302,
-                            Location = model.ReturnUrl
-                        });
                     }
 
                     // request for a local page
@@ -152,38 +158,40 @@ namespace SecurityTokenService.Controllers
                         });
                     }
                 }
-
-                if (result.RequiresTwoFactor)
-                {
-                    return new ObjectResult(new
-                    {
-                        Code = Errors.IdentityTwoFactorIsNotSupported,
-                        Location = "/error.html?errorId=" + Errors.IdentityTwoFactorIsNotSupported
-                    });
-                }
-
-                if (result.IsNotAllowed)
-                {
-                    return new ObjectResult(new ApiResult
-                    {
-                        Code = Errors.IdentityUserIsNotAllowed,
-                    });
-                }
-                else if (result.IsLockedOut)
-                {
-                    return new ObjectResult(new ApiResult
-                    {
-                        Code = Errors.IdentityUserIsLockedOut,
-                    });
-                }
                 else
                 {
-                    await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
-                        clientId: context?.Client.ClientId));
-                    return new ObjectResult(new ApiResult
+                    if (result.RequiresTwoFactor)
                     {
-                        Code = Errors.IdentityInvalidCredentials,
-                    });
+                        return new ObjectResult(new
+                        {
+                            Code = Errors.IdentityTwoFactorIsNotSupported,
+                            Location = "/error.html?errorId=" + Errors.IdentityTwoFactorIsNotSupported
+                        });
+                    }
+
+                    if (result.IsNotAllowed)
+                    {
+                        return new ObjectResult(new ApiResult
+                        {
+                            Code = Errors.IdentityUserIsNotAllowed,
+                        });
+                    }
+                    else if (result.IsLockedOut)
+                    {
+                        return new ObjectResult(new ApiResult
+                        {
+                            Code = Errors.IdentityUserIsLockedOut,
+                        });
+                    }
+                    else
+                    {
+                        await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
+                            clientId: context?.Client.ClientId));
+                        return new ObjectResult(new ApiResult
+                        {
+                            Code = Errors.IdentityInvalidCredentials,
+                        });
+                    }
                 }
             }
 
@@ -198,7 +206,6 @@ namespace SecurityTokenService.Controllers
         }
 
         [HttpGet("Logout")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout(string logoutId)
         {
             var vm = await BuildLogoutOutputAsync(logoutId);
