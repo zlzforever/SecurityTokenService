@@ -102,6 +102,9 @@ function printError(errorId) {
 
 function initRedirect() {
     const url = decodeURIComponent(getQueryValue('redirectUrl'));
+    if (!url) {
+        return;
+    }
     const meta = $('#meta');
     meta.attr('content', '0;url=' + url)
     meta.attr('data-url', url)

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -13,7 +14,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Npgsql;
 using SecurityTokenService.Data;
 using SecurityTokenService.Extensions;
 
@@ -119,7 +119,8 @@ namespace SecurityTokenService.Controllers
                         {
                             // if the client is PKCE then we assume it's native, so this change in how to
                             // return the response is for better UX for the end user.
-                            return Redirect("~/redirect.html?redirectUrl=" + HttpUtility.UrlEncode(model.ReturnUrl));
+                            return Redirect(
+                                $"~/redirect.html?redirectUrl={HttpUtility.UrlEncode(model.ReturnUrl)}&_t={DateTimeOffset.Now.ToUnixTimeSeconds()}");
                         }
                         else
                         {
@@ -229,7 +230,7 @@ namespace SecurityTokenService.Controllers
             // build a model so the logged out page knows what to display
             var vm = await BuildLoggedOutOutputAsync(model.LogoutId);
 
-            if (User?.Identity?.IsAuthenticated == true)
+            if (User.Identity?.IsAuthenticated == true)
             {
                 // delete local authentication cookie
                 await _signInManager.SignOutAsync();
@@ -270,22 +271,15 @@ namespace SecurityTokenService.Controllers
                 LogoutId = logoutId
             };
 
-            if (User?.Identity?.IsAuthenticated == true)
+            if (User.Identity?.IsAuthenticated == true)
             {
                 var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;
                 if (idp != null && idp != IdentityServer4.IdentityServerConstants.LocalIdentityProvider)
                 {
-                    var providerSupportsSignout = await HttpContext.GetSchemeSupportsSignOutAsync(idp);
-                    if (providerSupportsSignout)
+                    var providerSupportsSignOut = await HttpContext.GetSchemeSupportsSignOutAsync(idp);
+                    if (providerSupportsSignOut)
                     {
-                        if (vm.LogoutId == null)
-                        {
-                            // if there's no current logout context, we need to create one
-                            // this captures necessary info from the current logged in user
-                            // before we signout and redirect away to the external IdP for signout
-                            vm.LogoutId = await _interaction.CreateLogoutContextAsync();
-                        }
-
+                        vm.LogoutId ??= await _interaction.CreateLogoutContextAsync();
                         vm.ExternalAuthenticationScheme = idp;
                     }
                 }
@@ -296,10 +290,10 @@ namespace SecurityTokenService.Controllers
 
         private async Task<Outputs.V1.LogoutOutput> BuildLogoutOutputAsync(string logoutId)
         {
-            var vm = new Outputs.V1.LogoutOutput()
+            var vm = new Outputs.V1.LogoutOutput
                 { LogoutId = logoutId, ShowLogoutPrompt = _options.ShowLogoutPrompt };
 
-            if (User?.Identity?.IsAuthenticated != true)
+            if (User.Identity?.IsAuthenticated != true)
             {
                 // if the user is not authenticated, then just show logged out page
                 vm.ShowLogoutPrompt = false;
