@@ -37,14 +37,11 @@ namespace SecurityTokenService.Extensions
         public static void LoadIdentityData(this IApplicationBuilder app)
         {
             using var scope = app.ApplicationServices.CreateScope();
-
-            using var persistedGrantDbContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
-            persistedGrantDbContext.Database.Migrate();
+            var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
 
             using var securityTokenServiceDbContext =
                 scope.ServiceProvider.GetRequiredService<SecurityTokenServiceDbContext>();
 
-            var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
             if (string.Equals(configuration["Identity:SelfHost"], "true", StringComparison.InvariantCultureIgnoreCase))
             {
                 securityTokenServiceDbContext.Database.Migrate();

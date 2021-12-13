@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using IdentityServer4;
@@ -138,10 +139,15 @@ namespace SecurityTokenService.Extensions
 
         public static void LoadIdentityServerData(this IApplicationBuilder app)
         {
-            using var scope = app.ApplicationServices.CreateScope();
+            var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
+            if (string.Equals(configuration["IdentityServer:SelfHost"], "true",
+                    StringComparison.InvariantCultureIgnoreCase))
+            {
+                using var scope = app.ApplicationServices.CreateScope();
 
-            using var persistedGrantDbContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
-            persistedGrantDbContext.Database.Migrate();
+                using var persistedGrantDbContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
+                persistedGrantDbContext.Database.Migrate();
+            }
         }
     }
 }
