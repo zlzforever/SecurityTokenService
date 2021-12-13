@@ -30,7 +30,7 @@ namespace SecurityTokenService.Extensions
                 .GetRequiredService<IOptionsMonitor<IdentityExtensionOptions>>().CurrentValue;
             var sql = string.IsNullOrEmpty(identityExtensionOptions.SoftDeleteColumn)
                 ? $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE {name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}} LIMIT 1"
-                : $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE ({name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}}) AND {identityExtensionOptions.SoftDeleteColumn} == false LIMIT 1";
+                : $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE ({name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}}) AND {identityExtensionOptions.SoftDeleteColumn} != true LIMIT 1";
             Constants.LoginUserQuerySql = sql;
         }
 

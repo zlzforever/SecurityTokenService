@@ -1,4 +1,9 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:5.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:6.0
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS base
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
 RUN apt-get update && apt-get install gnupg2 curl -y
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
@@ -20,12 +25,11 @@ RUN dotnet build SecurityTokenService.csproj -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish SecurityTokenService.csproj -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 RUN rm /app/wwwroot/css/site.css
 RUN rm /app/wwwroot/js/site.js
-RUN rm /app/appsettings.Development.json
 RUN rm /app/sts.json
 RUN rm -rf /app/build 
 ENTRYPOINT ["dotnet", "SecurityTokenService.dll"]

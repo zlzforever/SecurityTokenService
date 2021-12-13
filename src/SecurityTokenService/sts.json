@@ -47,7 +47,10 @@
     },
     {
       "name": "eldc-api",
-      "displayName": "二类调查数据接口"
+      "displayName": "二类调查数据接口",
+      "userClaims": [
+        "role"
+      ]
     }
   ],
   "apiResources": [
