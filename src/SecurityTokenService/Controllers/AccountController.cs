@@ -119,8 +119,12 @@ namespace SecurityTokenService.Controllers
                         {
                             // if the client is PKCE then we assume it's native, so this change in how to
                             // return the response is for better UX for the end user.
-                            return Redirect(
-                                $"~/redirect.html?redirectUrl={HttpUtility.UrlEncode(model.ReturnUrl)}&_t={DateTimeOffset.Now.ToUnixTimeSeconds()}");
+                            return new ObjectResult(new
+                            {
+                                Code = 302,
+                                Location =
+                                    $"/redirect.html?redirectUrl={HttpUtility.UrlEncode(model.ReturnUrl)}&_t={DateTimeOffset.Now.ToUnixTimeSeconds()}"
+                            });
                         }
                         else
                         {

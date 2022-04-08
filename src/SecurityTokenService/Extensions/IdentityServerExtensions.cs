@@ -116,10 +116,12 @@ namespace SecurityTokenService.Extensions
         {
             if (configuration.GetSection("identityResources").GetChildren().Any())
             {
-                var ids = configuration.GetSection("identityResources").Get<List<IdentityResource>>();
-                var apiScopes = configuration.GetSection("apiScopes").Get<List<ApiScope>>();
-                var apiResources = configuration.GetSection("apiResources").Get<List<ApiResource>>();
-                var clients = configuration.GetSection("clients").Get<List<Client>>();
+                var ids = configuration.GetSection("identityResources").Get<List<IdentityResource>>() ??
+                          new List<IdentityResource>();
+                var apiScopes = configuration.GetSection("apiScopes").Get<List<ApiScope>>() ?? new List<ApiScope>();
+                var apiResources = configuration.GetSection("apiResources").Get<List<ApiResource>>() ??
+                                   new List<ApiResource>();
+                var clients = configuration.GetSection("clients").Get<List<Client>>() ?? new List<Client>();
                 builder.AddInMemoryIdentityResources(ids)
                     .AddInMemoryApiScopes(apiScopes)
                     .AddInMemoryApiResources(apiResources)
@@ -130,10 +132,13 @@ namespace SecurityTokenService.Extensions
                 builder.AddInMemoryIdentityResources(Default.Ids)
                     .AddInMemoryApiScopes(Default.ApiScopes)
                     .AddInMemoryApiResources(Default.Apis)
-                    .AddInMemoryClients(Default.Clients)
-                    .AddTestUsers(TestUsers.Users);
+                    .AddInMemoryClients(Default.Clients);
             }
 
+#if DEBUG
+            builder.AddTestUsers(TestUsers.Users);
+#endif
+            
             return builder;
         }
 

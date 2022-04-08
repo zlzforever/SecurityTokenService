@@ -42,36 +42,25 @@
   ],
   "apiScopes": [
     {
-      "name": "api1",
-      "displayName": "My API"
-    },
-    {
-      "name": "eldc-api",
-      "displayName": "二类调查数据接口",
-      "userClaims": [
+      "name": "cerberus-api",
+      "displayName": "通用权限系统 API",
+      "UserClaims": [
         "role"
       ]
-    }
-  ],
-  "apiResources": [
-    {
-      "name": "api1",
-      "displayName": "My API",
-      "scopes": [
-        "api1"
-      ]
     },
     {
-      "name": "eldc-api",
-      "displayName": "二类调查数据接口",
-      "scopes": [
-        "eldc-api"
+      "name": "ziranziyuanjiance-api",
+      "displayName": "GIS 服务接口",
+      "UserClaims": [
+        "role",
+        "name",
+        "email"
       ]
     }
   ],
   "clients": [
     {
-      "ClientId": "client",
+      "ClientId": "cerberus-client",
       "ClientSecrets": [
         {
           "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
@@ -82,7 +71,7 @@
         "client_credentials"
       ],
       "AllowedScopes": [
-        "api1"
+        "cerberus-access-server-api"
       ]
     },
     {
@@ -93,41 +82,15 @@
           "Type": "SharedSecret"
         }
       ],
-      "AllowedGrantTypes": [
-        "authorization_code"
-      ],
-      "RequireConsent": false,
-      "RequirePkce": true,
-      "RedirectUris": [
-        "http://localhost:8002/signin-oidc"
-      ],
-      "PostLogoutRedirectUris": [
-        "http://localhost:8002/signout-callback-oidc"
-      ],
-      "AllowedScopes": [
-        "openid",
-        "profile",
-        "api1"
-      ],
-      "AllowOfflineAccess": true
-    },
-    {
-      "ClientId": "js",
-      "Client Name": "JavaScript Client",
-      "AllowedGrantTypes": [
-        "authorization_code"
-      ],
-      "RequirePkce": true,
       "RequireConsent": true,
-      "RequireClientSecret": false,
+      "AllowedGrantTypes": [
+        "authorization_code"
+      ],
       "RedirectUris": [
-        "http://localhost:8003/callback.html"
+        "http://localhost:5002/signin-oidc"
       ],
       "PostLogoutRedirectUris": [
-        "http://localhost:8003/index.html"
-      ],
-      "AllowedCorsOrigins": [
-        "http://localhost:8003"
+        "http://localhost:5002/signout-callback-oidc"
       ],
       "AllowedScopes": [
         "openid",
@@ -136,22 +99,42 @@
       ]
     },
     {
-      "ClientId": "eldc_web",
-      "Client Name": "二类调查网页版",
+      "ClientId": "cerberus-web",
+      "AllowAccessTokensViaBrowser": true,
+      "RequireConsent": false,
+      "AllowedGrantTypes": [
+        "implicit"
+      ],
+      "RedirectUris": [
+        "http://localhost:8101/signin-oidc"
+      ],
+      "PostLogoutRedirectUris": [
+        "http://localhost:8101/signout-callback-oidc"
+      ],
+      "AllowedCorsOrigins": [
+        "http://localhost:8101"
+      ],
+      "AllowedScopes": [
+        "openid",
+        "profile",
+        "role",
+        "cerberus-api"
+      ]
+    },
+    {
+      "ClientId": "ziranziyuanjiance-web",
       "ClientSecrets": [
         {
           "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
           "Type": "SharedSecret"
         }
       ],
+      "AllowAccessTokensViaBrowser": true,
+      "RequireConsent": false,
       "AllowedGrantTypes": [
         "implicit",
         "password"
       ],
-      "AllowAccessTokensViaBrowser": true,
-      "RequirePkce": false,
-      "RequireConsent": false,
-      "RequireClientSecret": false,
       "IdentityTokenLifetime": 108000,
       "AccessTokenLifetime": 108000,
       "RedirectUris": [
@@ -166,9 +149,10 @@
       "AllowedScopes": [
         "openid",
         "profile",
-        "eldc-api",
         "role",
-        "email"
+        "email",
+        "cerberus-api",
+        "ziranziyuanjiance-api"
       ]
     }
   ]

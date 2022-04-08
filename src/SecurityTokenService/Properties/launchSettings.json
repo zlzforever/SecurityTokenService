@@ -3,8 +3,8 @@
     "SecurityTokenService": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
-      "launchBrowser": true,
-      "applicationUrl": "http://localhost:8000",
+      "launchBrowser": false,
+      "applicationUrl": "http://*:8099",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

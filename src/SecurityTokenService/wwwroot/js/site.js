@@ -234,6 +234,7 @@ function initLogin() {
     $('#button').click(function () {
         const message = $('#message');
         message.hide();
+        debugger
         $("#form").validate({
             rules: {
                 username: {
@@ -262,7 +263,7 @@ function initLogin() {
                         // $("#loading").css("display", "block"); //点击登录后显示loading，隐藏输入框
                         // $("#login").css("display", "none");
                     },
-                    success: function (res) {
+                    success: function (res, a, b) {
                         debugger
                         if (res.code === 301 || res.code === 302) {
                             const url = res.location;
