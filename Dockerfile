@@ -7,10 +7,9 @@ RUN dotnet build SecurityTokenService.csproj -c Release -o /app/build
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS final
 WORKDIR /app
 COPY --from=build /app/build .
-RUN rm /app/wwwroot/css/site.css
-RUN rm /app/wwwroot/js/site.js
-RUN rm /app/sts.json
-RUN rm -rf /app/build 
+RUN rm -rf /app/wwwroot/css/site.css
+RUN rm -rf /app/wwwroot/js/site.js
+RUN rm -rf /app/sts.json
 ENTRYPOINT ["dotnet", "SecurityTokenService.dll"]
 EXPOSE 80
 EXPOSE 443
