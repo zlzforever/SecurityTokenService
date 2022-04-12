@@ -30,7 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Update="wwwroot\*">
+        <Content Update="wwwroot\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
 
