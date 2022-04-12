@@ -116,6 +116,7 @@ namespace SecurityTokenService.Extensions
         {
             if (configuration.GetSection("identityResources").GetChildren().Any())
             {
+                Console.WriteLine("Load config from configuration");
                 var ids = configuration.GetSection("identityResources").Get<List<IdentityResource>>() ??
                           new List<IdentityResource>();
                 var apiScopes = configuration.GetSection("apiScopes").Get<List<ApiScope>>() ?? new List<ApiScope>();
@@ -138,7 +139,7 @@ namespace SecurityTokenService.Extensions
 #if DEBUG
             builder.AddTestUsers(TestUsers.Users);
 #endif
-            
+
             return builder;
         }
 
