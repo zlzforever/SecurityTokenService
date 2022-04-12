@@ -1,12 +1,13 @@
 ﻿FROM docker.io/zlzforever/dotnet-yarn:6.0 as build
 WORKDIR /app
 COPY src/SecurityTokenService ./
-RUN yarn install && ls
+RUN yarn install && ls wwwroot/js
 RUN dotnet build SecurityTokenService.csproj -c Release -o /app/build
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS final
 WORKDIR /app
 COPY --from=build /app/build .
+COPY --from=build /app/SecurityTokenService/wwwroot .
 RUN rm -rf /app/wwwroot/css/site.css
 RUN rm -rf /app/wwwroot/js/site.js
 RUN rm -rf /app/sts.json
