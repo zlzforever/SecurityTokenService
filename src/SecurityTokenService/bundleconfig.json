@@ -10,11 +10,5 @@
     "inputFiles": [
       "wwwroot/js/site.js"
     ]
-  },
-  {
-    "outputFileName": "wwwroot/js/error.min.js",
-    "inputFiles": [
-      "wwwroot/js/error.js"
-    ]
   }
 ]
