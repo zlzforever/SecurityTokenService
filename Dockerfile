@@ -1,4 +1,4 @@
-﻿FROM docker.io/zlzforever/dotnet-yarn as build
+﻿FROM docker.io/zlzforever/dotnet-yarn:6.0 as build
 WORKDIR /app
 COPY src/SecurityTokenService ./
 RUN yarn install && ls
