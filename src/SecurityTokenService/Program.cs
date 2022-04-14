@@ -41,6 +41,7 @@ namespace SecurityTokenService
 
             try
             {
+                Log.Information("Version 1.0.1");
                 Log.Information("Starting host...");
                 CreateHostBuilder(args).Build().Run();
                 return 0;
