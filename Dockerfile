@@ -12,5 +12,6 @@ RUN rm -rf /app/wwwroot/css/site.css
 RUN rm -rf /app/wwwroot/js/site.js
 RUN rm -rf /app/sts.json
 ENTRYPOINT ["dotnet", "SecurityTokenService.dll"]
+ENV LANG zh_CN.UTF-8
 EXPOSE 80
 EXPOSE 443
