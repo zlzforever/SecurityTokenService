@@ -17,7 +17,10 @@ namespace SecurityTokenService.Controllers
             {
                 Code = 200,
                 Data = HttpContext.User.Claims.Where(x => x.Type != "AspNet.Identity.SecurityStamp")
-                    .ToDictionary(x => x.Type, x => x.Value)
+                    .Select(x => new
+                    {
+                        x.Type, x.Value
+                    })
             });
             return ValueTask.FromResult(a);
         }

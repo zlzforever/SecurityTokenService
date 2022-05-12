@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace SecurityTokenService.Data.Migrations
+namespace SecurityTokenService.Data.PostgreSql
 {
     public partial class SecurityTokenServiceInit : Migration
     {

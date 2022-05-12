@@ -14,6 +14,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SecurityTokenService.Data;
+using SecurityTokenService.Data.MySql;
+using SecurityTokenService.Data.PostgreSql;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 
@@ -31,30 +33,45 @@ namespace SecurityTokenService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
-
-            ConfigureDbContext(services);
-
-            services.AddIdentity<IdentityUser, IdentityRole>()
-                .AddDefaultTokenProviders()
-                .AddErrorDescriber<SecurityTokenServiceIdentityErrorDescriber>()
-                .AddEntityFrameworkStores<SecurityTokenServiceDbContext>();
-
             var keysFolder = new DirectoryInfo("KEYS");
             if (!keysFolder.Exists)
             {
                 keysFolder.Create();
+            }
+  
+            services.AddControllers();
+
+            ConfigureDbContext(services);
+
+            var identityBuilder = services.AddIdentity<IdentityUser, IdentityRole>();
+            identityBuilder.AddDefaultTokenProviders()
+                .AddErrorDescriber<SecurityTokenServiceIdentityErrorDescriber>();
+
+            if (Configuration["Database"] == "MySql")
+            {
+                identityBuilder.AddEntityFrameworkStores<MySqlSecurityTokenServiceDbContext>();
+            }
+            else
+            {
+                identityBuilder.AddEntityFrameworkStores<PostgreSqlSecurityTokenServiceDbContext>();
+            }
+
+            var builder = services.AddIdentityServer()
+                .AddStore(Configuration)
+                .AddAspNetIdentity<IdentityUser>();
+            if (Configuration["Database"] == "MySql")
+            {
+                builder.AddOperationalStore<MySqlPersistedGrantDbContext>();
+            }
+            else
+            {
+                builder.AddOperationalStore<PostgreSqlPersistedGrantDbContext>();
             }
 
             // 影响隐私数据加密、AntiToken 加解密
             services.AddDataProtection().SetApplicationName("SecurityTokenService")
                 .PersistKeysToFileSystem(keysFolder)
                 .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
-
-            var builder = services.AddIdentityServer()
-                .AddStore(Configuration)
-                .AddOperationalStore<PersistedGrantDbContext>()
-                .AddAspNetIdentity<IdentityUser>();
 
             // not recommended for production - you need to store your key material somewhere secure
             // https 证书？
@@ -116,24 +133,49 @@ namespace SecurityTokenService
 
         private void ConfigureDbContext(IServiceCollection services)
         {
-            services.AddDbContextPool<SecurityTokenServiceDbContext>(b =>
+            var connectionString = Configuration.GetConnectionString("Identity");
+            if (Configuration["Database"] == "MySql")
             {
-                b.UseNpgsql(Configuration.GetConnectionString("Identity"),
-                    o =>
-                    {
-                        o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
-                        o.MigrationsHistoryTable("_identity_migrations_history");
-                    });
-            });
-            services.AddDbContext<PersistedGrantDbContext>(b =>
+                services.AddDbContextPool<MySqlSecurityTokenServiceDbContext>(b =>
+                {
+                    b.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString),
+                        o =>
+                        {
+                            o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
+                            o.MigrationsHistoryTable("_identity_migrations_history");
+                        });
+                });
+                services.AddDbContext<MySqlPersistedGrantDbContext>(b =>
+                {
+                    b.UseNpgsql(Configuration.GetConnectionString("IdentityServer"),
+                        o =>
+                        {
+                            o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
+                            o.MigrationsHistoryTable("_identity_server_migrations_history");
+                        });
+                });
+            }
+            else
             {
-                b.UseNpgsql(Configuration.GetConnectionString("IdentityServer"),
-                    o =>
-                    {
-                        o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
-                        o.MigrationsHistoryTable("_identity_server_migrations_history");
-                    });
-            });
+                services.AddDbContextPool<PostgreSqlSecurityTokenServiceDbContext>(b =>
+                {
+                    b.UseNpgsql(Configuration.GetConnectionString("Identity"),
+                        o =>
+                        {
+                            o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
+                            o.MigrationsHistoryTable("_identity_migrations_history");
+                        });
+                });
+                services.AddDbContext<PostgreSqlPersistedGrantDbContext>(b =>
+                {
+                    b.UseNpgsql(Configuration.GetConnectionString("IdentityServer"),
+                        o =>
+                        {
+                            o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
+                            o.MigrationsHistoryTable("_identity_server_migrations_history");
+                        });
+                });
+            }
         }
     }
 }

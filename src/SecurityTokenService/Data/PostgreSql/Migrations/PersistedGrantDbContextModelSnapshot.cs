@@ -5,10 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SecurityTokenService.Data;
+using SecurityTokenService.Data.PostgreSql;
 
 namespace SecurityTokenService.Data.Migrations
 {
-    [DbContext(typeof(PersistedGrantDbContext))]
+    [DbContext(typeof(PostgreSqlPersistedGrantDbContext))]
     partial class PersistedGrantDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

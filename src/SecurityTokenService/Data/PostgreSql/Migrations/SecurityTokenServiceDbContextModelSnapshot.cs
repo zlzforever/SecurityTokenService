@@ -2,18 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SecurityTokenService.Data;
+using SecurityTokenService.Data.PostgreSql;
 
 namespace SecurityTokenService.Data.Migrations
 {
-    [DbContext(typeof(SecurityTokenServiceDbContext))]
-    [Migration("20210923145138_SecurityTokenServiceInit")]
-    partial class SecurityTokenServiceInit
+    [DbContext(typeof(PostgreSqlSecurityTokenServiceDbContext))]
+    partial class SecurityTokenServiceDbContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

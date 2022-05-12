@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using IdentityModel;
@@ -11,11 +10,12 @@ using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using SecurityTokenService.Data;
 using SecurityTokenService.Extensions;
+using SecurityTokenService.Identity;
 
 namespace SecurityTokenService.Controllers
 {
@@ -26,22 +26,29 @@ namespace SecurityTokenService.Controllers
     {
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IEventService _events;
-        private readonly SecurityTokenServiceDbContext _dbContext;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly SecurityTokenServiceOptions _options;
         private readonly IClientStore _clientStore;
+        private readonly IdentityExtensionOptions _identityExtensionOptions;
+
+        private IUserStore<IdentityUser> _userStore;
+        // private readonly IdentityUserContext<IdentityUser, string, IdentityUserClaim<string>, IdentityUserLogin<string>,
+        //     IdentityUserToken<string>> _dbContext;
 
         public AccountController(IIdentityServerInteractionService interaction, IEventService events,
-            SecurityTokenServiceDbContext dbContext,
             SignInManager<IdentityUser> signInManager, IOptionsMonitor<SecurityTokenServiceOptions> options,
-            IClientStore clientStore)
+            IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
+            IClientStore clientStore, IUserStore<IdentityUser> userStore)
         {
             _interaction = interaction;
             _events = events;
-            _dbContext = dbContext;
+
             _signInManager = signInManager;
             _clientStore = clientStore;
+            _userStore = userStore;
+
             _options = options.CurrentValue;
+            _identityExtensionOptions = identityExtensionOptions.CurrentValue;
         }
 
         [HttpPost("Login")]
@@ -90,10 +97,27 @@ namespace SecurityTokenService.Controllers
 
             if (ModelState.IsValid)
             {
-                var user = await _dbContext.Users
-                    .FromSqlRaw(Constants.LoginUserQuerySql, model.Username)
-                    .OrderBy(x => x.Id)
-                    .FirstOrDefaultAsync();
+                // var sql = string.IsNullOrEmpty(identityExtensionOptions.SoftDeleteColumn)
+                //     ? $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE {name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}} LIMIT 1"
+                //     : $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE ({name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}}) AND {identityExtensionOptions.SoftDeleteColumn} != true LIMIT 1";
+                IdentityUser user;
+ 
+                DbContext dbContext = ((dynamic)_userStore).Context;
+                if (string.IsNullOrWhiteSpace(_identityExtensionOptions.SoftDeleteColumn))
+                {
+                    user = await dbContext.Set<IdentityUser>()
+                        .FirstOrDefaultAsync(x =>
+                            x.UserName == model.Username || x.Email == model.Username ||
+                            x.PhoneNumber == model.Username);
+                }
+                else
+                {
+                    user = await dbContext.Set<IdentityUser>()
+                        .FirstOrDefaultAsync(x =>
+                            EF.Property<bool>(x, _identityExtensionOptions.SoftDeleteColumn) == false &&
+                            (x.UserName == model.Username || x.Email == model.Username ||
+                             x.PhoneNumber == model.Username));
+                }
 
                 if (user == null)
                 {

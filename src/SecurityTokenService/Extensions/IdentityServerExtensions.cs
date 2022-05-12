@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SecurityTokenService.Data;
+using SecurityTokenService.Data.MySql;
+using SecurityTokenService.Data.PostgreSql;
 using SecurityTokenService.Identity;
 
 namespace SecurityTokenService.Extensions
@@ -150,9 +152,18 @@ namespace SecurityTokenService.Extensions
                     StringComparison.InvariantCultureIgnoreCase))
             {
                 using var scope = app.ApplicationServices.CreateScope();
-
-                using var persistedGrantDbContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
-                persistedGrantDbContext.Database.Migrate();
+                if (configuration["Database"] == "MySql")
+                {
+                    using var persistedGrantDbContext =
+                        scope.ServiceProvider.GetRequiredService<MySqlPersistedGrantDbContext>();
+                    persistedGrantDbContext.Database.Migrate();
+                }
+                else
+                {
+                    using var persistedGrantDbContext =
+                        scope.ServiceProvider.GetRequiredService<PostgreSqlPersistedGrantDbContext>();
+                    persistedGrantDbContext.Database.Migrate();
+                }
             }
         }
     }

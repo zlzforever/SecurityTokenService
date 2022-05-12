@@ -5,21 +5,24 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using SecurityTokenService.Data;
+using SecurityTokenService.Data.MySql;
 
-namespace SecurityTokenService.Data.Migrations
+#nullable disable
+
+namespace SecurityTokenService.Data.MySql.Migrations
 {
-    [DbContext(typeof(PersistedGrantDbContext))]
-    [Migration("20210923145146_PersistedGrantInit")]
+    [DbContext(typeof(MySqlPersistedGrantDbContext))]
+    [Migration("20220510151943_PersistedGrantInit")]
     partial class PersistedGrantInit
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 63)
-                .HasAnnotation("ProductVersion", "5.0.10")
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                .HasAnnotation("ProductVersion", "6.0.5")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.DeviceFlowCodes", b =>
                 {
@@ -35,7 +38,7 @@ namespace SecurityTokenService.Data.Migrations
                         .HasColumnName("client_id");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<string>("Data")
@@ -57,7 +60,7 @@ namespace SecurityTokenService.Data.Migrations
 
                     b.Property<DateTime?>("Expiration")
                         .IsRequired()
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("expiration");
 
                     b.Property<string>("SessionId")
@@ -77,7 +80,7 @@ namespace SecurityTokenService.Data.Migrations
 
                     b.HasIndex("Expiration");
 
-                    b.ToTable("sts_device_codes");
+                    b.ToTable("cerberus_device_codes", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.PersistedGrant", b =>
@@ -94,11 +97,11 @@ namespace SecurityTokenService.Data.Migrations
                         .HasColumnName("client_id");
 
                     b.Property<DateTime?>("ConsumedTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("consumed_time");
 
                     b.Property<DateTime>("CreationTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("creation_time");
 
                     b.Property<string>("Data")
@@ -113,7 +116,7 @@ namespace SecurityTokenService.Data.Migrations
                         .HasColumnName("description");
 
                     b.Property<DateTime?>("Expiration")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("expiration");
 
                     b.Property<string>("SessionId")
@@ -140,7 +143,7 @@ namespace SecurityTokenService.Data.Migrations
 
                     b.HasIndex("SubjectId", "SessionId", "Type");
 
-                    b.ToTable("sts_persisted_grants");
+                    b.ToTable("cerberus_persisted_grants", (string)null);
                 });
 #pragma warning restore 612, 618
         }
