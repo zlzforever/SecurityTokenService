@@ -38,7 +38,7 @@ namespace SecurityTokenService
             {
                 keysFolder.Create();
             }
-  
+
             services.AddControllers();
 
             ConfigureDbContext(services);
@@ -104,7 +104,6 @@ namespace SecurityTokenService
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.LoadIdentityData();
-            app.LoadUserQuerySql();
             app.LoadIdentityServerData();
 
             if (env.IsDevelopment())
@@ -142,7 +141,7 @@ namespace SecurityTokenService
                         o =>
                         {
                             o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
-                            o.MigrationsHistoryTable("_identity_migrations_history");
+                            o.MigrationsHistoryTable("___identity_migrations_history");
                         });
                 });
                 services.AddDbContext<MySqlPersistedGrantDbContext>(b =>
@@ -151,7 +150,7 @@ namespace SecurityTokenService
                         o =>
                         {
                             o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
-                            o.MigrationsHistoryTable("_identity_server_migrations_history");
+                            o.MigrationsHistoryTable("___identity_server_migrations_history");
                         });
                 });
             }
@@ -163,7 +162,7 @@ namespace SecurityTokenService
                         o =>
                         {
                             o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
-                            o.MigrationsHistoryTable("_identity_migrations_history");
+                            o.MigrationsHistoryTable("___identity_migrations_history");
                         });
                 });
                 services.AddDbContext<PostgreSqlPersistedGrantDbContext>(b =>
@@ -172,7 +171,7 @@ namespace SecurityTokenService
                         o =>
                         {
                             o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
-                            o.MigrationsHistoryTable("_identity_server_migrations_history");
+                            o.MigrationsHistoryTable("___identity_server_migrations_history");
                         });
                 });
             }

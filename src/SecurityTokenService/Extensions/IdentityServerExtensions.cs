@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SecurityTokenService.Data;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
 using SecurityTokenService.Identity;
@@ -16,22 +15,22 @@ namespace SecurityTokenService.Extensions
 {
     public static class IdentityServerExtensions
     {
-        class Config
-        {
-            public List<ApiScope> ApiScopes { get; set; }
-
-            // ReSharper disable once CollectionNeverUpdated.Local
-            // ReSharper disable once UnusedAutoPropertyAccessor.Local
-            public List<ApiResource> ApiResources { get; set; }
-
-            // ReSharper disable once CollectionNeverUpdated.Local
-            // ReSharper disable once UnusedAutoPropertyAccessor.Local
-            public List<Client> Clients { get; set; }
-
-            // ReSharper disable once CollectionNeverUpdated.Local
-            // ReSharper disable once UnusedAutoPropertyAccessor.Local
-            public List<IdentityResource> IdentityResources { get; set; }
-        }
+        // class Config
+        // {
+        //     public List<ApiScope> ApiScopes { get; set; }
+        //
+        //     // ReSharper disable once CollectionNeverUpdated.Local
+        //     // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        //     public List<ApiResource> ApiResources { get; set; }
+        //
+        //     // ReSharper disable once CollectionNeverUpdated.Local
+        //     // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        //     public List<Client> Clients { get; set; }
+        //
+        //     // ReSharper disable once CollectionNeverUpdated.Local
+        //     // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        //     public List<IdentityResource> IdentityResources { get; set; }
+        // }
 
         private static class Default
         {
@@ -148,22 +147,18 @@ namespace SecurityTokenService.Extensions
         public static void LoadIdentityServerData(this IApplicationBuilder app)
         {
             var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
-            if (string.Equals(configuration["IdentityServer:SelfHost"], "true",
-                    StringComparison.InvariantCultureIgnoreCase))
+            using var scope = app.ApplicationServices.CreateScope();
+            if (configuration["Database"] == "MySql")
             {
-                using var scope = app.ApplicationServices.CreateScope();
-                if (configuration["Database"] == "MySql")
-                {
-                    using var persistedGrantDbContext =
-                        scope.ServiceProvider.GetRequiredService<MySqlPersistedGrantDbContext>();
-                    persistedGrantDbContext.Database.Migrate();
-                }
-                else
-                {
-                    using var persistedGrantDbContext =
-                        scope.ServiceProvider.GetRequiredService<PostgreSqlPersistedGrantDbContext>();
-                    persistedGrantDbContext.Database.Migrate();
-                }
+                using var persistedGrantDbContext =
+                    scope.ServiceProvider.GetRequiredService<MySqlPersistedGrantDbContext>();
+                persistedGrantDbContext.Database.Migrate();
+            }
+            else
+            {
+                using var persistedGrantDbContext =
+                    scope.ServiceProvider.GetRequiredService<PostgreSqlPersistedGrantDbContext>();
+                persistedGrantDbContext.Database.Migrate();
             }
         }
     }

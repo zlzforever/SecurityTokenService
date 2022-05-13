@@ -1,13 +1,15 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+
 namespace SecurityTokenService.Identity
 {
-    public class IdentityExtensionOptions
+    public sealed class IdentityExtensionOptions
     {
         public string SoftDeleteColumn { get; set; }
         public Tables Tables { get; set; }
         public string TablePrefix { get; set; }
     }
 
-    public class Tables
+    public sealed class Tables
     {
         public string User { get; set; }
         public string Role { get; set; }

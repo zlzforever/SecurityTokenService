@@ -10,7 +10,6 @@ using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -30,22 +29,19 @@ namespace SecurityTokenService.Controllers
         private readonly SecurityTokenServiceOptions _options;
         private readonly IClientStore _clientStore;
         private readonly IdentityExtensionOptions _identityExtensionOptions;
-
-        private IUserStore<IdentityUser> _userStore;
-        // private readonly IdentityUserContext<IdentityUser, string, IdentityUserClaim<string>, IdentityUserLogin<string>,
-        //     IdentityUserToken<string>> _dbContext;
+        private readonly UserManager<IdentityUser> _userManager;
 
         public AccountController(IIdentityServerInteractionService interaction, IEventService events,
             SignInManager<IdentityUser> signInManager, IOptionsMonitor<SecurityTokenServiceOptions> options,
             IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
-            IClientStore clientStore, IUserStore<IdentityUser> userStore)
+            IClientStore clientStore, UserManager<IdentityUser> userManager)
         {
             _interaction = interaction;
             _events = events;
 
             _signInManager = signInManager;
             _clientStore = clientStore;
-            _userStore = userStore;
+            _userManager = userManager;
 
             _options = options.CurrentValue;
             _identityExtensionOptions = identityExtensionOptions.CurrentValue;
@@ -95,143 +91,142 @@ namespace SecurityTokenService.Controllers
                 }
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                // var sql = string.IsNullOrEmpty(identityExtensionOptions.SoftDeleteColumn)
-                //     ? $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE {name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}} LIMIT 1"
-                //     : $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE ({name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}}) AND {identityExtensionOptions.SoftDeleteColumn} != true LIMIT 1";
-                IdentityUser user;
- 
-                DbContext dbContext = ((dynamic)_userStore).Context;
-                if (string.IsNullOrWhiteSpace(_identityExtensionOptions.SoftDeleteColumn))
+                return new ObjectResult(new
                 {
-                    user = await dbContext.Set<IdentityUser>()
-                        .FirstOrDefaultAsync(x =>
-                            x.UserName == model.Username || x.Email == model.Username ||
-                            x.PhoneNumber == model.Username);
-                }
-                else
-                {
-                    user = await dbContext.Set<IdentityUser>()
-                        .FirstOrDefaultAsync(x =>
-                            EF.Property<bool>(x, _identityExtensionOptions.SoftDeleteColumn) == false &&
-                            (x.UserName == model.Username || x.Email == model.Username ||
-                             x.PhoneNumber == model.Username));
-                }
+                    Code = 302,
+                    Location = "/error.html?errorId=" + Errors.IdentityLoginFailed
+                });
+            }
 
-                if (user == null)
+            // var sql = string.IsNullOrEmpty(identityExtensionOptions.SoftDeleteColumn)
+            //     ? $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE {name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}} LIMIT 1"
+            //     : $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE ({name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}}) AND {identityExtensionOptions.SoftDeleteColumn} != true LIMIT 1";
+            IdentityUser user;
+
+            if (string.IsNullOrWhiteSpace(_identityExtensionOptions.SoftDeleteColumn))
+            {
+                user = await _userManager.Users.FirstOrDefaultAsync(x =>
+                    x.UserName == model.Username || x.Email == model.Username ||
+                    x.PhoneNumber == model.Username);
+            }
+            else
+            {
+                user = await _userManager.Users
+                    .FirstOrDefaultAsync(x =>
+                        EF.Property<bool>(x, _identityExtensionOptions.SoftDeleteColumn) == false &&
+                        (x.UserName == model.Username || x.Email == model.Username ||
+                         x.PhoneNumber == model.Username));
+            }
+
+            if (user == null)
+            {
+                await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
+                    clientId: context?.Client.ClientId));
+                return new ObjectResult(new ApiResult
                 {
-                    await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
-                        clientId: context?.Client.ClientId));
-                    return new ObjectResult(new ApiResult
+                    Code = Errors.IdentityInvalidCredentials,
+                    Message = "用户名或密码不正确"
+                });
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password,
+                model.RememberLogin, false);
+            if (result.Succeeded)
+            {
+                await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
+                    clientId: context?.Client.ClientId));
+
+                if (context != null)
+                {
+                    if (await _clientStore.IsPkceClientAsync(context.Client.ClientId))
                     {
-                        Code = Errors.IdentityInvalidCredentials,
-                        Message = "用户名或密码不正确"
-                    });
-                }
-
-                var result = await _signInManager.PasswordSignInAsync(user, model.Password,
-                    model.RememberLogin, false);
-                if (result.Succeeded)
-                {
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
-                        clientId: context?.Client.ClientId));
-
-                    if (context != null)
-                    {
-                        if (await _clientStore.IsPkceClientAsync(context.Client.ClientId))
+                        // if the client is PKCE then we assume it's native, so this change in how to
+                        // return the response is for better UX for the end user.
+                        return new ObjectResult(new
                         {
-                            // if the client is PKCE then we assume it's native, so this change in how to
-                            // return the response is for better UX for the end user.
-                            return new ObjectResult(new
-                            {
-                                Code = 302,
-                                Location =
-                                    $"/redirect.html?redirectUrl={HttpUtility.UrlEncode(model.ReturnUrl)}&_t={DateTimeOffset.Now.ToUnixTimeSeconds()}"
-                            });
-                        }
-                        else
-                        {
-                            // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
-                            return new ObjectResult(new
-                            {
-                                Code = 302,
-                                Location = model.ReturnUrl
-                            });
-                        }
+                            Code = 302,
+                            Location =
+                                $"/redirect.html?redirectUrl={HttpUtility.UrlEncode(model.ReturnUrl)}&_t={DateTimeOffset.Now.ToUnixTimeSeconds()}"
+                        });
                     }
-
-                    // request for a local page
-                    if (Url.IsLocalUrl(model.ReturnUrl))
+                    else
                     {
+                        // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
                         return new ObjectResult(new
                         {
                             Code = 302,
                             Location = model.ReturnUrl
                         });
                     }
-                    else if (string.IsNullOrEmpty(model.ReturnUrl))
+                }
+
+                // request for a local page
+                if (Url.IsLocalUrl(model.ReturnUrl))
+                {
+                    return new ObjectResult(new
                     {
-                        return new ObjectResult(new
-                        {
-                            Code = 302,
-                            Location = "/"
-                        });
-                    }
-                    else
+                        Code = 302,
+                        Location = model.ReturnUrl
+                    });
+                }
+                else if (string.IsNullOrEmpty(model.ReturnUrl))
+                {
+                    return new ObjectResult(new
                     {
-                        return new ObjectResult(new
-                        {
-                            Code = Errors.InvalidReturnUrl,
-                            Location = "/error.html?errorId=" + Errors.InvalidReturnUrl
-                        });
-                    }
+                        Code = 302,
+                        Location = "/"
+                    });
                 }
                 else
                 {
-                    if (result.RequiresTwoFactor)
+                    return new ObjectResult(new
                     {
-                        return new ObjectResult(new
-                        {
-                            Code = Errors.IdentityTwoFactorIsNotSupported,
-                            Location = "/error.html?errorId=" + Errors.IdentityTwoFactorIsNotSupported
-                        });
-                    }
+                        Code = Errors.InvalidReturnUrl,
+                        Location = "/error.html?errorId=" + Errors.InvalidReturnUrl
+                    });
+                }
+            }
+            else
+            {
+                if (result.RequiresTwoFactor)
+                {
+                    return new ObjectResult(new
+                    {
+                        Code = Errors.IdentityTwoFactorIsNotSupported,
+                        Location = "/error.html?errorId=" + Errors.IdentityTwoFactorIsNotSupported
+                    });
+                }
 
-                    if (result.IsNotAllowed)
+                if (result.IsNotAllowed)
+                {
+                    return new ObjectResult(new ApiResult
                     {
-                        return new ObjectResult(new ApiResult
-                        {
-                            Code = Errors.IdentityUserIsNotAllowed,
-                        });
-                    }
-                    else if (result.IsLockedOut)
+                        Code = Errors.IdentityUserIsNotAllowed,
+                    });
+                }
+                else if (result.IsLockedOut)
+                {
+                    return new ObjectResult(new ApiResult
                     {
-                        return new ObjectResult(new ApiResult
-                        {
-                            Code = Errors.IdentityUserIsLockedOut,
-                        });
-                    }
-                    else
+                        Code = Errors.IdentityUserIsLockedOut,
+                    });
+                }
+                else
+                {
+                    await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
+                        clientId: context?.Client.ClientId));
+                    return new ObjectResult(new ApiResult
                     {
-                        await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
-                            clientId: context?.Client.ClientId));
-                        return new ObjectResult(new ApiResult
-                        {
-                            Code = Errors.IdentityInvalidCredentials,
-                        });
-                    }
+                        Code = Errors.IdentityInvalidCredentials,
+                    });
                 }
             }
 
             // something went wrong, show form with error
             // var vm = await BuildLoginViewModelAsync(model);
             // return View(vm);
-            return new ObjectResult(new
-            {
-                Code = 302,
-                Location = "/error.html?errorId=" + Errors.IdentityLoginFailed
-            });
         }
 
         [HttpGet("Logout")]
@@ -299,19 +294,25 @@ namespace SecurityTokenService.Controllers
                 LogoutId = logoutId
             };
 
-            if (User.Identity?.IsAuthenticated == true)
+            if (User.Identity?.IsAuthenticated != true)
             {
-                var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;
-                if (idp != null && idp != IdentityServer4.IdentityServerConstants.LocalIdentityProvider)
-                {
-                    var providerSupportsSignOut = await HttpContext.GetSchemeSupportsSignOutAsync(idp);
-                    if (providerSupportsSignOut)
-                    {
-                        vm.LogoutId ??= await _interaction.CreateLogoutContextAsync();
-                        vm.ExternalAuthenticationScheme = idp;
-                    }
-                }
+                return vm;
             }
+
+            var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;
+            if (idp is null or IdentityServer4.IdentityServerConstants.LocalIdentityProvider)
+            {
+                return vm;
+            }
+
+            var providerSupportsSignOut = await HttpContext.GetSchemeSupportsSignOutAsync(idp);
+            if (!providerSupportsSignOut)
+            {
+                return vm;
+            }
+
+            vm.LogoutId ??= await _interaction.CreateLogoutContextAsync();
+            vm.ExternalAuthenticationScheme = idp;
 
             return vm;
         }
@@ -329,16 +330,17 @@ namespace SecurityTokenService.Controllers
             }
 
             var context = await _interaction.GetLogoutContextAsync(logoutId);
-            if (context?.ShowSignoutPrompt == false)
+            if (context?.ShowSignoutPrompt != false)
             {
-                // it's safe to automatically sign-out
-                vm.ShowLogoutPrompt = false;
                 return vm;
             }
 
+            // it's safe to automatically sign-out
+            vm.ShowLogoutPrompt = false;
+            return vm;
+
             // show the logout prompt. this prevents attacks where the user
             // is automatically signed out by another malicious web page.
-            return vm;
         }
     }
 }

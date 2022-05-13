@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Linq;
 using EFCore.NamingConventions.Internal;
@@ -56,6 +57,10 @@ namespace SecurityTokenService.Extensions
                 }
 
                 var tableName = entity.GetTableName();
+                if (string.IsNullOrWhiteSpace(tableName))
+                {
+                    throw new ArgumentNullException($"The table name of entity {entity.BaseType} is null/empty");
+                }
 
                 if (tableName.Any(char.IsUpper))
                 {
@@ -66,6 +71,12 @@ namespace SecurityTokenService.Extensions
                 {
                     var storeObjectIdentifier = StoreObjectIdentifier.Create(entity, StoreObjectType.Table);
                     var propertyName = property.GetColumnName(storeObjectIdentifier.GetValueOrDefault());
+                    if (string.IsNullOrWhiteSpace(propertyName))
+                    {
+                        throw new ArgumentNullException(
+                            $"The property name of entity {entity.BaseType}, {property.DeclaringType} is null/empty");
+                    }
+
                     if (propertyName.Any(char.IsUpper))
                     {
                         property.SetColumnName(nameRewriter.RewriteName(propertyName));
