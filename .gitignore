@@ -5,6 +5,7 @@
 
 lib/
 .DS_Store
+security_token_service_out/
 
 # User-specific files
 *.rsuser
