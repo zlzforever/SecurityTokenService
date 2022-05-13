@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace SecurityTokenService.Data.MySql.Migrations
+namespace SecurityTokenService.Data.PostgreSql.Migrations
 {
     public partial class PersistedGrantInit : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "cerberus_device_codes",
+                name: "identity_server_device_codes",
                 columns: table => new
                 {
                     user_code = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
@@ -25,11 +25,11 @@ namespace SecurityTokenService.Data.MySql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_cerberus_device_codes", x => x.user_code);
+                    table.PrimaryKey("PK_identity_server_device_codes", x => x.user_code);
                 });
 
             migrationBuilder.CreateTable(
-                name: "cerberus_persisted_grants",
+                name: "identity_server_persisted_grants",
                 columns: table => new
                 {
                     key = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
@@ -45,43 +45,43 @@ namespace SecurityTokenService.Data.MySql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_cerberus_persisted_grants", x => x.key);
+                    table.PrimaryKey("PK_identity_server_persisted_grants", x => x.key);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_cerberus_device_codes_device_code",
-                table: "cerberus_device_codes",
+                name: "IX_identity_server_device_codes_device_code",
+                table: "identity_server_device_codes",
                 column: "device_code",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_cerberus_device_codes_expiration",
-                table: "cerberus_device_codes",
+                name: "IX_identity_server_device_codes_expiration",
+                table: "identity_server_device_codes",
                 column: "expiration");
 
             migrationBuilder.CreateIndex(
-                name: "IX_cerberus_persisted_grants_expiration",
-                table: "cerberus_persisted_grants",
+                name: "IX_identity_server_persisted_grants_expiration",
+                table: "identity_server_persisted_grants",
                 column: "expiration");
 
             migrationBuilder.CreateIndex(
-                name: "IX_cerberus_persisted_grants_subject_id_client_id_type",
-                table: "cerberus_persisted_grants",
+                name: "IX_identity_server_persisted_grants_subject_id_client_id_type",
+                table: "identity_server_persisted_grants",
                 columns: new[] { "subject_id", "client_id", "type" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_cerberus_persisted_grants_subject_id_session_id_type",
-                table: "cerberus_persisted_grants",
+                name: "IX_identity_server_persisted_grants_subject_id_session_id_type",
+                table: "identity_server_persisted_grants",
                 columns: new[] { "subject_id", "session_id", "type" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "cerberus_device_codes");
+                name: "identity_server_device_codes");
 
             migrationBuilder.DropTable(
-                name: "cerberus_persisted_grants");
+                name: "identity_server_persisted_grants");
         }
     }
 }

@@ -14,7 +14,7 @@ namespace SecurityTokenService.Data.MySql.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "cerberus_role",
+                name: "identity_role",
                 columns: table => new
                 {
                     id = table.Column<string>(type: "varchar(36)", maxLength: 36, nullable: false)
@@ -28,16 +28,17 @@ namespace SecurityTokenService.Data.MySql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_cerberus_role", x => x.id);
+                    table.PrimaryKey("PK_identity_role", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "cerberus_user",
+                name: "identity_user",
                 columns: table => new
                 {
                     id = table.Column<string>(type: "varchar(36)", maxLength: 36, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    is_deleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     user_name = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     normalized_user_name = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
@@ -63,12 +64,12 @@ namespace SecurityTokenService.Data.MySql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_cerberus_user", x => x.id);
+                    table.PrimaryKey("PK_identity_user", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "cerberus_role_claim",
+                name: "identity_role_claim",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "int", nullable: false)
@@ -82,18 +83,18 @@ namespace SecurityTokenService.Data.MySql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_cerberus_role_claim", x => x.id);
+                    table.PrimaryKey("PK_identity_role_claim", x => x.id);
                     table.ForeignKey(
-                        name: "FK_cerberus_role_claim_cerberus_role_role_id",
+                        name: "FK_identity_role_claim_identity_role_role_id",
                         column: x => x.role_id,
-                        principalTable: "cerberus_role",
+                        principalTable: "identity_role",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "cerberus_user_claim",
+                name: "identity_user_claim",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "int", nullable: false)
@@ -107,18 +108,18 @@ namespace SecurityTokenService.Data.MySql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_cerberus_user_claim", x => x.id);
+                    table.PrimaryKey("PK_identity_user_claim", x => x.id);
                     table.ForeignKey(
-                        name: "FK_cerberus_user_claim_cerberus_user_user_id",
+                        name: "FK_identity_user_claim_identity_user_user_id",
                         column: x => x.user_id,
-                        principalTable: "cerberus_user",
+                        principalTable: "identity_user",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "cerberus_user_login",
+                name: "identity_user_login",
                 columns: table => new
                 {
                     login_provider = table.Column<string>(type: "varchar(36)", maxLength: 36, nullable: false)
@@ -132,18 +133,18 @@ namespace SecurityTokenService.Data.MySql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_cerberus_user_login", x => new { x.login_provider, x.provider_key });
+                    table.PrimaryKey("PK_identity_user_login", x => new { x.login_provider, x.provider_key });
                     table.ForeignKey(
-                        name: "FK_cerberus_user_login_cerberus_user_user_id",
+                        name: "FK_identity_user_login_identity_user_user_id",
                         column: x => x.user_id,
-                        principalTable: "cerberus_user",
+                        principalTable: "identity_user",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "cerberus_user_role",
+                name: "identity_user_role",
                 columns: table => new
                 {
                     user_id = table.Column<string>(type: "varchar(36)", maxLength: 36, nullable: false)
@@ -153,24 +154,24 @@ namespace SecurityTokenService.Data.MySql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_cerberus_user_role", x => new { x.user_id, x.role_id });
+                    table.PrimaryKey("PK_identity_user_role", x => new { x.user_id, x.role_id });
                     table.ForeignKey(
-                        name: "FK_cerberus_user_role_cerberus_role_role_id",
+                        name: "FK_identity_user_role_identity_role_role_id",
                         column: x => x.role_id,
-                        principalTable: "cerberus_role",
+                        principalTable: "identity_role",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_cerberus_user_role_cerberus_user_user_id",
+                        name: "FK_identity_user_role_identity_user_user_id",
                         column: x => x.user_id,
-                        principalTable: "cerberus_user",
+                        principalTable: "identity_user",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "cerberus_user_token",
+                name: "identity_user_token",
                 columns: table => new
                 {
                     user_id = table.Column<string>(type: "varchar(36)", maxLength: 36, nullable: false)
@@ -184,11 +185,11 @@ namespace SecurityTokenService.Data.MySql.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_cerberus_user_token", x => new { x.user_id, x.login_provider, x.name });
+                    table.PrimaryKey("PK_identity_user_token", x => new { x.user_id, x.login_provider, x.name });
                     table.ForeignKey(
-                        name: "FK_cerberus_user_token_cerberus_user_user_id",
+                        name: "FK_identity_user_token_identity_user_user_id",
                         column: x => x.user_id,
-                        principalTable: "cerberus_user",
+                        principalTable: "identity_user",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -196,64 +197,64 @@ namespace SecurityTokenService.Data.MySql.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
-                table: "cerberus_role",
+                table: "identity_role",
                 column: "normalized_name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_cerberus_role_claim_role_id",
-                table: "cerberus_role_claim",
+                name: "IX_identity_role_claim_role_id",
+                table: "identity_role_claim",
                 column: "role_id");
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
-                table: "cerberus_user",
+                table: "identity_user",
                 column: "normalized_email");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
-                table: "cerberus_user",
+                table: "identity_user",
                 column: "normalized_user_name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_cerberus_user_claim_user_id",
-                table: "cerberus_user_claim",
+                name: "IX_identity_user_claim_user_id",
+                table: "identity_user_claim",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_cerberus_user_login_user_id",
-                table: "cerberus_user_login",
+                name: "IX_identity_user_login_user_id",
+                table: "identity_user_login",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_cerberus_user_role_role_id",
-                table: "cerberus_user_role",
+                name: "IX_identity_user_role_role_id",
+                table: "identity_user_role",
                 column: "role_id");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "cerberus_role_claim");
+                name: "identity_role_claim");
 
             migrationBuilder.DropTable(
-                name: "cerberus_user_claim");
+                name: "identity_user_claim");
 
             migrationBuilder.DropTable(
-                name: "cerberus_user_login");
+                name: "identity_user_login");
 
             migrationBuilder.DropTable(
-                name: "cerberus_user_role");
+                name: "identity_user_role");
 
             migrationBuilder.DropTable(
-                name: "cerberus_user_token");
+                name: "identity_user_token");
 
             migrationBuilder.DropTable(
-                name: "cerberus_role");
+                name: "identity_role");
 
             migrationBuilder.DropTable(
-                name: "cerberus_user");
+                name: "identity_user");
         }
     }
 }

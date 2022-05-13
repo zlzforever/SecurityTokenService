@@ -48,7 +48,7 @@ namespace SecurityTokenService.Data.MySql.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("cerberus_role", (string)null);
+                    b.ToTable("identity_role", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -78,7 +78,7 @@ namespace SecurityTokenService.Data.MySql.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("cerberus_role_claim", (string)null);
+                    b.ToTable("identity_role_claim", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
@@ -153,6 +153,9 @@ namespace SecurityTokenService.Data.MySql.Migrations
                         .HasColumnType("varchar(256)")
                         .HasColumnName("user_name");
 
+                    b.Property<bool>("is_deleted")
+                        .HasColumnType("tinyint(1)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
@@ -162,7 +165,7 @@ namespace SecurityTokenService.Data.MySql.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("cerberus_user", (string)null);
+                    b.ToTable("identity_user", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -192,7 +195,7 @@ namespace SecurityTokenService.Data.MySql.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("cerberus_user_claim", (string)null);
+                    b.ToTable("identity_user_claim", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -222,7 +225,7 @@ namespace SecurityTokenService.Data.MySql.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("cerberus_user_login", (string)null);
+                    b.ToTable("identity_user_login", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -241,7 +244,7 @@ namespace SecurityTokenService.Data.MySql.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("cerberus_user_role", (string)null);
+                    b.ToTable("identity_user_role", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -268,7 +271,7 @@ namespace SecurityTokenService.Data.MySql.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("cerberus_user_token", (string)null);
+                    b.ToTable("identity_user_token", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

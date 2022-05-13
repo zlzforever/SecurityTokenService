@@ -102,11 +102,12 @@ public static class ModelBuilderExtensions
     }
 
     public static void ConfigureDefault(this ModelBuilder builder,
-        IdentityExtensionOptions identityExtensionOptions)
+        string tablePrefix)
     {
         builder.SetDefaultStringLength();
 
-        var tablePrefix = identityExtensionOptions.TablePrefix;
+        // var tablePrefix = identityExtensionOptions.TablePrefix;
+
         if (!string.IsNullOrWhiteSpace(tablePrefix))
         {
             builder.SetTablePrefix(tablePrefix);

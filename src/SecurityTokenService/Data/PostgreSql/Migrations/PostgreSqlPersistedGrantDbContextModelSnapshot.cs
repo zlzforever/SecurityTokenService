@@ -2,20 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using SecurityTokenService.Data.MySql;
+using SecurityTokenService.Data.PostgreSql;
 
 #nullable disable
 
-namespace SecurityTokenService.Data.MySql.Migrations
+namespace SecurityTokenService.Data.PostgreSql.Migrations
 {
-    [DbContext(typeof(MySqlPersistedGrantDbContext))]
-    [Migration("20220510151943_PersistedGrantInit")]
-    partial class PersistedGrantInit
+    [DbContext(typeof(PostgreSqlPersistedGrantDbContext))]
+    partial class PostgreSqlPersistedGrantDbContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,7 +78,7 @@ namespace SecurityTokenService.Data.MySql.Migrations
 
                     b.HasIndex("Expiration");
 
-                    b.ToTable("cerberus_device_codes", (string)null);
+                    b.ToTable("identity_server_device_codes", (string)null);
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.PersistedGrant", b =>
@@ -143,7 +141,7 @@ namespace SecurityTokenService.Data.MySql.Migrations
 
                     b.HasIndex("SubjectId", "SessionId", "Type");
 
-                    b.ToTable("cerberus_persisted_grants", (string)null);
+                    b.ToTable("identity_server_persisted_grants", (string)null);
                 });
 #pragma warning restore 612, 618
         }

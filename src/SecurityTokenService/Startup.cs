@@ -18,6 +18,7 @@ using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
+using SecurityTokenService.IdentityServer;
 
 namespace SecurityTokenService
 {
@@ -83,6 +84,7 @@ namespace SecurityTokenService
             services.Configure<IdentityOptions>(Configuration.GetSection("Identity"));
             services.Configure<IdentityExtensionOptions>(Configuration.GetSection("Identity"));
             services.Configure<IdentityServerOptions>(Configuration.GetSection("IdentityServer"));
+            services.Configure<IdentityServerExtensionOptions>(Configuration.GetSection("IdentityServer"));
             services.Configure<SecurityTokenServiceOptions>(Configuration.GetSection("SecurityTokenService"));
 
             services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme,
@@ -146,7 +148,8 @@ namespace SecurityTokenService
                 });
                 services.AddDbContext<MySqlPersistedGrantDbContext>(b =>
                 {
-                    b.UseNpgsql(Configuration.GetConnectionString("IdentityServer"),
+                    b.UseMySql(Configuration.GetConnectionString("IdentityServer"),
+                        ServerVersion.AutoDetect(connectionString),
                         o =>
                         {
                             o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);

@@ -2,8 +2,7 @@ using IdentityServer4.EntityFramework.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Options;
-using SecurityTokenService.Extensions;
-using SecurityTokenService.Identity;
+using SecurityTokenService.IdentityServer;
 
 namespace SecurityTokenService.Data.PostgreSql
 {
@@ -18,8 +17,8 @@ namespace SecurityTokenService.Data.PostgreSql
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            var identityExtensionOptions = this.GetService<IOptionsMonitor<IdentityExtensionOptions>>().CurrentValue;
-            modelBuilder.ConfigureDefault(identityExtensionOptions);
+            var extensionOptions = this.GetService<IOptionsMonitor<IdentityServerExtensionOptions>>().CurrentValue;
+            modelBuilder.ConfigureDefault(extensionOptions.TablePrefix);
         }
     }
 }

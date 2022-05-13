@@ -19,7 +19,7 @@ namespace SecurityTokenService.Data.PostgreSql
 
             var identityExtensionOptions = this.GetService<IOptionsMonitor<IdentityExtensionOptions>>().CurrentValue;
             builder.ConfigureIdentity(identityExtensionOptions);
-            builder.ConfigureDefault(identityExtensionOptions);
+            builder.ConfigureDefault(identityExtensionOptions.TablePrefix);
         }
     }
 }
