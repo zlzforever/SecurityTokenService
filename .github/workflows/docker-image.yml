@@ -1,0 +1,27 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Docker Login
+      uses: docker/login-action@v2.0.0
+      with:
+        username: zlzforever
+        password: ${docker_password}
+   
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag zlzforever/security-token-service:latest
+    - name: Publish the Docker image
+      run: docker push zlzforever/security-token-service:latest      
