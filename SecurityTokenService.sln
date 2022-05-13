@@ -16,6 +16,7 @@ ProjectSection(SolutionItems) = preProject
 	LICENSE = LICENSE
 	README.md = README.md
 	.gitignore = .gitignore
+	.docker-image-ci= .github/workflows/docker-image.yml
 	build.sh = build.sh
 	publish.sh = publish.sh
 	restart.sh = restart.sh

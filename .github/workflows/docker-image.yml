@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Login docker regsitry
-      run: docker login -u zlzforever -p ${{ secrets.DOCKER_USER_PASSWORD }}    
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag zlzforever/security-token-service
-    - name: Publish the Docker image
-      run: docker push zlzforever/security-token-service      
+      - uses: actions/checkout@v3
+      - name: Login docker regsitry
+        run: docker login -u ${{ secrets.CODING_DOCKER_USER }} -p  ${{ secrets.CODING_DOCKER_USER_PASSWORD }}
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag linhecao-docker.pkg.coding.net/registry/sts/security-token-service
+      - name: Publish the Docker image
+        run: docker push linhecao-docker.pkg.coding.net/registry/sts/security-token-service     
