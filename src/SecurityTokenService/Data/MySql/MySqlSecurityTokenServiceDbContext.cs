@@ -6,7 +6,7 @@ using SecurityTokenService.Identity;
 
 namespace SecurityTokenService.Data.MySql;
 
-public class MySqlSecurityTokenServiceDbContext : IdentityDbContext
+public class MySqlSecurityTokenServiceDbContext : IdentityDbContext<User>
 {
     public MySqlSecurityTokenServiceDbContext(DbContextOptions<MySqlSecurityTokenServiceDbContext> options) :
         base(options)

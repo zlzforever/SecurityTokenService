@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using SecurityTokenService.Data;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
+using Dapper;
+using SecurityTokenService.IdentityServer;
+
 
 namespace SecurityTokenService.Extensions
 {
@@ -14,7 +17,7 @@ namespace SecurityTokenService.Extensions
         public static void LoadIdentityData(this IApplicationBuilder app)
         {
             using var scope = app.ApplicationServices.CreateScope();
-            var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
+            var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
             DbContext securityTokenServiceDbContext;
             if (configuration["Database"] == "MySql")
             {
@@ -31,6 +34,9 @@ namespace SecurityTokenService.Extensions
             {
                 securityTokenServiceDbContext.Database.Migrate();
             }
+
+            var phoneCodeStore = scope.ServiceProvider.GetService<IPhoneCodeStore>();
+            phoneCodeStore?.InitializeAsync().Wait();
 
             var seedData = scope.ServiceProvider.GetRequiredService<SeedData>();
             seedData.Load();

@@ -8,9 +8,9 @@ namespace SecurityTokenService.Data
 {
     public class SeedData
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<User> _userManager;
 
-        public SeedData(UserManager<IdentityUser> userManager)
+        public SeedData(UserManager<User> userManager)
         {
             _userManager = userManager;
         }
@@ -22,7 +22,7 @@ namespace SecurityTokenService.Data
                 foreach (var user in TestUsers.Users)
                 {
                     var result = _userManager
-                        .CreateAsync(new IdentityUser(user.Username), user.Password)
+                        .CreateAsync(new User(user.Username), user.Password)
                         .Result;
                     if (!result.Succeeded)
                     {

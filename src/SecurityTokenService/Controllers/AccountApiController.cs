@@ -29,8 +29,8 @@
 // [Route("api/v1.0/account")]
 // public class AccountApiController : Controller
 // {
-//     private readonly UserManager<IdentityUser> _userManager;
-//     private readonly SignInManager<IdentityUser> _signInManager;
+//     private readonly UserManager<User> _userManager;
+//     private readonly SignInManager<User> _signInManager;
 //
 //     public AccountApiController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
 //     {

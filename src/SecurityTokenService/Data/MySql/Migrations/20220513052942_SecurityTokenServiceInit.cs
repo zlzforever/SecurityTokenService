@@ -60,7 +60,9 @@ namespace SecurityTokenService.Data.MySql.Migrations
                     two_factor_enabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     lockout_end = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     lockout_enabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    access_failed_count = table.Column<int>(type: "int", nullable: false)
+                    access_failed_count = table.Column<int>(type: "int", nullable: false),
+                    family_number = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true),
+                    given_number = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true),
                 },
                 constraints: table =>
                 {

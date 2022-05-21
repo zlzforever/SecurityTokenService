@@ -6,7 +6,7 @@ using SecurityTokenService.Identity;
 
 namespace SecurityTokenService.Data.PostgreSql
 {
-    public class PostgreSqlSecurityTokenServiceDbContext : IdentityDbContext
+    public class PostgreSqlSecurityTokenServiceDbContext : IdentityDbContext<User>
     {
         public PostgreSqlSecurityTokenServiceDbContext(
             DbContextOptions<PostgreSqlSecurityTokenServiceDbContext> options) : base(options)

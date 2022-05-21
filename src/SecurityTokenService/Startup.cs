@@ -44,7 +44,7 @@ namespace SecurityTokenService
 
             ConfigureDbContext(services);
 
-            var identityBuilder = services.AddIdentity<IdentityUser, IdentityRole>();
+            var identityBuilder = services.AddIdentity<User, IdentityRole>();
             identityBuilder.AddDefaultTokenProviders()
                 .AddErrorDescriber<SecurityTokenServiceIdentityErrorDescriber>();
 
@@ -57,9 +57,24 @@ namespace SecurityTokenService
                 identityBuilder.AddEntityFrameworkStores<PostgreSqlSecurityTokenServiceDbContext>();
             }
 
-            var builder = services.AddIdentityServer()
+            var builder = services.AddIdentityServer(options =>
+                {
+                    options.Events.RaiseErrorEvents = true;
+                    options.Events.RaiseInformationEvents = true;
+                    options.Events.RaiseFailureEvents = true;
+                    options.Events.RaiseSuccessEvents = true;
+
+                    // see https://identityserver4.readthedocs.io/en/latest/topics/resources.html
+                    options.EmitStaticAudienceClaim = true;
+                })
+                .AddExtensionGrantValidator<PhoneCodeGrantValidator>()
                 .AddStore(Configuration)
-                .AddAspNetIdentity<IdentityUser>();
+                .AddAspNetIdentity<User>()
+                .AddProfileService<ProfileService>();
+
+            services.AddScoped<IPhoneCodeStore, DatabasePhoneCodeStore>();
+
+            // builder.Services.AddTransient<IUserClaimsPrincipalFactory<IdentityUser>, UserClaimsFactory<IdentityUser>>();
             if (Configuration["Database"] == "MySql")
             {
                 builder.AddOperationalStore<MySqlPersistedGrantDbContext>();
@@ -100,6 +115,8 @@ namespace SecurityTokenService
                 Configuration.GetSection("IdentityServerExternalCookieAuthentication"));
             services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.DefaultCheckSessionCookieName,
                 Configuration.GetSection("IdentityServerCheckSessionCookieAuthentication"));
+            services.Configure<AliyunOptions>(Configuration.GetSection("Aliyun"));
+            services.Configure<AliyunSMSOptions>(Configuration.GetSection("Aliyun:SMS"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

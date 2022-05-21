@@ -135,6 +135,16 @@ namespace SecurityTokenService.Data.MySql.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("phone_number");
 
+                    b.Property<string>("FamilyName")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("family_name");
+                    
+                    b.Property<string>("GivenName")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("given_name");
+
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("phone_number_confirmed");

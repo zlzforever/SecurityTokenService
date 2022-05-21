@@ -36,6 +36,8 @@ namespace SecurityTokenService.Data.PostgreSql
                     security_stamp = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     concurrency_stamp = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     phone_number = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    family_number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    given_number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     phone_number_confirmed = table.Column<bool>(type: "boolean", nullable: false),
                     two_factor_enabled = table.Column<bool>(type: "boolean", nullable: false),
                     lockout_end = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),

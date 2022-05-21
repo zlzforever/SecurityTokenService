@@ -10,7 +10,7 @@ public static class ModelBuilderExtensions
     public static void ConfigureIdentity(this ModelBuilder builder,
         IdentityExtensionOptions identityExtensionOptions)
     {
-        builder.Entity<IdentityUser>(b =>
+        builder.Entity<User>(b =>
         {
             if (identityExtensionOptions.Tables != null &&
                 !string.IsNullOrEmpty(identityExtensionOptions.Tables.User))
@@ -26,6 +26,9 @@ public static class ModelBuilderExtensions
             {
                 b.Property<bool>(identityExtensionOptions.SoftDeleteColumn);
             }
+
+            b.Property(x => x.FamilyName).HasMaxLength(100);
+            b.Property(x => x.GivenName).HasMaxLength(100);
         });
         builder.Entity<IdentityRole>(b =>
         {

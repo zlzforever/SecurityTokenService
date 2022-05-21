@@ -1,4 +1,7 @@
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using IdentityModel;
@@ -12,9 +15,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
+using SecurityTokenService.IdentityServer;
 
 namespace SecurityTokenService.Controllers
 {
@@ -25,16 +31,23 @@ namespace SecurityTokenService.Controllers
     {
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IEventService _events;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly SecurityTokenServiceOptions _options;
         private readonly IClientStore _clientStore;
         private readonly IdentityExtensionOptions _identityExtensionOptions;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<User> _userManager;
+        private readonly AliyunSMSOptions _aliyunSmsOptions;
+        private readonly AliyunOptions _aliyunOptions;
+        private readonly ILogger<AccountController> _logger;
+        private readonly IHostEnvironment _hostEnvironment;
+        private readonly IPhoneCodeStore _phoneCodeStore;
 
         public AccountController(IIdentityServerInteractionService interaction, IEventService events,
-            SignInManager<IdentityUser> signInManager, IOptionsMonitor<SecurityTokenServiceOptions> options,
+            SignInManager<User> signInManager, IOptionsMonitor<SecurityTokenServiceOptions> options,
             IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
-            IClientStore clientStore, UserManager<IdentityUser> userManager)
+            IClientStore clientStore, UserManager<User> userManager,
+            IOptionsMonitor<AliyunSMSOptions> aliyunSmsOptions, ILogger<AccountController> logger,
+            IHostEnvironment hostEnvironment, IPhoneCodeStore phoneCodeStore, IOptionsMonitor<AliyunOptions> aliyunOptions)
         {
             _interaction = interaction;
             _events = events;
@@ -42,7 +55,11 @@ namespace SecurityTokenService.Controllers
             _signInManager = signInManager;
             _clientStore = clientStore;
             _userManager = userManager;
-
+            _logger = logger;
+            _hostEnvironment = hostEnvironment;
+            _phoneCodeStore = phoneCodeStore;
+            _aliyunOptions = aliyunOptions.CurrentValue;
+            _aliyunSmsOptions = aliyunSmsOptions.CurrentValue;
             _options = options.CurrentValue;
             _identityExtensionOptions = identityExtensionOptions.CurrentValue;
         }
@@ -103,7 +120,7 @@ namespace SecurityTokenService.Controllers
             // var sql = string.IsNullOrEmpty(identityExtensionOptions.SoftDeleteColumn)
             //     ? $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE {name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}} LIMIT 1"
             //     : $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE ({name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}}) AND {identityExtensionOptions.SoftDeleteColumn} != true LIMIT 1";
-            IdentityUser user;
+            User user;
 
             if (string.IsNullOrWhiteSpace(_identityExtensionOptions.SoftDeleteColumn))
             {
@@ -229,6 +246,51 @@ namespace SecurityTokenService.Controllers
             // return View(vm);
         }
 
+        [HttpPost("sendSmsCode")]
+        public async Task<bool> SendPhoneNumber([Required, FromBody] Inputs.V1.SendSmsCode input)
+        {
+            var code = RandomNumberGenerator.GetInt32(1111, 9999).ToString();
+            await _phoneCodeStore.UpdateAsync(input.PhoneNumber, code);
+            if (_hostEnvironment.IsDevelopment())
+            {
+                _logger.LogInformation($"Send sms code to {input.PhoneNumber}: {code}");
+                return true;
+            }
+            else
+            {
+                var smsClient = CreateClient();
+                var countryCode = string.IsNullOrWhiteSpace(input.CountryCode) ? "+86" : input.CountryCode;
+                var sendSmsRequest =
+                    new AlibabaCloud.SDK.Dysmsapi20170525.Models.SendSmsRequest
+                    {
+                        PhoneNumbers = $"{countryCode}{input.PhoneNumber}",
+                        SignName = _aliyunSmsOptions.SignName,
+                        TemplateCode = _aliyunSmsOptions.Template,
+                        TemplateParam = JsonSerializer.Serialize(new
+                        {
+                            code
+                        })
+                    };
+
+                try
+                {
+                    var response = await smsClient.SendSmsAsync(sendSmsRequest);
+                    if (response.Body.Code == "OK")
+                    {
+                        return true;
+                    }
+
+                    _logger.LogError(response.Body.Message);
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e.ToString());
+                    return false;
+                }
+            }
+        }
+
         [HttpGet("Logout")]
         public async Task<IActionResult> Logout(string logoutId)
         {
@@ -341,6 +403,27 @@ namespace SecurityTokenService.Controllers
 
             // show the logout prompt. this prevents attacks where the user
             // is automatically signed out by another malicious web page.
+        }
+
+        /**
+         * 使用AK SK初始化账号Client
+         * @param accessKeyId
+         * @param accessKeySecret
+         * @return Client
+         * @throws Exception
+         */
+        private AlibabaCloud.SDK.Dysmsapi20170525.Client CreateClient()
+        {
+            var config = new AlibabaCloud.OpenApiClient.Models.Config
+            {
+                // 您的AccessKey ID
+                AccessKeyId = _aliyunOptions.AccessKey,
+                // 您的AccessKey Secret
+                AccessKeySecret = _aliyunOptions.Secret,
+                Endpoint = _aliyunOptions.Endpoint,
+            };
+            // 访问的域名
+            return new AlibabaCloud.SDK.Dysmsapi20170525.Client(config);
         }
     }
 }

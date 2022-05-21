@@ -101,9 +101,16 @@
     {
       "ClientId": "cerberus-web",
       "AllowAccessTokensViaBrowser": true,
+      "ClientSecrets": [
+        {
+          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
+          "Type": "SharedSecret"
+        }
+      ],
       "RequireConsent": false,
       "AllowedGrantTypes": [
-        "implicit"
+        "implicit",
+        "phone_code"
       ],
       "RedirectUris": [
         "http://localhost:8101/signin-oidc"
@@ -150,7 +157,6 @@
         "openid",
         "profile",
         "role",
-        "email",
         "cerberus-api",
         "ziranziyuanjiance-api"
       ]

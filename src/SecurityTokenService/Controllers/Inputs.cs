@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
 namespace SecurityTokenService.Controllers
@@ -8,6 +9,21 @@ namespace SecurityTokenService.Controllers
     {
         public static class V1
         {
+            public class SendSmsCode
+            {
+                /// <summary>
+                /// 
+                /// </summary>
+                [Required, StringLength(15)]
+                public string PhoneNumber { get; set; }
+
+                /// <summary>
+                /// 
+                /// </summary>
+                [StringLength(10)]
+                public string CountryCode { get; set; }
+            }
+
             public class ConsentInput
             {
                 public string Button { get; set; }

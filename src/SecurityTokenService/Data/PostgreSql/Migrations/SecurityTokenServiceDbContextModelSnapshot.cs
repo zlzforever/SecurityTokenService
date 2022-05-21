@@ -136,6 +136,16 @@ namespace SecurityTokenService.Data.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("phone_number");
+                    
+                    b.Property<string>("FamilyName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("family_name");
+                    
+                    b.Property<string>("GivenName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("given_name");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean")
