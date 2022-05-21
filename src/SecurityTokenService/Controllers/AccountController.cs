@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using AutoMapper.Internal;
 using IdentityModel;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
@@ -47,7 +48,8 @@ namespace SecurityTokenService.Controllers
             IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
             IClientStore clientStore, UserManager<User> userManager,
             IOptionsMonitor<AliyunSMSOptions> aliyunSmsOptions, ILogger<AccountController> logger,
-            IHostEnvironment hostEnvironment, IPhoneCodeStore phoneCodeStore, IOptionsMonitor<AliyunOptions> aliyunOptions)
+            IHostEnvironment hostEnvironment, IPhoneCodeStore phoneCodeStore,
+            IOptionsMonitor<AliyunOptions> aliyunOptions)
         {
             _interaction = interaction;
             _events = events;
@@ -260,12 +262,19 @@ namespace SecurityTokenService.Controllers
             {
                 var smsClient = CreateClient();
                 var countryCode = string.IsNullOrWhiteSpace(input.CountryCode) ? "+86" : input.CountryCode;
+                var template = _aliyunSmsOptions.Templates.GetOrDefault(input.CountryCode);
+                if (string.IsNullOrEmpty(template))
+                {
+                    _logger.LogError($"CountryCode {countryCode} no sms template");
+                    return false;
+                }
+
                 var sendSmsRequest =
                     new AlibabaCloud.SDK.Dysmsapi20170525.Models.SendSmsRequest
                     {
                         PhoneNumbers = $"{countryCode}{input.PhoneNumber}",
                         SignName = _aliyunSmsOptions.SignName,
-                        TemplateCode = _aliyunSmsOptions.Template,
+                        TemplateCode = template,
                         TemplateParam = JsonSerializer.Serialize(new
                         {
                             code

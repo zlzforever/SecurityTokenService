@@ -5,5 +5,5 @@ namespace SecurityTokenService.IdentityServer;
 public class AliyunSMSOptions
 {
     public string SignName { get; set; }
-    public string Template { get; set; }
+    public Dictionary<string, string> Templates { get; set; }
 }
