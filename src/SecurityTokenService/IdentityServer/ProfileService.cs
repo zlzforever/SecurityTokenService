@@ -33,7 +33,7 @@ public class ProfileService : IdentityServer4.AspNetIdentity.ProfileService<User
 
         if (!identity.HasClaim(x => x.Type == JwtClaimTypes.FamilyName))
         {
-            identity.AddClaim(new Claim(JwtClaimTypes.GivenName,
+            identity.AddClaim(new Claim(JwtClaimTypes.FamilyName,
                 string.IsNullOrWhiteSpace(user.FamilyName) ? string.Empty : user.FamilyName));
         }
 
