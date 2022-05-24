@@ -39,7 +39,8 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
                 context.Result = new GrantValidationResult
                 {
                     IsError = true,
-                    Error = "电话号码或验证码为空",
+                    Error = "invalid_phone_number_or_code",
+                    ErrorDescription = "手机号或者验证码为空"
                 };
 
                 return;
@@ -52,7 +53,8 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
                 context.Result = new GrantValidationResult
                 {
                     IsError = true,
-                    Error = "手机号无效",
+                    ErrorDescription = "用户不存在",
+                    Error = "user_not_exists",
                 };
 
                 return;
@@ -63,7 +65,8 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
                 context.Result = new GrantValidationResult
                 {
                     IsError = true,
-                    Error = "账户已锁定",
+                    Error = "user_is_locked_out",
+                    ErrorDescription = "用户被锁定"
                 };
 
                 return;
@@ -77,7 +80,8 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
                 context.Result = new GrantValidationResult
                 {
                     IsError = true,
-                    Error = "验证码过期",
+                    Error = "code_is_expired",
+                    ErrorDescription = "验证码过期"
                 };
 
                 return;
@@ -90,7 +94,8 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
                 context.Result = new GrantValidationResult
                 {
                     IsError = true,
-                    Error = "验证码错误",
+                    Error = "invalid_code",
+                    ErrorDescription = "验证码不正确"
                 };
 
                 return;
@@ -106,7 +111,8 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
             context.Result = new GrantValidationResult
             {
                 IsError = true,
-                Error = ex.Message
+                Error = "unknown_error",
+                ErrorDescription = ex.Message
             };
         }
     }
