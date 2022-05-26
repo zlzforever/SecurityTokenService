@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -13,6 +12,7 @@ using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -248,15 +248,22 @@ namespace SecurityTokenService.Controllers
             // return View(vm);
         }
 
-        [HttpPost("sendSmsCode")]
-        public async Task<bool> SendPhoneNumber([Required, FromBody] Inputs.V1.SendSmsCode input)
+        [HttpPost("SendSmsCode")]
+        [EnableCors("configuration")]
+        public async Task<ApiResult> SendPhoneNumber([FromBody] Inputs.V1.SendSmsCode input)
         {
             var code = RandomNumberGenerator.GetInt32(1111, 9999).ToString();
             await _phoneCodeStore.UpdateAsync(input.PhoneNumber, code);
             if (_hostEnvironment.IsDevelopment())
             {
                 _logger.LogInformation($"Send sms code to {input.PhoneNumber}: {code}");
-                return true;
+                return new ApiResult()
+                {
+                    Data = string.Empty,
+                    Message = string.Empty,
+                    Success = true,
+                    Code = 0
+                };
             }
             else
             {
@@ -266,7 +273,13 @@ namespace SecurityTokenService.Controllers
                 if (string.IsNullOrEmpty(template))
                 {
                     _logger.LogError($"CountryCode {countryCode} no sms template");
-                    return false;
+                    return new ApiResult()
+                    {
+                        Data = string.Empty,
+                        Message = "不支持的国家",
+                        Success = false,
+                        Code = 1
+                    };
                 }
 
                 var sendSmsRequest =
@@ -286,16 +299,34 @@ namespace SecurityTokenService.Controllers
                     var response = await smsClient.SendSmsAsync(sendSmsRequest);
                     if (response.Body.Code == "OK")
                     {
-                        return true;
+                        return new ApiResult()
+                        {
+                            Data = string.Empty,
+                            Message = string.Empty,
+                            Success = true,
+                            Code = 0
+                        };
                     }
 
                     _logger.LogError(response.Body.Message);
-                    return false;
+                    return new ApiResult()
+                    {
+                        Data = string.Empty,
+                        Message = "发送验证码失败",
+                        Success = false,
+                        Code = 1
+                    };
                 }
                 catch (Exception e)
                 {
                     _logger.LogError(e.ToString());
-                    return false;
+                    return new ApiResult()
+                    {
+                        Data = string.Empty,
+                        Message = "发送验证码失败",
+                        Success = false,
+                        Code = 1
+                    };
                 }
             }
         }

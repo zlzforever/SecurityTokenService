@@ -37,5 +37,44 @@
     <ItemGroup>
       <Folder Include="Data\MySql\Migrations" />
     </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="security_token_service_out\appsettings.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\bundleconfig.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\SecurityTokenService.deps.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\SecurityTokenService.runtimeconfig.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\appsettings.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\bundleconfig.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\SecurityTokenService.deps.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\SecurityTokenService.runtimeconfig.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\appsettings.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\bundleconfig.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\SecurityTokenService.deps.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\SecurityTokenService.runtimeconfig.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\sts.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\wwwroot\lib\bootstrap\grunt\configBridge.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\wwwroot\lib\bootstrap\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\wwwroot\lib\jquery-validation-unobtrusive\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\wwwroot\lib\jquery-validation\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\wwwroot\lib\jquery\bower.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\security_token_service_out\wwwroot\lib\jquery\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\sts.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\wwwroot\lib\bootstrap\grunt\configBridge.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\wwwroot\lib\bootstrap\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\wwwroot\lib\jquery-validation-unobtrusive\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\wwwroot\lib\jquery-validation\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\wwwroot\lib\jquery\bower.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\security_token_service_out\wwwroot\lib\jquery\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\sts.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\wwwroot\lib\bootstrap\grunt\configBridge.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\wwwroot\lib\bootstrap\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\wwwroot\lib\jquery-validation-unobtrusive\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\wwwroot\lib\jquery-validation\package.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\wwwroot\lib\jquery\bower.json" />
+      <_ContentIncludedByDefault Remove="security_token_service_out\wwwroot\lib\jquery\package.json" />
+    </ItemGroup>
  
 </Project>

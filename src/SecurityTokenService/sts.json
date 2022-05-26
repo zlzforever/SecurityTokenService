@@ -32,6 +32,15 @@
     },
     {
       "Emphasize": true,
+      "Name": "email",
+      "DisplayName": "邮件",
+      "Description": "您的邮件信息",
+      "UserClaims": [
+        "email"
+      ]
+    },
+    {
+      "Emphasize": true,
       "Name": "role",
       "DisplayName": "角色",
       "Description": "您的角色信息",
@@ -49,8 +58,8 @@
       ]
     },
     {
-      "name": "ziranziyuanjiance-api",
-      "displayName": "GIS 服务接口",
+      "name": "meeting-api",
+      "displayName": "服务接口",
       "UserClaims": [
         "role",
         "name",
@@ -71,7 +80,7 @@
         "client_credentials"
       ],
       "AllowedScopes": [
-        "cerberus-access-server-api"
+        "cerberus-api"
       ]
     },
     {
@@ -129,7 +138,7 @@
       ]
     },
     {
-      "ClientId": "ziranziyuanjiance-web",
+      "ClientId": "dongjian-web",
       "ClientSecrets": [
         {
           "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
@@ -140,7 +149,8 @@
       "RequireConsent": false,
       "AllowedGrantTypes": [
         "implicit",
-        "password"
+        "password",
+        "phone_code"
       ],
       "IdentityTokenLifetime": 108000,
       "AccessTokenLifetime": 108000,
@@ -156,9 +166,9 @@
       "AllowedScopes": [
         "openid",
         "profile",
+        "email",
         "role",
-        "cerberus-api",
-        "ziranziyuanjiance-api"
+        "meeting-api"
       ]
     }
   ]

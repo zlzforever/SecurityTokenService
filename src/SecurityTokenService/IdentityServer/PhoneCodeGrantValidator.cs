@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using SecurityTokenService.Identity;
 
 namespace SecurityTokenService.IdentityServer;
@@ -103,7 +103,10 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
 
             // 授权通过返回
             // 返回角色等？
-            context.Result = new GrantValidationResult(user.Id, "custom");
+            context.Result = new GrantValidationResult(user.Id, "custom", customResponse: new Dictionary<string, object>
+            {
+                { "expires_at", DateTimeOffset.Now.ToUnixTimeSeconds() + context.Request.AccessTokenLifetime }
+            });
             _logger.LogInformation("Grant success");
         }
         catch (Exception ex)
@@ -123,7 +126,6 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
         var user = await _userManager.Users.AsNoTracking().FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber);
         return user;
     }
-
 
     public string GrantType => "phone_code";
 }

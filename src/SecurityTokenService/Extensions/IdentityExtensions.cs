@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using SecurityTokenService.Data;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
-using Dapper;
 using SecurityTokenService.IdentityServer;
 
 

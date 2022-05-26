@@ -42,8 +42,72 @@ namespace SecurityTokenService
 
             services.AddControllers();
 
-            ConfigureDbContext(services);
+            // 影响隐私数据加密、AntiToken 加解密
+            services.AddDataProtection().SetApplicationName("SecurityTokenService")
+                .PersistKeysToFileSystem(keysFolder)
+                .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
+            services.AddRouting(options => options.LowercaseUrls = true);
+            services.AddScoped<SeedData>();
 
+            var corsOrigins = GetCorsOrigins();
+            if (corsOrigins.Length > 0)
+            {
+                services.AddCors(option =>
+                {
+                    option
+                        .AddPolicy("configuration", policy =>
+                            policy.AllowAnyMethod()
+                                .SetIsOriginAllowed(_ => true)
+                                .AllowAnyHeader()
+                                .WithExposedHeaders("x-suggested-filename")
+                                .AllowCredentials()
+                                .SetPreflightMaxAge(TimeSpan.FromDays(30)));
+                    //.WithOrigins(corsOrigins)
+                });
+            }
+
+            ConfigureDbContext(services);
+            ConfigureIdentity(services);
+            ConfigureIdentityServer(services);
+            ConfigureOptions(services);
+        }
+
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            app.LoadIdentityData();
+            app.LoadIdentityServerData();
+
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+                // app.UseMigrationsEndPoint();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseCookiePolicy(new CookiePolicyOptions
+            {
+                MinimumSameSitePolicy = SameSiteMode.Lax
+            });
+            app.UseFileServer();
+            app.UseRouting();
+            app.UseIdentityServer();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        }
+
+        private string[] GetCorsOrigins()
+        {
+            return Configuration.GetSection("AllowedCorsOrigins").Get<string[]>();
+        }
+
+        private void ConfigureIdentity(IServiceCollection services)
+        {
             var identityBuilder = services.AddIdentity<User, IdentityRole>();
             identityBuilder.AddDefaultTokenProviders()
                 .AddErrorDescriber<SecurityTokenServiceIdentityErrorDescriber>();
@@ -56,7 +120,10 @@ namespace SecurityTokenService
             {
                 identityBuilder.AddEntityFrameworkStores<PostgreSqlSecurityTokenServiceDbContext>();
             }
+        }
 
+        private void ConfigureIdentityServer(IServiceCollection services)
+        {
             var builder = services.AddIdentityServer(options =>
                 {
                     options.Events.RaiseErrorEvents = true;
@@ -84,69 +151,9 @@ namespace SecurityTokenService
                 builder.AddOperationalStore<PostgreSqlPersistedGrantDbContext>();
             }
 
-            // 影响隐私数据加密、AntiToken 加解密
-            services.AddDataProtection().SetApplicationName("SecurityTokenService")
-                .PersistKeysToFileSystem(keysFolder)
-                .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
-
             // not recommended for production - you need to store your key material somewhere secure
             // https 证书？
             builder.AddDeveloperSigningCredential();
-
-            services.AddRouting(options => options.LowercaseUrls = true);
-            services.AddScoped<SeedData>();
-
-            services.Configure<IdentityOptions>(Configuration.GetSection("Identity"));
-            services.Configure<IdentityExtensionOptions>(Configuration.GetSection("Identity"));
-            services.Configure<IdentityServerOptions>(Configuration.GetSection("IdentityServer"));
-            services.Configure<IdentityServerExtensionOptions>(Configuration.GetSection("IdentityServer"));
-            services.Configure<SecurityTokenServiceOptions>(Configuration.GetSection("SecurityTokenService"));
-
-            services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme,
-                Configuration.GetSection("ApplicationCookieAuthentication"));
-            services.Configure<CookieAuthenticationOptions>(IdentityConstants.ExternalScheme,
-                Configuration.GetSection("ExternalCookieAuthentication"));
-            services.Configure<CookieAuthenticationOptions>(IdentityConstants.TwoFactorUserIdScheme,
-                Configuration.GetSection("TwoFactorUserIdCookieAuthentication"));
-
-            services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.DefaultCookieAuthenticationScheme,
-                Configuration.GetSection("IdentityServerCookieAuthentication"));
-            services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.ExternalCookieAuthenticationScheme,
-                Configuration.GetSection("IdentityServerExternalCookieAuthentication"));
-            services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.DefaultCheckSessionCookieName,
-                Configuration.GetSection("IdentityServerCheckSessionCookieAuthentication"));
-            services.Configure<AliyunOptions>(Configuration.GetSection("Aliyun"));
-            services.Configure<AliyunSMSOptions>(Configuration.GetSection("Aliyun:SMS"));
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            app.LoadIdentityData();
-            app.LoadIdentityServerData();
-
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                // app.UseMigrationsEndPoint();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-
-            app.UseCookiePolicy(new CookiePolicyOptions
-            {
-                MinimumSameSitePolicy = SameSiteMode.Lax
-            });
-            app.UseHttpsRedirection();
-            app.UseFileServer();
-            app.UseRouting();
-            app.UseIdentityServer();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
 
         private void ConfigureDbContext(IServiceCollection services)
@@ -195,6 +202,31 @@ namespace SecurityTokenService
                         });
                 });
             }
+        }
+
+        private void ConfigureOptions(IServiceCollection services)
+        {
+            services.Configure<IdentityOptions>(Configuration.GetSection("Identity"));
+            services.Configure<IdentityExtensionOptions>(Configuration.GetSection("Identity"));
+            services.Configure<IdentityServerOptions>(Configuration.GetSection("IdentityServer"));
+            services.Configure<IdentityServerExtensionOptions>(Configuration.GetSection("IdentityServer"));
+            services.Configure<SecurityTokenServiceOptions>(Configuration.GetSection("SecurityTokenService"));
+
+            services.Configure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme,
+                Configuration.GetSection("ApplicationCookieAuthentication"));
+            services.Configure<CookieAuthenticationOptions>(IdentityConstants.ExternalScheme,
+                Configuration.GetSection("ExternalCookieAuthentication"));
+            services.Configure<CookieAuthenticationOptions>(IdentityConstants.TwoFactorUserIdScheme,
+                Configuration.GetSection("TwoFactorUserIdCookieAuthentication"));
+
+            services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.DefaultCookieAuthenticationScheme,
+                Configuration.GetSection("IdentityServerCookieAuthentication"));
+            services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.ExternalCookieAuthenticationScheme,
+                Configuration.GetSection("IdentityServerExternalCookieAuthentication"));
+            services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.DefaultCheckSessionCookieName,
+                Configuration.GetSection("IdentityServerCheckSessionCookieAuthentication"));
+            services.Configure<AliyunOptions>(Configuration.GetSection("Aliyun"));
+            services.Configure<AliyunSMSOptions>(Configuration.GetSection("Aliyun:SMS"));
         }
     }
 }
