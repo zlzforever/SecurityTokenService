@@ -103,7 +103,7 @@ namespace SecurityTokenService
 
         private string[] GetCorsOrigins()
         {
-            return Configuration.GetSection("AllowedCorsOrigins").Get<string[]>();
+            return Configuration.GetSection("AllowedCorsOrigins").Get<string[]>() ?? Array.Empty<string>();
         }
 
         private void ConfigureIdentity(IServiceCollection services)
