@@ -111,6 +111,7 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex.ToString());
             context.Result = new GrantValidationResult
             {
                 IsError = true,

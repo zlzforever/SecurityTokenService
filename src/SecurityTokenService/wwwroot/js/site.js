@@ -44,7 +44,7 @@ $(document).ready(() => {
 })
 
 function initError() {
-    const errorId = parseInt(getQueryValue('errorId'));
+    const errorId = parseInt(getQueryParam('errorId'));
     printError(errorId);
 }
 
@@ -101,7 +101,7 @@ function printError(errorId) {
 }
 
 function initRedirect() {
-    const url = decodeURIComponent(getQueryValue('redirectUrl'));
+    const url = decodeURIComponent(getQueryParam('redirectUrl'));
     if (!url) {
         return;
     }
@@ -112,7 +112,7 @@ function initRedirect() {
 }
 
 function initConsent() {
-    const returnUrl = getQueryValue('returnUrl');
+    const returnUrl = getQueryParam('returnUrl');
     $.ajax({
         xhrFields: {withCredentials: true},
         type: "GET",
@@ -207,10 +207,10 @@ function initDiagnostics() {
 }
 
 function initLoggedOut() {
-    const postLogoutRedirectUri = getQueryValue('postLogoutRedirectUri');
-    const clientName = getQueryValue('clientName');
-    const signOutIframeUrl = getQueryValue('signOutIframeUrl');
-    const automaticRedirectAfterSignOut = getQueryValue('automaticRedirectAfterSignOut');
+    const postLogoutRedirectUri = getQueryParam('postLogoutRedirectUri');
+    const clientName = getQueryParam('clientName');
+    const signOutIframeUrl = getQueryParam('signOutIframeUrl');
+    const automaticRedirectAfterSignOut = getQueryParam('automaticRedirectAfterSignOut');
     if (postLogoutRedirectUri) {
         $('#clientName').text(clientName);
         $('#postLogoutRedirect').show();
@@ -257,7 +257,7 @@ function initLogin() {
                     xhrFields: {withCredentials: true},
                     type: "POST",
                     url: "account/login",
-                    data: $(form).serialize() + "&returnUrl=" + getQueryValue("returnUrl"),
+                    data: $(form).serialize() + "&returnUrl=" + getQueryParam("returnUrl"),
                     beforeSend: function () {
                         // todo:
                         // $("#loading").css("display", "block"); //点击登录后显示loading，隐藏输入框
@@ -297,7 +297,7 @@ function initLogin() {
 }
 
 function initLogout() {
-    const logoutId = getQueryValue('logoutId');
+    const logoutId = getQueryParam('logoutId');
     $("#logoutId").val(logoutId);
 }
 
@@ -312,14 +312,8 @@ function initSession() {
     });
 }
 
-function getQueryValue(queryName) {
-    const query = decodeURI(window.location.search.substring(1));
-    const vars = query.split("&");
-    for (let i = 0; i < vars.length; i++) {
-        const pair = vars[i].split("=");
-        if (pair[0] === queryName) {
-            return pair[1];
-        }
-    }
-    return "";
+function getQueryParam(queryName) {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const value = urlSearchParams.get(queryName);
+    return value;
 }

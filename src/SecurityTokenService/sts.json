@@ -125,7 +125,8 @@
         "http://localhost:8101/signin-oidc"
       ],
       "PostLogoutRedirectUris": [
-        "http://localhost:8101/signout-callback-oidc"
+        "http://localhost:8101/signout-callback-oidc",
+        "http://localhost:8102/signout-callback-oidc"
       ],
       "AllowedCorsOrigins": [
         "http://localhost:8101"
