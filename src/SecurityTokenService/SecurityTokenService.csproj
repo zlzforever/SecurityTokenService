@@ -76,5 +76,11 @@
       <_ContentIncludedByDefault Remove="security_token_service_out\wwwroot\lib\jquery\bower.json" />
       <_ContentIncludedByDefault Remove="security_token_service_out\wwwroot\lib\jquery\package.json" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="IdentityServer4.SecurityTokenService">
+        <HintPath>..\..\..\..\Downloads\IdentityServer4.SecurityTokenService.dll</HintPath>
+      </Reference>
+    </ItemGroup>
  
 </Project>

@@ -1,12 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Https;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -81,13 +81,42 @@ namespace SecurityTokenService
                 {
                     webBuilder.ConfigureKestrel(serverOptions =>
                     {
-                        serverOptions.Listen(IPAddress.Any, 8099,
-                            listenOptions =>
-                            {
-                                listenOptions.UseHttps(httpsOptions => { httpsOptions.AllowAnyClientCertificate(); });
-                            });
+                        serverOptions.Listen(IPAddress.Any, 8099);
+
+                        var certPath = Environment.GetEnvironmentVariable("X509Certificate2");
+                        if (string.IsNullOrWhiteSpace(certPath))
+                        {
+                            return;
+                        }
+
+                        var privateKeyPath = Path.GetFileNameWithoutExtension(certPath) + ".key";
+                        var cert = CreateX509Certificate2(certPath, privateKeyPath);
+
+                        serverOptions.Listen(IPAddress.Any, 8100,
+                            (Action<ListenOptions>)(listenOptions => listenOptions.UseHttps(cert)));
                     });
                     webBuilder.UseStartup<Startup>();
                 });
+
+        private static X509Certificate2 CreateX509Certificate2(
+            string certificatePath,
+            string privateKeyPath)
+        {
+            using var certificate = new X509Certificate2(certificatePath);
+            var strArray = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
+            var source = Convert.FromBase64String(strArray[1]);
+            using var privateKey = RSA.Create();
+            int bytesRead;
+            switch (strArray[0])
+            {
+                case "BEGIN PRIVATE KEY":
+                    privateKey.ImportPkcs8PrivateKey((ReadOnlySpan<byte>)source, out bytesRead);
+                    break;
+                case "BEGIN RSA PRIVATE KEY":
+                    privateKey.ImportRSAPrivateKey((ReadOnlySpan<byte>)source, out bytesRead);
+                    break;
+            }
+            return new X509Certificate2(certificate.CopyWithPrivateKey(privateKey).Export(X509ContentType.Pfx));
+        }
     }
 }
