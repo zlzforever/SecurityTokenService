@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -75,7 +79,14 @@ namespace SecurityTokenService
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    //
+                    webBuilder.ConfigureKestrel(serverOptions =>
+                    {
+                        serverOptions.Listen(IPAddress.Any, 8099,
+                            listenOptions =>
+                            {
+                                listenOptions.UseHttps(httpsOptions => { httpsOptions.AllowAnyClientCertificate(); });
+                            });
+                    });
                     webBuilder.UseStartup<Startup>();
                 });
     }
