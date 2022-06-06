@@ -257,7 +257,7 @@ function initLogin() {
                     xhrFields: {withCredentials: true},
                     type: "POST",
                     url: "account/login",
-                    data: $(form).serialize() + "&returnUrl=" + getQueryParam("returnUrl"),
+                    data: $(form).serialize() + "&returnUrl=" + encodeURIComponent(getQueryParam("returnUrl")),
                     beforeSend: function () {
                         // todo:
                         // $("#loading").css("display", "block"); //点击登录后显示loading，隐藏输入框
@@ -313,7 +313,7 @@ function initSession() {
 }
 
 function getQueryParam(queryName) {
-    const urlSearchParams = new URLSearchParams(decodeURI(window.location.search));
+    const urlSearchParams = new URLSearchParams(window.location.search);
     const value = urlSearchParams.get(queryName);
     return value;
 }
