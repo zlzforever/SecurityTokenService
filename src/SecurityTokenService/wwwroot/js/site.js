@@ -101,7 +101,7 @@ function printError(errorId) {
 }
 
 function initRedirect() {
-    const url = decodeURIComponent(getQueryParam('redirectUrl'));
+    const url = getQueryParam('redirectUrl');
     if (!url) {
         return;
     }
@@ -313,7 +313,7 @@ function initSession() {
 }
 
 function getQueryParam(queryName) {
-    const urlSearchParams = new URLSearchParams(window.location.search);
+    const urlSearchParams = new URLSearchParams(decodeURI(window.location.search));
     const value = urlSearchParams.get(queryName);
     return value;
 }
