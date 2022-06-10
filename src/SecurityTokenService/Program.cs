@@ -79,22 +79,22 @@ namespace SecurityTokenService
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureKestrel(serverOptions =>
-                    {
-                        serverOptions.Listen(IPAddress.Any, 8099);
-
-                        var certPath = Environment.GetEnvironmentVariable("X509Certificate2");
-                        if (string.IsNullOrWhiteSpace(certPath))
-                        {
-                            return;
-                        }
-
-                        var privateKeyPath = Path.GetFileNameWithoutExtension(certPath) + ".key";
-                        var cert = CreateX509Certificate2(certPath, privateKeyPath);
-
-                        serverOptions.Listen(IPAddress.Any, 8100,
-                            (Action<ListenOptions>)(listenOptions => listenOptions.UseHttps(cert)));
-                    });
+                    // webBuilder.ConfigureKestrel(serverOptions =>
+                    // {
+                    //     serverOptions.Listen(IPAddress.Any, 80);
+                    //
+                    //     var certPath = Environment.GetEnvironmentVariable("X509Certificate2");
+                    //     if (string.IsNullOrWhiteSpace(certPath))
+                    //     {
+                    //         return;
+                    //     }
+                    //
+                    //     var privateKeyPath = Path.GetFileNameWithoutExtension(certPath) + ".key";
+                    //     var cert = CreateX509Certificate2(certPath, privateKeyPath);
+                    //
+                    //     serverOptions.Listen(IPAddress.Any, 8100,
+                    //         (Action<ListenOptions>)(listenOptions => listenOptions.UseHttps(cert)));
+                    // });
                     webBuilder.UseStartup<Startup>();
                 });
 
