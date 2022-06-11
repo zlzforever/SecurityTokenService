@@ -190,7 +190,7 @@ namespace SecurityTokenService.Controllers
                         Location = model.ReturnUrl
                     });
                 }
-                else if (string.IsNullOrEmpty(model.ReturnUrl))
+                else if (string.IsNullOrWhiteSpace(model.ReturnUrl))
                 {
                     return new ObjectResult(new
                     {
