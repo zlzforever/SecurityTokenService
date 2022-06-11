@@ -264,16 +264,13 @@ function initLogin() {
                         // $("#login").css("display", "none");
                     },
                     success: function (res, a, b) {
-                        debugger
-                        if (res.code === 301 || res.code === 302) {
+                        if (res.location) {
                             const url = res.location;
-                            if (url) {
-                                let win = window;
-                                while (win !== win.top) {
-                                    win = win.top;
-                                }
-                                win.location.href = url;
+                            let win = window;
+                            while (win !== win.top) {
+                                win = win.top;
                             }
+                            win.location.href = url;
                         } else if (res.code !== 200) {
                             message.show();
                             if (!res.message) {

@@ -203,7 +203,7 @@ namespace SecurityTokenService.Controllers
                     return new ObjectResult(new
                     {
                         Code = Errors.InvalidReturnUrl,
-                        Location = "/error.html?errorId=" + Errors.InvalidReturnUrl
+                        Location = "/error.html?errorId=" + Errors.InvalidReturnUrl + "&returnUrl=" + model.ReturnUrl
                     });
                 }
             }
