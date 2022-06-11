@@ -231,7 +231,7 @@ function initLogin() {
         wrapper: "label"
     });
 
-    $('#button').click(function () {
+    $('#loginButton').click(function () {
         const message = $('#message');
         message.hide();
         debugger
