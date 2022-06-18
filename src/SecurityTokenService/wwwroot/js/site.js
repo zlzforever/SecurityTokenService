@@ -253,17 +253,20 @@ function initLogin() {
                 }
             },
             submitHandler: function (form) {
+                let returnUrl = getQueryParam("returnUrl");
+                returnUrl = returnUrl ? returnUrl : "";
                 $.ajax({
                     xhrFields: {withCredentials: true},
                     type: "POST",
                     url: "account/login",
-                    data: $(form).serialize() + "&returnUrl=" + encodeURIComponent(getQueryParam("returnUrl")),
+                    data: $(form).serialize() + "&returnUrl=" + encodeURIComponent(returnUrl),
                     beforeSend: function () {
                         // todo:
                         // $("#loading").css("display", "block"); //点击登录后显示loading，隐藏输入框
                         // $("#login").css("display", "none");
                     },
                     success: function (res, a, b) {
+                        debugger
                         if (res.location) {
                             const url = res.location;
                             let win = window;
