@@ -21,6 +21,7 @@ ProjectSection(SolutionItems) = preProject
 	publish.sh = publish.sh
 	restart.sh = restart.sh
 	publish_m1.sh = publish_m1.sh
+	.editorconfig = .editorconfig
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "src\Client\Client.csproj", "{0C920EC3-5FD5-4BF8-9D31-F66075143FD7}"
