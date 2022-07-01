@@ -4,15 +4,15 @@ using Dapper;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 using Npgsql;
-using SecurityTokenService.IdentityServer;
+using SecurityTokenService.IdentityServer.Stores;
 
 namespace SecurityTokenService.Data;
 
-public class DatabasePhoneCodeStore : IPhoneCodeStore
+public class PhoneCodeStore : IPhoneCodeStore
 {
     private readonly IConfiguration _configuration;
 
-    public DatabasePhoneCodeStore(IConfiguration configuration)
+    public PhoneCodeStore(IConfiguration configuration)
     {
         _configuration = configuration;
     }

@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace SecurityTokenService.Data.PostgreSql
+#nullable disable
+
+namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
 {
     public partial class SecurityTokenServiceInit : Migration
     {
@@ -27,6 +29,9 @@ namespace SecurityTokenService.Data.PostgreSql
                 columns: table => new
                 {
                     id = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
+                    family_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    given_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
                     user_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     normalized_user_name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -36,8 +41,6 @@ namespace SecurityTokenService.Data.PostgreSql
                     security_stamp = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     concurrency_stamp = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     phone_number = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    family_number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    given_number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     phone_number_confirmed = table.Column<bool>(type: "boolean", nullable: false),
                     two_factor_enabled = table.Column<bool>(type: "boolean", nullable: false),
                     lockout_end = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),

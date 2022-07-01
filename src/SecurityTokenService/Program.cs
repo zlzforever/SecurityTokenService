@@ -1,80 +1,71 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
-using Serilog.Sinks.SystemConsole.Themes;
 
 namespace SecurityTokenService
 {
     public class Program
     {
-        public static int Main(string[] args)
+        public static void Main(string[] args)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            var logFile = Environment.GetEnvironmentVariable("LOG");
-            if (string.IsNullOrEmpty(logFile))
-            {
-                logFile = Path.Combine(AppContext.BaseDirectory, "logs/sts.log");
-            }
-
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
-                .MinimumLevel.Override("System", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.RollingFile(logFile,
-                    outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
-                .WriteTo.Console(
-                    outputTemplate:
-                    "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-                    theme: AnsiConsoleTheme.Code)
-                .CreateLogger();
-
-            try
-            {
-                Log.Information("Version 1.0.1");
-                Log.Information("Starting host...");
-                CreateHostBuilder(args).Build().Run();
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Host terminated unexpectedly.");
-                return 1;
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
+            CreateHostBuilder(args).Build().Run();
         }
 
         internal static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((context, builder) =>
+                .ConfigureAppConfiguration((_, builder) =>
                 {
+                    // if (File.Exists("appsettings.Nacos.json"))
+                    // {
+                    //     builder.AddJsonFile("appsettings.Nacos.json", true, true);
+                    // }
+
+                    var configuration = builder.Build();
+
+                    var serilogSection = configuration.GetSection("Serilog");
+                    if (serilogSection.GetChildren().Any())
+                    {
+                        Log.Logger = new LoggerConfiguration().ReadFrom
+                            .Configuration(configuration)
+                            .CreateLogger();
+                    }
+                    else
+                    {
+                        var logFile = Environment.GetEnvironmentVariable("LOG");
+                        if (string.IsNullOrEmpty(logFile))
+                        {
+                            logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs/sts.log");
+                        }
+
+                        Log.Logger = new LoggerConfiguration()
+                            .MinimumLevel.Information()
+                            .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+                            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                            .MinimumLevel.Override("System", LogEventLevel.Warning)
+                            .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Warning)
+                            .Enrich.FromLogContext()
+                            .WriteTo.Console().WriteTo.RollingFile(logFile)
+                            .CreateLogger();
+                    }
+
                     var path = "sts.json";
                     if (File.Exists(path))
                     {
-                        builder.AddJsonFile(path);
+                        builder.AddJsonFile(path, true, true);
                     }
 
-                    var nacos = context.Configuration.GetSection("Nacos");
-                    if (nacos.GetChildren().Any())
+                    var nacosSection = configuration.GetSection("Nacos");
+                    if (nacosSection.GetChildren().Any())
                     {
-                        builder.AddNacosV2Configuration(nacos);
+                        builder.AddNacosV2Configuration(nacosSection);
                     }
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
@@ -98,25 +89,26 @@ namespace SecurityTokenService
                     webBuilder.UseStartup<Startup>();
                 });
 
-        private static X509Certificate2 CreateX509Certificate2(
-            string certificatePath,
-            string privateKeyPath)
-        {
-            using var certificate = new X509Certificate2(certificatePath);
-            var strArray = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
-            var source = Convert.FromBase64String(strArray[1]);
-            using var privateKey = RSA.Create();
-            int bytesRead;
-            switch (strArray[0])
-            {
-                case "BEGIN PRIVATE KEY":
-                    privateKey.ImportPkcs8PrivateKey((ReadOnlySpan<byte>)source, out bytesRead);
-                    break;
-                case "BEGIN RSA PRIVATE KEY":
-                    privateKey.ImportRSAPrivateKey((ReadOnlySpan<byte>)source, out bytesRead);
-                    break;
-            }
-            return new X509Certificate2(certificate.CopyWithPrivateKey(privateKey).Export(X509ContentType.Pfx));
-        }
+        // private static X509Certificate2 CreateX509Certificate2(
+        //     string certificatePath,
+        //     string privateKeyPath)
+        // {
+        //     using var certificate = new X509Certificate2(certificatePath);
+        //     var strArray = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
+        //     var source = Convert.FromBase64String(strArray[1]);
+        //     using var privateKey = RSA.Create();
+        //     int bytesRead;
+        //     switch (strArray[0])
+        //     {
+        //         case "BEGIN PRIVATE KEY":
+        //             privateKey.ImportPkcs8PrivateKey((ReadOnlySpan<byte>)source, out bytesRead);
+        //             break;
+        //         case "BEGIN RSA PRIVATE KEY":
+        //             privateKey.ImportRSAPrivateKey((ReadOnlySpan<byte>)source, out bytesRead);
+        //             break;
+        //     }
+        //
+        //     return new X509Certificate2(certificate.CopyWithPrivateKey(privateKey).Export(X509ContentType.Pfx));
+        // }
     }
 }

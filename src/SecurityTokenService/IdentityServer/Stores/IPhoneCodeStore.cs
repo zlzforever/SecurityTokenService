@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace SecurityTokenService.IdentityServer;
+namespace SecurityTokenService.IdentityServer.Stores;
 
 public interface IPhoneCodeStore
 {

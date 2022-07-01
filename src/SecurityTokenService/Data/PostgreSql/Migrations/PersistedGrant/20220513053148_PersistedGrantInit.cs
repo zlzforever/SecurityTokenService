@@ -1,9 +1,9 @@
-﻿using System;
+﻿#nullable disable
+
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-#nullable disable
-
-namespace SecurityTokenService.Data.PostgreSql.Migrations
+namespace SecurityTokenService.Data.PostgreSql.Migrations.PersistedGrant
 {
     public partial class PersistedGrantInit : Migration
     {

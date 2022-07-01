@@ -49,7 +49,20 @@
       ]
     }
   ],
+  "apiResources": [
+    {
+      "name": "api1",
+      "displayName": "My API",
+      "scopes": [
+        "api1"
+      ]
+    }
+  ],
   "apiScopes": [
+    {
+      "name": "api1",
+      "displayName": "My API"
+    },
     {
       "name": "cerberus-api",
       "displayName": "通用权限系统 API",
@@ -68,6 +81,71 @@
     }
   ],
   "clients": [
+    {
+      "ClientId": "client",
+      "ClientSecrets": [
+        {
+          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
+          "Type": "SharedSecret"
+        }
+      ],
+      "AllowedGrantTypes": [
+        "client_credentials"
+      ],
+      "AllowedScopes": [
+        "api1"
+      ]
+    },
+    {
+      "ClientId": "mvc",
+      "ClientSecrets": [
+        {
+          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
+          "Type": "SharedSecret"
+        }
+      ],
+      "AllowedGrantTypes": [
+        "authorization_code"
+      ],
+      "RequireConsent": false,
+      "RequirePkce": true,
+      "RedirectUris": [
+        "http://localhost:8002/signin-oidc"
+      ],
+      "PostLogoutRedirectUris": [
+        "http://localhost:8002/signout-callback-oidc"
+      ],
+      "AllowedScopes": [
+        "openid",
+        "profile",
+        "api1"
+      ],
+      "AllowOfflineAccess": true
+    },
+    {
+      "ClientId": "js",
+      "Client Name": "JavaScript Client",
+      "AllowedGrantTypes": [
+        "authorization_code"
+      ],
+      "RequirePkce": true,
+      "RequireConsent": true,
+      "RequireClientSecret": false,
+      "RedirectUris": [
+        "http://localhost:8003/callback.html"
+      ],
+      "PostLogoutRedirectUris": [
+        "http://localhost:8003/index.html"
+      ],
+      "AllowedCorsOrigins": [
+        "http://localhost:8003"
+      ],
+      "AllowedScopes": [
+        "openid",
+        "profile",
+        "api1"
+      ]
+    },
     {
       "ClientId": "cerberus-client",
       "ClientSecrets": [

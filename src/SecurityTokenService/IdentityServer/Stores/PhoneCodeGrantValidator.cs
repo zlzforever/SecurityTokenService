@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SecurityTokenService.Identity;
 
-namespace SecurityTokenService.IdentityServer;
+namespace SecurityTokenService.IdentityServer.Stores;
 
 public class PhoneCodeGrantValidator : IExtensionGrantValidator
 {

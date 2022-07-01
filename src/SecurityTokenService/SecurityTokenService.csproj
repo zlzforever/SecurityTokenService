@@ -1,41 +1,42 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-    <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="AlibabaCloud.SDK.Dysmsapi20170525" Version="2.0.9"/>
-        <PackageReference Include="Dapper" Version="2.0.123"/>
-        <PackageReference Include="IdentityServer4" Version="4.1.2"/>
-        <PackageReference Include="BuildBundlerMinifier" Version="3.2.449"/>
-        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1"/>
-        <PackageReference Include="Serilog.AspNetCore" Version="5.0.0"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1"/>
-        <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0"/>
-        <PackageReference Include="System.Text.Json" Version="6.0.4"/>
-        <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.2"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.5"/>
-        <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.2"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.5">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4"/>
-        <PackageReference Include="EFCore.NamingConventions" Version="6.0.0"/>
-        <PackageReference Include="nacos-sdk-csharp" Version="1.3.2"/>
-        <PackageReference Include="nacos-sdk-csharp.Extensions.Configuration" Version="1.3.2"/>
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AlibabaCloud.SDK.Dysmsapi20170525" Version="2.0.12" />
+    <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="IdentityServer4" Version="4.1.2" />
+    <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+    <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
+    <PackageReference Include="System.Text.Json" Version="6.0.5" />
+    <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.1" />
+    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.5" />
+    <PackageReference Include="EFCore.NamingConventions" Version="6.0.0" />
+    <PackageReference Include="nacos-sdk-csharp-test" Version="0.0.1-beta" />
+    <PackageReference Include="nacos-sdk-csharp.Extensions.Configuration" Version="1.3.3" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <Content Update="wwwroot\**">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
+  <ItemGroup>
+    <Content Update="wwwroot\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
 
-    </ItemGroup>
+  </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Data\MySql\Migrations"/>
-    </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\MySql\Migrations\SecurityTokenService" />
+    <Folder Include="Data\PostgreSql\Migrations\SecurityTokenService" />
+  </ItemGroup>
 
 </Project>

@@ -10,8 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
 using SecurityTokenService.Identity;
+using SecurityTokenService.IdentityServer.Stores;
 
-namespace SecurityTokenService.Extensions
+namespace SecurityTokenService.IdentityServer
 {
     public static class IdentityServerExtensions
     {
@@ -35,17 +36,10 @@ namespace SecurityTokenService.Extensions
         private static class Default
         {
             public static IEnumerable<IdentityResource> Ids =>
-                new List<IdentityResource>
-                {
-                    new IdentityResources.OpenId(),
-                    new IdentityResources.Profile(),
-                };
+                new List<IdentityResource> { new IdentityResources.OpenId(), new IdentityResources.Profile(), };
 
             public static IEnumerable<ApiResource> Apis =>
-                new List<ApiResource>
-                {
-                    new ApiResource("api1", "My API")
-                };
+                new List<ApiResource> { new ApiResource("api1", "My API") };
 
             public static IEnumerable<Client> Clients =>
                 new List<Client>
@@ -55,7 +49,6 @@ namespace SecurityTokenService.Extensions
                     {
                         ClientId = "client",
                         ClientSecrets = { new Secret("secret".Sha256()) },
-
                         AllowedGrantTypes = GrantTypes.ClientCredentials,
                         // scopes that client has access to
                         AllowedScopes = { "api1" }
@@ -65,7 +58,6 @@ namespace SecurityTokenService.Extensions
                     {
                         ClientId = "mvc",
                         ClientSecrets = { new Secret("secret".Sha256()) },
-
                         AllowedGrantTypes = GrantTypes.Code,
                         RequireConsent = false,
                         RequirePkce = true,
@@ -75,14 +67,12 @@ namespace SecurityTokenService.Extensions
 
                         // where to redirect to after logout
                         PostLogoutRedirectUris = { "http://localhost:8002/signout-callback-oidc" },
-
                         AllowedScopes = new List<string>
                         {
                             IdentityServerConstants.StandardScopes.OpenId,
                             IdentityServerConstants.StandardScopes.Profile,
                             "api1"
                         },
-
                         AllowOfflineAccess = true
                     },
                     // JavaScript Client
@@ -106,10 +96,7 @@ namespace SecurityTokenService.Extensions
                     }
                 };
 
-            public static IEnumerable<ApiScope> ApiScopes => new List<ApiScope>
-            {
-                new ApiScope("api1", "My API1")
-            };
+            public static IEnumerable<ApiScope> ApiScopes => new List<ApiScope> { new ApiScope("api1", "My API1") };
         }
 
         public static IIdentityServerBuilder AddStore(this IIdentityServerBuilder builder,
@@ -118,16 +105,19 @@ namespace SecurityTokenService.Extensions
             if (configuration.GetSection("identityResources").GetChildren().Any())
             {
                 Console.WriteLine("Load config from configuration");
-                var ids = configuration.GetSection("identityResources").Get<List<IdentityResource>>() ??
-                          new List<IdentityResource>();
-                var apiScopes = configuration.GetSection("apiScopes").Get<List<ApiScope>>() ?? new List<ApiScope>();
-                var apiResources = configuration.GetSection("apiResources").Get<List<ApiResource>>() ??
-                                   new List<ApiResource>();
-                var clients = configuration.GetSection("clients").Get<List<Client>>() ?? new List<Client>();
-                builder.AddInMemoryIdentityResources(ids)
-                    .AddInMemoryApiScopes(apiScopes)
-                    .AddInMemoryApiResources(apiResources)
-                    .AddInMemoryClients(clients);
+                // var ids = configuration.GetSection("identityResources").Get<List<IdentityResource>>() ??
+                //           new List<IdentityResource>();
+                // var apiScopes = configuration.GetSection("apiScopes").Get<List<ApiScope>>() ?? new List<ApiScope>();
+                // var apiResources = configuration.GetSection("apiResources").Get<List<ApiResource>>() ??
+                //                    new List<ApiResource>();
+                // var clients = configuration.GetSection("clients").Get<List<Client>>() ?? new List<Client>();
+                // builder.AddInMemoryIdentityResources(ids)
+                //     .AddInMemoryApiScopes(apiScopes)
+                //     .AddInMemoryApiResources(apiResources)
+                // .AddInMemoryClients(clients);
+                builder.AddInMemoryCaching();
+                builder.AddResourceStoreCache<InConfigurationResourcesStore>();
+                builder.AddClientStoreCache<InConfigurationClientStore>();
             }
             else
             {
@@ -144,7 +134,7 @@ namespace SecurityTokenService.Extensions
             return builder;
         }
 
-        public static void LoadIdentityServerData(this IApplicationBuilder app)
+        public static void ConfigureIdentityServerStore(this IApplicationBuilder app)
         {
             var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
             using var scope = app.ApplicationServices.CreateScope();

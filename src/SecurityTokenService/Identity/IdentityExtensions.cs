@@ -6,10 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using SecurityTokenService.Data;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
-using SecurityTokenService.IdentityServer;
+using SecurityTokenService.IdentityServer.Stores;
 
-
-namespace SecurityTokenService.Extensions
+namespace SecurityTokenService.Identity
 {
     public static class IdentityExtensions
     {

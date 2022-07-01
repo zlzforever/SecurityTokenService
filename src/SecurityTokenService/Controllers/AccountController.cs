@@ -22,6 +22,7 @@ using Microsoft.Extensions.Options;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 using SecurityTokenService.IdentityServer;
+using SecurityTokenService.IdentityServer.Stores;
 
 namespace SecurityTokenService.Controllers
 {

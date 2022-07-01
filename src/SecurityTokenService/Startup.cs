@@ -19,6 +19,7 @@ using SecurityTokenService.Data.PostgreSql;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 using SecurityTokenService.IdentityServer;
+using SecurityTokenService.IdentityServer.Stores;
 
 namespace SecurityTokenService
 {
@@ -76,7 +77,7 @@ namespace SecurityTokenService
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.LoadIdentityData();
-            app.LoadIdentityServerData();
+            app.ConfigureIdentityServerStore();
 
             if (env.IsDevelopment())
             {
@@ -85,6 +86,11 @@ namespace SecurityTokenService
             else
             {
                 app.UseExceptionHandler("/Error");
+            }
+
+            if (Configuration["IdentityServer:ForceHttps"]?.ToLower() == "true")
+            {
+                app.UseMiddleware<PublicFacingUrlMiddleware>();
             }
 
             app.UseCookiePolicy(new CookiePolicyOptions
@@ -136,7 +142,7 @@ namespace SecurityTokenService
                 .AddAspNetIdentity<User>()
                 .AddProfileService<ProfileService>();
 
-            services.AddScoped<IPhoneCodeStore, DatabasePhoneCodeStore>();
+            services.AddScoped<IPhoneCodeStore, PhoneCodeStore>();
 
             // builder.Services.AddTransient<IUserClaimsPrincipalFactory<IdentityUser>, UserClaimsFactory<IdentityUser>>();
             if (Configuration["Database"] == "MySql")

@@ -1,9 +1,9 @@
-﻿using System;
+﻿#nullable disable
+
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-#nullable disable
-
-namespace SecurityTokenService.Data.MySql.Migrations
+namespace SecurityTokenService.Data.MySql.Migrations.PersistedGrant
 {
     public partial class PersistedGrantInit : Migration
     {
