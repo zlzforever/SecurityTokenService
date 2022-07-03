@@ -50,22 +50,13 @@ namespace SecurityTokenService
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddScoped<SeedData>();
 
-            var corsOrigins = GetCorsOrigins();
-            if (corsOrigins.Length > 0)
-            {
-                services.AddCors(option =>
-                {
-                    option
-                        .AddPolicy("configuration", policy =>
-                            policy.AllowAnyMethod()
-                                .SetIsOriginAllowed(_ => true)
-                                .AllowAnyHeader()
-                                .WithExposedHeaders("x-suggested-filename")
-                                .AllowCredentials()
-                                .SetPreflightMaxAge(TimeSpan.FromDays(30)));
-                    //.WithOrigins(corsOrigins)
-                });
-            }
+            services.AddCors(option => option
+                .AddPolicy("cors", policy =>
+                    policy.AllowAnyMethod()
+                        .SetIsOriginAllowed(_ => true)
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                ));
 
             ConfigureDbContext(services);
             ConfigureIdentity(services);
@@ -93,15 +84,16 @@ namespace SecurityTokenService
                 app.UseMiddleware<PublicFacingUrlMiddleware>();
             }
 
-            app.UseCookiePolicy(new CookiePolicyOptions
-            {
-                MinimumSameSitePolicy = SameSiteMode.Lax
-            });
+            app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Lax });
             app.UseFileServer();
             app.UseRouting();
+            app.UseCors("cors");
             app.UseIdentityServer();
             app.UseAuthorization();
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers().RequireCors("cors");
+            });
         }
 
         private string[] GetCorsOrigins()
