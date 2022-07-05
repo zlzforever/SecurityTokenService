@@ -2,7 +2,7 @@
 WORKDIR /app
 COPY src/SecurityTokenService .
 RUN yarn install
-RUN dotnet build SecurityTokenService.csproj -c Release -o /app/build
+RUN dotnet build SecurityTokenService.csproj -c Release -o /app
 RUN rm -rf /app/wwwroot/css/site.css
 RUN rm -rf /app/wwwroot/js/site.js
 RUN rm -rf /app/sts.json
@@ -15,7 +15,7 @@ RUN mv -f /app/sts_backup.json /app/sts.json
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS final
 WORKDIR /app
-COPY --from=build /app/build .
+COPY --from=build /app .
 ENTRYPOINT ["dotnet", "SecurityTokenService.dll"]
 ENV LANG zh_CN.UTF-8
 EXPOSE 80
