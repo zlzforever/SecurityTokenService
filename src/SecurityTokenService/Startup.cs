@@ -201,6 +201,7 @@ namespace SecurityTokenService
 
         private void ConfigureOptions(IServiceCollection services)
         {
+            services.Configure<ResourcesAndClientsOptions>(Configuration);
             services.Configure<IdentityOptions>(Configuration.GetSection("Identity"));
             services.Configure<IdentityExtensionOptions>(Configuration.GetSection("Identity"));
             services.Configure<IdentityServerOptions>(Configuration.GetSection("IdentityServer"));
