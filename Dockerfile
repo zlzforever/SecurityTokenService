@@ -2,7 +2,7 @@
 WORKDIR /app
 COPY src/SecurityTokenService .
 RUN yarn install
-RUN dotnet build SecurityTokenService.csproj -c Release -o /app
+RUN dotnet publish SecurityTokenService.csproj -c Release -o /app
 RUN rm -rf /app/wwwroot/css/site.css
 RUN rm -rf /app/wwwroot/js/site.js
 RUN rm -rf /app/sts.json
