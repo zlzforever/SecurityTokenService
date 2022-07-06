@@ -2,16 +2,16 @@
 WORKDIR /app
 COPY src/SecurityTokenService .
 RUN yarn install
-RUN dotnet publish SecurityTokenService.csproj -c Release -o /app
-RUN rm -rf /app/wwwroot/css/site.css
-RUN rm -rf /app/wwwroot/js/site.js
-RUN rm -rf /app/sts.json
-RUN rm -rf /app/runtimes/linux-arm64
-RUN rm -rf /app/runtimes/osx-x64
-RUN rm -rf /app/runtimes/win-x64
-RUN rm -rf /app/runtimes/win-x86
-RUN rm -rf /app/appsettings.Nacos.json
-RUN mv -f /app/sts_backup.json /app/sts.json
+RUN dotnet publish SecurityTokenService.csproj -c Release -o out
+RUN rm -rf /app/out/wwwroot/css/site.css
+RUN rm -rf /app/out/wwwroot/js/site.js
+RUN rm -rf /app/out/sts.json
+RUN rm -rf /app/out/runtimes/linux-arm64
+RUN rm -rf /app/out/runtimes/osx-x64
+RUN rm -rf /app/out/runtimes/win-x64
+RUN rm -rf /app/out/runtimes/win-x86
+RUN rm -rf /app/out/appsettings.Nacos.json
+RUN mv -f /app/out/sts_backup.json /app/sts.json
 RUN ls /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS final
