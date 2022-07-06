@@ -16,7 +16,7 @@ RUN ls /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS final
 WORKDIR /app
-COPY --from=build /app .
+COPY --from=build /app/out .
 ENTRYPOINT ["dotnet", "SecurityTokenService.dll"]
 ENV LANG zh_CN.UTF-8
 EXPOSE 80
