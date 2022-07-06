@@ -24,6 +24,11 @@ public class InConfigurationResourcesStore : IResourceStore
             throw new ArgumentNullException(nameof(scopeNames));
         }
 
+        if (_options.IdentityResources == null)
+        {
+            return Task.FromResult(Enumerable.Empty<IdentityResource>());
+        }
+
         var identity = from i in _options.IdentityResources
             where scopeNames.Contains(i.Name)
             select i;
@@ -36,6 +41,11 @@ public class InConfigurationResourcesStore : IResourceStore
         if (scopeNames == null)
         {
             throw new ArgumentNullException(nameof(scopeNames));
+        }
+
+        if (_options.ApiScopes == null)
+        {
+            return Task.FromResult(Enumerable.Empty<ApiScope>());
         }
 
         var query =
@@ -53,6 +63,11 @@ public class InConfigurationResourcesStore : IResourceStore
             throw new ArgumentNullException(nameof(scopeNames));
         }
 
+        if (_options.ApiResources == null)
+        {
+            return Task.FromResult(Enumerable.Empty<ApiResource>());
+        }
+
         var query = from a in _options.ApiResources
             where a.Scopes != null && a.Scopes.Any(scopeNames.Contains)
             select a;
@@ -65,6 +80,11 @@ public class InConfigurationResourcesStore : IResourceStore
         if (apiResourceNames == null)
         {
             throw new ArgumentNullException(nameof(apiResourceNames));
+        }
+
+        if (_options.ApiResources == null)
+        {
+            return Task.FromResult(Enumerable.Empty<ApiResource>());
         }
 
         var query = from a in _options.ApiResources

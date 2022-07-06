@@ -72,10 +72,6 @@ namespace SecurityTokenService
             app.LoadIdentityData();
             app.ConfigureIdentityServerStore();
 
-            var resourcesAndClients = app.ApplicationServices
-                .GetRequiredService<IOptionsMonitor<ResourcesAndClientsOptions>>().CurrentValue;
-            Console.WriteLine(JsonSerializer.Serialize(resourcesAndClients));
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

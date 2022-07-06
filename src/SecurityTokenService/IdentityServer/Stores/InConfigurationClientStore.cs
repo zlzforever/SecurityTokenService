@@ -17,6 +17,11 @@ public class InConfigurationClientStore : IClientStore
 
     public Task<Client> FindClientByIdAsync(string clientId)
     {
+        if (_options.Clients == null)
+        {
+            return Task.FromResult<Client>(null);
+        }
+
         var client = _options.Clients.SingleOrDefault(client => client.ClientId == clientId);
         return Task.FromResult(client);
     }
