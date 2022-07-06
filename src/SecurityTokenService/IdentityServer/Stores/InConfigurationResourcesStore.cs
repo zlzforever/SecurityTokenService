@@ -54,7 +54,7 @@ public class InConfigurationResourcesStore : IResourceStore
         }
 
         var query = from a in _options.ApiResources
-            where a.Scopes.Any(scopeNames.Contains)
+            where a.Scopes != null && a.Scopes.Any(scopeNames.Contains)
             select a;
 
         return Task.FromResult(query);

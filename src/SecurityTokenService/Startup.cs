@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
 using IdentityServer4;
 using IdentityServer4.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -13,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using SecurityTokenService.Data;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
@@ -70,6 +72,10 @@ namespace SecurityTokenService
             app.LoadIdentityData();
             app.ConfigureIdentityServerStore();
 
+            var resourcesAndClients = app.ApplicationServices
+                .GetRequiredService<IOptionsMonitor<ResourcesAndClientsOptions>>().CurrentValue;
+            Console.WriteLine(JsonSerializer.Serialize(resourcesAndClients));
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -96,10 +102,10 @@ namespace SecurityTokenService
             });
         }
 
-        private string[] GetCorsOrigins()
-        {
-            return Configuration.GetSection("AllowedCorsOrigins").Get<string[]>() ?? Array.Empty<string>();
-        }
+        // private string[] GetCorsOrigins()
+        // {
+        //     return Configuration.GetSection("AllowedCorsOrigins").Get<string[]>() ?? Array.Empty<string>();
+        // }
 
         private void ConfigureIdentity(IServiceCollection services)
         {
