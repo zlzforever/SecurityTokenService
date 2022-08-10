@@ -53,7 +53,7 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("sts_role", (string)null);
+                    b.ToTable("cerberus_role", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -85,7 +85,7 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("sts_role_claim", (string)null);
+                    b.ToTable("cerberus_role_claim", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -117,7 +117,7 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("sts_user_claim", (string)null);
+                    b.ToTable("cerberus_user_claim", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -147,7 +147,7 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("sts_user_login", (string)null);
+                    b.ToTable("cerberus_user_login", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -166,7 +166,7 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("sts_user_role", (string)null);
+                    b.ToTable("cerberus_user_role", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -193,7 +193,7 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("sts_user_token", (string)null);
+                    b.ToTable("cerberus_user_token", (string)null);
                 });
 
             modelBuilder.Entity("SecurityTokenService.Identity.User", b =>
@@ -290,7 +290,7 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("sts_user", (string)null);
+                    b.ToTable("cerberus_user", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

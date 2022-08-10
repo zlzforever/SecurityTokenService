@@ -59,7 +59,6 @@ namespace SecurityTokenService
                         .AllowAnyHeader()
                         .AllowCredentials()
                 ));
-
             ConfigureDbContext(services);
             ConfigureIdentity(services);
             ConfigureIdentityServer(services);
@@ -167,7 +166,7 @@ namespace SecurityTokenService
                             o.MigrationsHistoryTable("___identity_migrations_history");
                         });
                 });
-                services.AddDbContext<MySqlPersistedGrantDbContext>(b =>
+                services.AddDbContextPool<MySqlPersistedGrantDbContext>(b =>
                 {
                     b.UseMySql(Configuration.GetConnectionString("IdentityServer"),
                         ServerVersion.AutoDetect(connectionString),
@@ -203,9 +202,10 @@ namespace SecurityTokenService
 
         private void ConfigureOptions(IServiceCollection services)
         {
+            var identity = Configuration.GetSection("Identity");
             services.Configure<ResourcesAndClientsOptions>(Configuration);
-            services.Configure<IdentityOptions>(Configuration.GetSection("Identity"));
-            services.Configure<IdentityExtensionOptions>(Configuration.GetSection("Identity"));
+            services.Configure<IdentityOptions>(identity);
+            services.Configure<IdentityExtensionOptions>(identity);
             services.Configure<IdentityServerOptions>(Configuration.GetSection("IdentityServer"));
             services.Configure<IdentityServerExtensionOptions>(Configuration.GetSection("IdentityServer"));
             services.Configure<SecurityTokenServiceOptions>(Configuration.GetSection("SecurityTokenService"));

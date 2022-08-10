@@ -44,6 +44,7 @@
   <ItemGroup>
     <Folder Include="Data\MySql\Migrations\SecurityTokenService" />
     <Folder Include="Data\PostgreSql\Migrations\SecurityTokenService" />
+    <Folder Include="KEYS" />
   </ItemGroup>
 
 </Project>

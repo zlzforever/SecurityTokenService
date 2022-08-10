@@ -11,7 +11,7 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "sts_role",
+                name: "cerberus_role",
                 columns: table => new
                 {
                     id = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
@@ -21,11 +21,11 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sts_role", x => x.id);
+                    table.PrimaryKey("PK_cerberus_role", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "sts_user",
+                name: "cerberus_user",
                 columns: table => new
                 {
                     id = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
@@ -49,11 +49,11 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sts_user", x => x.id);
+                    table.PrimaryKey("PK_cerberus_user", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "sts_role_claim",
+                name: "cerberus_role_claim",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
@@ -64,17 +64,17 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sts_role_claim", x => x.id);
+                    table.PrimaryKey("PK_cerberus_role_claim", x => x.id);
                     table.ForeignKey(
-                        name: "FK_sts_role_claim_sts_role_role_id",
+                        name: "FK_cerberus_role_claim_cerberus_role_role_id",
                         column: x => x.role_id,
-                        principalTable: "sts_role",
+                        principalTable: "cerberus_role",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "sts_user_claim",
+                name: "cerberus_user_claim",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
@@ -85,17 +85,17 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sts_user_claim", x => x.id);
+                    table.PrimaryKey("PK_cerberus_user_claim", x => x.id);
                     table.ForeignKey(
-                        name: "FK_sts_user_claim_sts_user_user_id",
+                        name: "FK_cerberus_user_claim_cerberus_user_user_id",
                         column: x => x.user_id,
-                        principalTable: "sts_user",
+                        principalTable: "cerberus_user",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "sts_user_login",
+                name: "cerberus_user_login",
                 columns: table => new
                 {
                     login_provider = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
@@ -105,17 +105,17 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sts_user_login", x => new { x.login_provider, x.provider_key });
+                    table.PrimaryKey("PK_cerberus_user_login", x => new { x.login_provider, x.provider_key });
                     table.ForeignKey(
-                        name: "FK_sts_user_login_sts_user_user_id",
+                        name: "FK_cerberus_user_login_cerberus_user_user_id",
                         column: x => x.user_id,
-                        principalTable: "sts_user",
+                        principalTable: "cerberus_user",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "sts_user_role",
+                name: "cerberus_user_role",
                 columns: table => new
                 {
                     user_id = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
@@ -123,23 +123,23 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sts_user_role", x => new { x.user_id, x.role_id });
+                    table.PrimaryKey("PK_cerberus_user_role", x => new { x.user_id, x.role_id });
                     table.ForeignKey(
-                        name: "FK_sts_user_role_sts_role_role_id",
+                        name: "FK_cerberus_user_role_cerberus_role_role_id",
                         column: x => x.role_id,
-                        principalTable: "sts_role",
+                        principalTable: "cerberus_role",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_sts_user_role_sts_user_user_id",
+                        name: "FK_cerberus_user_role_cerberus_user_user_id",
                         column: x => x.user_id,
-                        principalTable: "sts_user",
+                        principalTable: "cerberus_user",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "sts_user_token",
+                name: "cerberus_user_token",
                 columns: table => new
                 {
                     user_id = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
@@ -149,75 +149,75 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sts_user_token", x => new { x.user_id, x.login_provider, x.name });
+                    table.PrimaryKey("PK_cerberus_user_token", x => new { x.user_id, x.login_provider, x.name });
                     table.ForeignKey(
-                        name: "FK_sts_user_token_sts_user_user_id",
+                        name: "FK_cerberus_user_token_cerberus_user_user_id",
                         column: x => x.user_id,
-                        principalTable: "sts_user",
+                        principalTable: "cerberus_user",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
-                table: "sts_role",
+                table: "cerberus_role",
                 column: "normalized_name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_sts_role_claim_role_id",
-                table: "sts_role_claim",
+                name: "IX_cerberus_role_claim_role_id",
+                table: "cerberus_role_claim",
                 column: "role_id");
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
-                table: "sts_user",
+                table: "cerberus_user",
                 column: "normalized_email");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
-                table: "sts_user",
+                table: "cerberus_user",
                 column: "normalized_user_name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_sts_user_claim_user_id",
-                table: "sts_user_claim",
+                name: "IX_cerberus_user_claim_user_id",
+                table: "cerberus_user_claim",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_sts_user_login_user_id",
-                table: "sts_user_login",
+                name: "IX_cerberus_user_login_user_id",
+                table: "cerberus_user_login",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_sts_user_role_role_id",
-                table: "sts_user_role",
+                name: "IX_cerberus_user_role_role_id",
+                table: "cerberus_user_role",
                 column: "role_id");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "sts_role_claim");
+                name: "cerberus_role_claim");
 
             migrationBuilder.DropTable(
-                name: "sts_user_claim");
+                name: "cerberus_user_claim");
 
             migrationBuilder.DropTable(
-                name: "sts_user_login");
+                name: "cerberus_user_login");
 
             migrationBuilder.DropTable(
-                name: "sts_user_role");
+                name: "cerberus_user_role");
 
             migrationBuilder.DropTable(
-                name: "sts_user_token");
+                name: "cerberus_user_token");
 
             migrationBuilder.DropTable(
-                name: "sts_role");
+                name: "cerberus_role");
 
             migrationBuilder.DropTable(
-                name: "sts_user");
+                name: "cerberus_user");
         }
     }
 }

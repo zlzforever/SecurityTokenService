@@ -32,15 +32,6 @@
     },
     {
       "Emphasize": true,
-      "Name": "email",
-      "DisplayName": "邮件",
-      "Description": "您的邮件信息",
-      "UserClaims": [
-        "email"
-      ]
-    },
-    {
-      "Emphasize": true,
       "Name": "role",
       "DisplayName": "角色",
       "Description": "您的角色信息",
@@ -49,20 +40,7 @@
       ]
     }
   ],
-  "apiResources": [
-    {
-      "name": "api1",
-      "displayName": "My API",
-      "scopes": [
-        "api1"
-      ]
-    }
-  ],
   "apiScopes": [
-    {
-      "name": "api1",
-      "displayName": "My API"
-    },
     {
       "name": "cerberus-api",
       "displayName": "通用权限系统 API",
@@ -71,8 +49,17 @@
       ]
     },
     {
-      "name": "meeting-api",
-      "displayName": "服务接口",
+      "name": "ziranziyuanjiance-api",
+      "displayName": "GIS 服务接口",
+      "UserClaims": [
+        "role",
+        "name",
+        "email"
+      ]
+    },
+    {
+      "name": "shlzz-api",
+      "displayName": "上海林长制服务",
       "UserClaims": [
         "role",
         "name",
@@ -81,71 +68,6 @@
     }
   ],
   "clients": [
-    {
-      "ClientId": "client",
-      "ClientSecrets": [
-        {
-          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
-          "Type": "SharedSecret"
-        }
-      ],
-      "AllowedGrantTypes": [
-        "client_credentials"
-      ],
-      "AllowedScopes": [
-        "api1"
-      ]
-    },
-    {
-      "ClientId": "mvc",
-      "ClientSecrets": [
-        {
-          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
-          "Type": "SharedSecret"
-        }
-      ],
-      "AllowedGrantTypes": [
-        "authorization_code"
-      ],
-      "RequireConsent": false,
-      "RequirePkce": true,
-      "RedirectUris": [
-        "http://localhost:8002/signin-oidc"
-      ],
-      "PostLogoutRedirectUris": [
-        "http://localhost:8002/signout-callback-oidc"
-      ],
-      "AllowedScopes": [
-        "openid",
-        "profile",
-        "api1"
-      ],
-      "AllowOfflineAccess": true
-    },
-    {
-      "ClientId": "js",
-      "Client Name": "JavaScript Client",
-      "AllowedGrantTypes": [
-        "authorization_code"
-      ],
-      "RequirePkce": true,
-      "RequireConsent": true,
-      "RequireClientSecret": false,
-      "RedirectUris": [
-        "http://localhost:8003/callback.html"
-      ],
-      "PostLogoutRedirectUris": [
-        "http://localhost:8003/index.html"
-      ],
-      "AllowedCorsOrigins": [
-        "http://localhost:8003"
-      ],
-      "AllowedScopes": [
-        "openid",
-        "profile",
-        "api1"
-      ]
-    },
     {
       "ClientId": "cerberus-client",
       "ClientSecrets": [
@@ -158,7 +80,7 @@
         "client_credentials"
       ],
       "AllowedScopes": [
-        "cerberus-api"
+        "cerberus-access-server-api"
       ]
     },
     {
@@ -188,23 +110,15 @@
     {
       "ClientId": "cerberus-web",
       "AllowAccessTokensViaBrowser": true,
-      "ClientSecrets": [
-        {
-          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
-          "Type": "SharedSecret"
-        }
-      ],
       "RequireConsent": false,
       "AllowedGrantTypes": [
-        "implicit",
-        "phone_code"
+        "implicit"
       ],
       "RedirectUris": [
         "http://localhost:8101/signin-oidc"
       ],
       "PostLogoutRedirectUris": [
-        "http://localhost:8101/signout-callback-oidc",
-        "http://localhost:8102/signout-callback-oidc"
+        "http://localhost:8101/signout-callback-oidc"
       ],
       "AllowedCorsOrigins": [
         "http://localhost:8101"
@@ -217,7 +131,7 @@
       ]
     },
     {
-      "ClientId": "dongjian-web",
+      "ClientId": "ziranziyuanjiance-web",
       "ClientSecrets": [
         {
           "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
@@ -228,8 +142,7 @@
       "RequireConsent": false,
       "AllowedGrantTypes": [
         "implicit",
-        "password",
-        "phone_code"
+        "password"
       ],
       "IdentityTokenLifetime": 108000,
       "AccessTokenLifetime": 108000,
@@ -245,9 +158,44 @@
       "AllowedScopes": [
         "openid",
         "profile",
-        "email",
         "role",
-        "meeting-api"
+        "email",
+        "cerberus-api",
+        "ziranziyuanjiance-api"
+      ]
+    },
+    {
+      "ClientId": "shlzz-web",
+      "ClientSecrets": [
+        {
+          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
+          "Type": "SharedSecret"
+        }
+      ],
+      "AllowAccessTokensViaBrowser": true,
+      "RequireConsent": false,
+      "AllowedGrantTypes": [
+        "implicit",
+        "password"
+      ],
+      "IdentityTokenLifetime": 108000,
+      "AccessTokenLifetime": 108000,
+      "RedirectUris": [
+        "http://localhost:3000/signin-oidc"
+      ],
+      "PostLogoutRedirectUris": [
+        "http://localhost:3000/signout-callback-oidc"
+      ],
+      "AllowedCorsOrigins": [
+        "http://localhost:3000"
+      ],
+      "AllowedScopes": [
+        "openid",
+        "profile",
+        "role",
+        "email",
+        "cerberus-api",
+        "shlzz-api"
       ]
     }
   ]
