@@ -7,6 +7,7 @@ namespace SecurityTokenService.Identity
         public string SoftDeleteColumn { get; set; }
         public Tables Tables { get; set; }
         public string TablePrefix { get; set; }
+        public bool StorePasswordSecurity { get; set; }
     }
 
     public sealed class Tables

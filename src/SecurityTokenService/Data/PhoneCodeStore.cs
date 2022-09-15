@@ -83,8 +83,8 @@ create table if not exists {tablePrefix}sms_code
                 $@"INSERT INTO {tablePrefix}sms_code (phone_number, code, modification_time) VALUES (@phoneNumber, @code, UNIX_TIMESTAMP()) 
 ON DUPLICATE KEY UPDATE code = @code, modification_time = UNIX_TIMESTAMP()",
             _ =>
-                $@"INSERT INTO {tablePrefix}sms_code (phone_number, code, modification_time) VALUES (@phoneNumber, @code, UNIX_TIMESTAMP()) 
-on conflict (phoneNumber) do update set code = @code, modification_time = UNIX_TIMESTAMP()"
+                $@"INSERT INTO {tablePrefix}sms_code (phone_number, code, modification_time) VALUES (@phoneNumber, @code, floor(extract(epoch from now()))) 
+on conflict (phoneNumber) do update set code = @code, modification_time = floor(extract(epoch from now()))"
         };
         return conn;
     }

@@ -9,6 +9,35 @@ namespace SecurityTokenService.Controllers
     {
         public static class V1
         {
+            public class ResetPasswordInput
+            {
+                /// <summary>
+                /// 新密码
+                /// </summary>
+                [MinLength(6)]
+                public string NewPassword { get; set; }
+
+                /// <summary>
+                /// 确认新密码
+                /// </summary>
+                [MinLength(6)]
+                [Compare("NewPassword", ErrorMessage = "两次密码不一致")]
+                public string ConfirmNewPassword { get; set; }
+
+                /// <summary>
+                /// 手机号
+                /// </summary>
+                [StringLength(11)]
+                public string PhoneNumber { get; set; }
+
+                /// <summary>
+                /// 验证码
+                /// </summary>
+                [Required]
+                [StringLength(6)]
+                public string VerifyCode { get; set; }
+            }
+
             public class SendSmsCode
             {
                 /// <summary>
