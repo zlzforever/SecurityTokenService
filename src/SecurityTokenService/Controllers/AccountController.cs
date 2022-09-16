@@ -76,8 +76,7 @@ namespace SecurityTokenService.Controllers
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPasswordAsync([FromBody] Inputs.V1.ResetPasswordInput resetPassword)
         {
-            var user = await _userManager.Users.FirstOrDefaultAsync(x =>
-                x.PhoneNumber == resetPassword.PhoneNumber);
+            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == resetPassword.PhoneNumber);
 
             if (user == null)
             {
@@ -110,7 +109,7 @@ namespace SecurityTokenService.Controllers
                 var passwordContainsDigit = resetPassword.NewPassword.Any(char.IsDigit);
                 var passwordContainsLowercase = resetPassword.NewPassword.Any(char.IsLower);
                 var passwordContainsUppercase = resetPassword.NewPassword.Any(char.IsUpper);
-                var passwordContainsNonAlphanumeric = !resetPassword.NewPassword.All(char.IsAscii);
+                var passwordContainsNonAlphanumeric = resetPassword.NewPassword.All(char.IsAscii);
 
                 await _passwordSecurityInfoStore.UpdateAsync(user.Id, passwordLength, passwordContainsDigit,
                     passwordContainsLowercase, passwordContainsUppercase, passwordContainsNonAlphanumeric);
@@ -124,6 +123,8 @@ namespace SecurityTokenService.Controllers
                 var msg = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
                 return new ObjectResult(new ApiResult { Code = Errors.ChangePasswordFailed, Message = msg });
             }
+            
+            await _phoneCodeStore.UpdateAsync(resetPassword.PhoneNumber, "");
 
             return new ObjectResult(new ApiResult { Code = 200, Message = "修改成功" });
         }
