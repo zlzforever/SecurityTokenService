@@ -109,7 +109,7 @@ namespace SecurityTokenService.Controllers
                 var passwordContainsDigit = resetPassword.NewPassword.Any(char.IsDigit);
                 var passwordContainsLowercase = resetPassword.NewPassword.Any(char.IsLower);
                 var passwordContainsUppercase = resetPassword.NewPassword.Any(char.IsUpper);
-                var passwordContainsNonAlphanumeric = resetPassword.NewPassword.All(char.IsAscii);
+                var passwordContainsNonAlphanumeric = !resetPassword.NewPassword.All(char.IsLetterOrDigit);
 
                 await _passwordSecurityInfoStore.UpdateAsync(user.Id, passwordLength, passwordContainsDigit,
                     passwordContainsLowercase, passwordContainsUppercase, passwordContainsNonAlphanumeric);
@@ -295,7 +295,7 @@ namespace SecurityTokenService.Controllers
             {
                 var smsClient = CreateClient();
                 var countryCode = string.IsNullOrWhiteSpace(input.CountryCode) ? "+86" : input.CountryCode;
-                var template = _aliyunSmsOptions.Templates.GetOrDefault(input.CountryCode);
+                var template = _aliyunSmsOptions.Templates.GetOrDefault(countryCode);
                 if (string.IsNullOrEmpty(template))
                 {
                     _logger.LogError($"CountryCode {countryCode} no sms template");
