@@ -1,7 +1,6 @@
 using System.Data.Common;
 using System.Threading.Tasks;
 using Dapper;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 using Npgsql;
@@ -24,14 +23,39 @@ public class PasswordSecurityInfoStore : IPasswordSecurityInfoStore
         await using var conn = GetConnection();
 
         var connectString = _configuration["ConnectionStrings:Identity"];
+        var tablePrefix = _configuration["Identity:TablePrefix"];
 
+        int effected = 0;
+        
         if (_configuration["Database"] == "MySql")
         {
-            await conn.ExecuteAsync("UPDATE ", new { });
+            await conn.ExecuteAsync(
+                @$"UPDATE {tablePrefix}user SET password_length = @passwordLength, password_contains_digit = @passwordContainsDigit, 
+            password_contains_lowercase = @passwordContainsLowercase, password_contains_uppercase = @passwordContainsUppercase, password_contains_non_alphanumeric = @passwordContainsNonAlphanumeric WHERE id = @userId",
+                new
+                {
+                    userId,
+                    passwordLength,
+                    passwordContainsDigit,
+                    passwordContainsLowercase,
+                    passwordContainsUppercase,
+                    passwordContainsNonAlphanumeric
+                });
         }
         else
         {
-            await conn.ExecuteAsync("UPDATE ", new { });
+            await conn.ExecuteAsync(
+                @$"UPDATE {tablePrefix}user SET password_length = @passwordLength, password_contains_digit = @passwordContainsDigit, 
+            password_contains_lowercase = @passwordContainsLowercase, password_contains_uppercase = @passwordContainsUppercase, password_contains_non_alphanumeric = @passwordContainsNonAlphanumeric WHERE id = @userId",
+                new
+                {
+                    userId,
+                    passwordLength,
+                    passwordContainsDigit,
+                    passwordContainsLowercase,
+                    passwordContainsUppercase,
+                    passwordContainsNonAlphanumeric
+                });
         }
     }
 

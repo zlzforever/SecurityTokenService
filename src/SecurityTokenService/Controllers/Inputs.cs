@@ -34,7 +34,7 @@ namespace SecurityTokenService.Controllers
                 /// 验证码
                 /// </summary>
                 [Required]
-                [StringLength(6)]
+                [StringLength(4)]
                 public string VerifyCode { get; set; }
             }
 

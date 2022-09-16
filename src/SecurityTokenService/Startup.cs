@@ -136,6 +136,7 @@ namespace SecurityTokenService
                 .AddProfileService<ProfileService>();
 
             services.AddScoped<IPhoneCodeStore, PhoneCodeStore>();
+            services.AddScoped<IPasswordSecurityInfoStore, PasswordSecurityInfoStore>();
 
             // builder.Services.AddTransient<IUserClaimsPrincipalFactory<IdentityUser>, UserClaimsFactory<IdentityUser>>();
             if (Configuration["Database"] == "MySql")
