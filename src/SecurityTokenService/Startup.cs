@@ -133,7 +133,8 @@ namespace SecurityTokenService
                 .AddExtensionGrantValidator<PhoneCodeGrantValidator>()
                 .AddStore(Configuration)
                 .AddAspNetIdentity<User>()
-                .AddProfileService<ProfileService>();
+                .AddProfileService<ProfileService>()
+                .AddResourceOwnerValidator<ResourceOwnerPasswordValidator>();
 
             services.AddScoped<IPhoneCodeStore, PhoneCodeStore>();
             services.AddScoped<IPasswordSecurityInfoStore, PasswordSecurityInfoStore>();
