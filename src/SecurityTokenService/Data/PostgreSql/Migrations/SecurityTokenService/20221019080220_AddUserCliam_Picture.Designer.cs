@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SecurityTokenService.Data.PostgreSql;
@@ -11,9 +12,10 @@ using SecurityTokenService.Data.PostgreSql;
 namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
 {
     [DbContext(typeof(PostgreSqlSecurityTokenServiceDbContext))]
-    partial class PostgreSqlSecurityTokenServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221019080220_AddUserCliam_Picture")]
+    partial class AddUserCliam_Picture
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

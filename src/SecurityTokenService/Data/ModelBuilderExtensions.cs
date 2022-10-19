@@ -29,6 +29,7 @@ public static class ModelBuilderExtensions
 
             b.Property(x => x.FamilyName).HasMaxLength(100);
             b.Property(x => x.GivenName).HasMaxLength(100);
+            b.Property(x => x.Picture).HasMaxLength(500);
         });
         builder.Entity<IdentityRole>(b =>
         {
