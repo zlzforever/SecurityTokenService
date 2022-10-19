@@ -12,8 +12,8 @@ using SecurityTokenService.Data.PostgreSql;
 namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
 {
     [DbContext(typeof(PostgreSqlSecurityTokenServiceDbContext))]
-    [Migration("20221019080220_AddUserCliam_Picture")]
-    partial class AddUserCliam_Picture
+    [Migration("20221019080220_AddUserClaimPicture")]
+    partial class AddUserClaimPicture
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

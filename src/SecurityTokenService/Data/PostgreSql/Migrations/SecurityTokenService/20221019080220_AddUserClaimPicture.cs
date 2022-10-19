@@ -4,7 +4,7 @@
 
 namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
 {
-    public partial class AddUserCliam_Picture : Migration
+    public partial class AddUserClaimPicture : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
