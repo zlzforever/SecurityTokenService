@@ -262,11 +262,6 @@ namespace SecurityTokenService.Data.PostgreSql.Migrations.SecurityTokenService
                         .HasColumnType("boolean")
                         .HasColumnName("phone_number_confirmed");
 
-                    b.Property<string>("Picture")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("picture");
-
                     b.Property<string>("SecurityStamp")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
