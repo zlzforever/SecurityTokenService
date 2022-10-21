@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using IdentityModel;
@@ -35,6 +35,12 @@ public class ProfileService : IdentityServer4.AspNetIdentity.ProfileService<User
         {
             identity.AddClaim(new Claim(JwtClaimTypes.FamilyName,
                 string.IsNullOrWhiteSpace(user.FamilyName) ? string.Empty : user.FamilyName));
+        }
+
+        if (!identity.HasClaim(x => x.Type == JwtClaimTypes.Picture))
+        {
+            identity.AddClaim(new Claim(JwtClaimTypes.Picture,
+                string.IsNullOrWhiteSpace(user.Picture) ? string.Empty : user.Picture));
         }
 
         return principal;
