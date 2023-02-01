@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Text.Json;
 using IdentityServer4;
 using IdentityServer4.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -14,11 +13,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using SecurityTokenService.Data;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
-using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 using SecurityTokenService.IdentityServer;
 using SecurityTokenService.IdentityServer.Stores;
@@ -75,10 +72,10 @@ namespace SecurityTokenService
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-            }
+            // else
+            // {
+            //     app.UseExceptionHandler("/Error");
+            // }
 
             if (Configuration["IdentityServer:ForceHttps"]?.ToLower() == "true")
             {
@@ -144,9 +141,13 @@ namespace SecurityTokenService
             {
                 builder.AddOperationalStore<MySqlPersistedGrantDbContext>();
             }
-            else
+            else if (Configuration["Database"] == "Postgre")
             {
                 builder.AddOperationalStore<PostgreSqlPersistedGrantDbContext>();
+            }
+            else
+            {
+                throw new NotSupportedException("不支持的数据库类型");
             }
 
             // not recommended for production - you need to store your key material somewhere secure
@@ -168,14 +169,14 @@ namespace SecurityTokenService
                             o.MigrationsHistoryTable("___identity_migrations_history");
                         });
                 });
-                services.AddDbContextPool<MySqlPersistedGrantDbContext>(b =>
+                services.AddDbContext<MySqlPersistedGrantDbContext>(b =>
                 {
                     b.UseMySql(Configuration.GetConnectionString("IdentityServer"),
                         ServerVersion.AutoDetect(connectionString),
                         o =>
                         {
                             o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
-                            o.MigrationsHistoryTable("___identity_server_migrations_history");
+                            o.MigrationsHistoryTable("identity_server_migrations_history");
                         });
                 });
             }
@@ -196,7 +197,7 @@ namespace SecurityTokenService
                         o =>
                         {
                             o.MigrationsAssembly(GetType().GetTypeInfo().Assembly.GetName().Name);
-                            o.MigrationsHistoryTable("___identity_server_migrations_history");
+                            o.MigrationsHistoryTable("identity_server_migrations_history");
                         });
                 });
             }
