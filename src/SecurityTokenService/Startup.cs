@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using IdentityServer4;
 using IdentityServer4.Configuration;
+using IdentityServer4.ResponseHandling;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -133,6 +134,8 @@ namespace SecurityTokenService
                 .AddProfileService<ProfileService>()
                 .AddResourceOwnerValidator<ResourceOwnerPasswordValidator>();
 
+            services
+                .AddTransient<ITokenResponseGenerator, IdentityServer.TokenResponseGenerator>();
             services.AddScoped<IPhoneCodeStore, PhoneCodeStore>();
             services.AddScoped<IPasswordSecurityInfoStore, PasswordSecurityInfoStore>();
 

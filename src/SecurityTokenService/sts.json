@@ -115,13 +115,13 @@
         "implicit"
       ],
       "RedirectUris": [
-        "http://localhost:8101/signin-oidc"
+        "http://localhost:3002/signin-oidc"
       ],
       "PostLogoutRedirectUris": [
-        "http://localhost:8101/signout-callback-oidc"
+        "http://localhost:3002/signout-callback-oidc"
       ],
       "AllowedCorsOrigins": [
-        "http://localhost:8101"
+        "http://localhost:3002"
       ],
       "AllowedScopes": [
         "openid",
