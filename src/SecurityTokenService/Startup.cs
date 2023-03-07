@@ -134,8 +134,8 @@ namespace SecurityTokenService
                 .AddProfileService<ProfileService>()
                 .AddResourceOwnerValidator<ResourceOwnerPasswordValidator>();
 
-            services
-                .AddTransient<ITokenResponseGenerator, IdentityServer.TokenResponseGenerator>();
+            // services
+            //     .AddTransient<ITokenResponseGenerator, IdentityServer.TokenResponseGenerator>();
             services.AddScoped<IPhoneCodeStore, PhoneCodeStore>();
             services.AddScoped<IPasswordSecurityInfoStore, PasswordSecurityInfoStore>();
 
