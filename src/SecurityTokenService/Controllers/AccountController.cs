@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text.Json;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using AutoMapper.Internal;
 using IdentityModel;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
@@ -13,17 +12,16 @@ using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
-using SecurityTokenService.IdentityServer;
-using SecurityTokenService.IdentityServer.Stores;
+using SecurityTokenService.Sms;
+using SecurityTokenService.Stores;
 
 namespace SecurityTokenService.Controllers
 {
@@ -39,22 +37,21 @@ namespace SecurityTokenService.Controllers
         private readonly IClientStore _clientStore;
         private readonly IdentityExtensionOptions _identityExtensionOptions;
         private readonly UserManager<User> _userManager;
-        private readonly AliyunSMSOptions _aliyunSmsOptions;
-        private readonly AliyunOptions _aliyunOptions;
         private readonly ILogger<AccountController> _logger;
+        private readonly ISmsSender _smsSender;
         private readonly IHostEnvironment _hostEnvironment;
         private readonly IPhoneCodeStore _phoneCodeStore;
         private readonly IPasswordValidator<User> _passwordValidator;
-        private readonly IPasswordSecurityInfoStore _passwordSecurityInfoStore;
 
         public AccountController(IIdentityServerInteractionService interaction, IEventService events,
             SignInManager<User> signInManager, IOptionsMonitor<SecurityTokenServiceOptions> options,
             IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
             IClientStore clientStore, UserManager<User> userManager,
-            IOptionsMonitor<AliyunSMSOptions> aliyunSmsOptions, ILogger<AccountController> logger,
-            IHostEnvironment hostEnvironment, IPhoneCodeStore phoneCodeStore,
-            IOptionsMonitor<AliyunOptions> aliyunOptions, IPasswordValidator<User> passwordValidator,
-            IPasswordSecurityInfoStore passwordSecurityInfoStore)
+            ILogger<AccountController> logger,
+            IHostEnvironment hostEnvironment,
+            IPhoneCodeStore phoneCodeStore,
+            IPasswordValidator<User> passwordValidator,
+            ISmsSender smsSender)
         {
             _interaction = interaction;
             _events = events;
@@ -66,72 +63,170 @@ namespace SecurityTokenService.Controllers
             _hostEnvironment = hostEnvironment;
             _phoneCodeStore = phoneCodeStore;
             _passwordValidator = passwordValidator;
-            _passwordSecurityInfoStore = passwordSecurityInfoStore;
-            _aliyunOptions = aliyunOptions.CurrentValue;
-            _aliyunSmsOptions = aliyunSmsOptions.CurrentValue;
+            _smsSender = smsSender;
             _options = options.CurrentValue;
             _identityExtensionOptions = identityExtensionOptions.CurrentValue;
         }
 
-        [HttpPost("ResetPassword")]
-        public async Task<IActionResult> ResetPasswordAsync([FromBody] Inputs.V1.ResetPasswordInput resetPassword)
+        /// <summary>
+        /// 通过旧密码修改密码
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("ResetPassword2")]
+        public async Task<IActionResult> ResetPasswordByOldPasswordAsync(
+           Inputs.V1.ResetPasswordByOldPasswordInput input)
         {
-            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == resetPassword.PhoneNumber);
+            var user = await _userManager.FindAsync(input.UserName,
+                _identityExtensionOptions.SoftDeleteColumn);
 
             if (user == null)
             {
-                return new ObjectResult(new ApiResult { Code = Errors.IdentityUserIsNotExist, Message = "用户不存在" });
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.IdentityUserIsNotExist, Success = false, Message = "用户不存在"
+                });
             }
 
             if (await _userManager.IsLockedOutAsync(user))
             {
-                return new ObjectResult(new ApiResult { Code = Errors.IdentityUserIsLockedOut, Message = "用户被锁定" });
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "用户被锁定"
+                });
             }
 
             var passwordValidateResult =
-                await _passwordValidator.ValidateAsync(_userManager, user, resetPassword.NewPassword);
+                await _passwordValidator.ValidateAsync(_userManager, user, input.NewPassword);
             if (!passwordValidateResult.Succeeded)
             {
                 var msg = string.Join(Environment.NewLine, passwordValidateResult.Errors.Select(x => x.Description));
-                return new ObjectResult(new ApiResult { Code = Errors.PasswordValidateFailed, Message = msg });
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.PasswordValidateFailed, Success = false, Message = msg
+                });
             }
 
-            var code = await _phoneCodeStore.GetAsync(resetPassword.PhoneNumber);
+            var checkPasswordResult = await _userManager.CheckPasswordAsync(user, input.OldPassword);
+            if (checkPasswordResult)
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await _userManager.ResetPasswordAsync(user, token, input.ConfirmNewPassword);
+                if (result.Succeeded)
+                {
+                    return new ObjectResult(new ApiResult { Code = 200, Message = "修改成功" });
+                }
+
+                var msg = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.ChangePasswordFailed, Success = false, Message = msg
+                });
+            }
+            else
+            {
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.IdentityInvalidCredentials, Success = false, Message = "用户名或密码不正确"
+                });
+            }
+        }
+
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPasswordAsync(
+            [FromBody] Inputs.V1.ResetPasswordByPhoneNumberInput input)
+        {
+            var user = await _userManager.FindAsync(input.PhoneNumber,
+                _identityExtensionOptions.SoftDeleteColumn);
+
+            if (user == null)
+            {
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.IdentityUserIsNotExist, Success = false, Message = "用户不存在"
+                });
+            }
+
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "用户被锁定"
+                });
+            }
+
+            var passwordValidateResult =
+                await _passwordValidator.ValidateAsync(_userManager, user, input.NewPassword);
+            if (!passwordValidateResult.Succeeded)
+            {
+                var msg = string.Join(Environment.NewLine, passwordValidateResult.Errors.Select(x => x.Description));
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.PasswordValidateFailed, Success = false, Message = msg
+                });
+            }
+
+            var code = await _phoneCodeStore.GetAsync(input.PhoneNumber);
             //获取手机号对应的缓存验证码
-            if (string.IsNullOrEmpty(code) || resetPassword.VerifyCode != code)
+            if (string.IsNullOrEmpty(code) || input.VerifyCode != code)
             {
-                return new ObjectResult(new ApiResult { Code = Errors.VerifyCodeIsInCorrect, Message = "验证码不正确" });
-            }
-
-            if (_identityExtensionOptions.StorePasswordSecurity)
-            {
-                var passwordLength = resetPassword.NewPassword.Length;
-                var passwordContainsDigit = resetPassword.NewPassword.Any(char.IsDigit);
-                var passwordContainsLowercase = resetPassword.NewPassword.Any(char.IsLower);
-                var passwordContainsUppercase = resetPassword.NewPassword.Any(char.IsUpper);
-                var passwordContainsNonAlphanumeric = !resetPassword.NewPassword.All(char.IsLetterOrDigit);
-
-                await _passwordSecurityInfoStore.UpdateAsync(user.Id, passwordLength, passwordContainsDigit,
-                    passwordContainsLowercase, passwordContainsUppercase, passwordContainsNonAlphanumeric);
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "验证码不正确"
+                });
             }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, resetPassword.ConfirmNewPassword);
+            var result = await _userManager.ResetPasswordAsync(user, token, input.ConfirmNewPassword);
 
             if (!result.Succeeded)
             {
                 var msg = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
-                return new ObjectResult(new ApiResult { Code = Errors.ChangePasswordFailed, Message = msg });
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.ChangePasswordFailed, Success = false, Message = msg
+                });
             }
-            
-            await _phoneCodeStore.UpdateAsync(resetPassword.PhoneNumber, "");
 
+            await _phoneCodeStore.UpdateAsync(input.PhoneNumber, "");
             return new ObjectResult(new ApiResult { Code = 200, Message = "修改成功" });
         }
 
         [HttpPost("Login")]
-        public async Task<IActionResult> Login(Inputs.V1.LoginInput model)
+        public async Task<IActionResult> LoginAsync(Inputs.V1.LoginInput model)
         {
+            if (!ModelState.IsValid)
+            {
+                var messageBuilder = new StringBuilder();
+                foreach (var stateEntry in ModelState)
+                {
+                    if (stateEntry.Value.ValidationState != ModelValidationState.Invalid)
+                    {
+                        continue;
+                    }
+
+                    foreach (var error in stateEntry.Value.Errors)
+                    {
+                        messageBuilder.AppendLine(error.ErrorMessage);
+                    }
+                }
+
+                return new ObjectResult(new ApiResult
+                {
+                    Code = 400, Success = false, Message = messageBuilder.ToString()
+                });
+            }
+
+            var passwordValidateResult = await _passwordValidator.ValidateAsync(_userManager, null, model.Password);
+            if (!passwordValidateResult.Succeeded)
+            {
+                var message = string.Join(Environment.NewLine,
+                    passwordValidateResult.Errors.Select(x => x.Description));
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.PasswordValidateFailed, Success = false, Message = $"{message}\n请先修改密码后再登录"
+                });
+            }
+
             var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
             // the user clicked the "cancel" button
             if (model.Button != "login")
@@ -151,46 +246,22 @@ namespace SecurityTokenService.Controllers
 
                         return new ObjectResult(new ApiResult
                         {
-                            Code = Errors.IdentityNativeClientIsNotSupported, Message = "不支持 NativeClient"
+                            Code = Errors.IdentityNativeClientIsNotSupported,
+                            Success = false,
+                            Message = "不支持 NativeClient"
                         });
                     }
 
-                    return new ObjectResult(new { Code = 302, Location = model.ReturnUrl });
+                    return new ObjectResult(new RedirectResult(model.ReturnUrl));
                 }
                 else
                 {
                     // since we don't have a valid context, then we just go back to the home page
-                    return new ObjectResult(new { Code = 302, Location = "/" });
+                    return new ObjectResult(new RedirectResult("/"));
                 }
             }
 
-            if (!ModelState.IsValid)
-            {
-                return new ObjectResult(new
-                {
-                    Code = 302, Location = "/error.html?errorId=" + Errors.IdentityLoginFailed
-                });
-            }
-
-            // var sql = string.IsNullOrEmpty(identityExtensionOptions.SoftDeleteColumn)
-            //     ? $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE {name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}} LIMIT 1"
-            //     : $"SELECT * FROM {securityTokenServiceDbContext.Users.EntityType.GetTableName()} WHERE ({name} = {{0}} OR {email} = {{0}} OR {phone} = {{0}}) AND {identityExtensionOptions.SoftDeleteColumn} != true LIMIT 1";
-            User user;
-
-            if (string.IsNullOrWhiteSpace(_identityExtensionOptions.SoftDeleteColumn))
-            {
-                user = await _userManager.Users.FirstOrDefaultAsync(x =>
-                    x.UserName == model.Username || x.Email == model.Username ||
-                    x.PhoneNumber == model.Username);
-            }
-            else
-            {
-                user = await _userManager.Users
-                    .FirstOrDefaultAsync(x =>
-                        EF.Property<bool>(x, _identityExtensionOptions.SoftDeleteColumn) == false &&
-                        (x.UserName == model.Username || x.Email == model.Username ||
-                         x.PhoneNumber == model.Username));
-            }
+            var user = await _userManager.FindAsync(model.Username, _identityExtensionOptions.SoftDeleteColumn);
 
             if (user == null)
             {
@@ -198,7 +269,7 @@ namespace SecurityTokenService.Controllers
                     clientId: context?.Client.ClientId));
                 return new ObjectResult(new ApiResult
                 {
-                    Code = Errors.IdentityInvalidCredentials, Message = "用户名或密码不正确"
+                    Code = Errors.IdentityInvalidCredentials, Success = false, Message = "用户不存在"
                 });
             }
 
@@ -215,63 +286,57 @@ namespace SecurityTokenService.Controllers
                     {
                         // if the client is PKCE then we assume it's native, so this change in how to
                         // return the response is for better UX for the end user.
-                        return new ObjectResult(new
-                        {
-                            Code = 302,
-                            Location =
-                                $"/redirect.html?redirectUrl={HttpUtility.UrlEncode(model.ReturnUrl)}&_t={DateTimeOffset.Now.ToUnixTimeSeconds()}"
-                        });
+                        // TODO: 意义是说若是 PKCE 客户端，应该返回页面内容，而不是让终端用户自己跳转
+                        // 但这样， 不好定义纯 HTML 的内容
+                        return new ObjectResult(new RedirectResult(model.ReturnUrl));
+                        // return new ObjectResult(new
+                        // {
+                        //     Code = 302,
+                        //     Location =
+                        //         $"/redirect.html?redirectUrl={HttpUtility.UrlEncode(model.ReturnUrl)}&_t={DateTimeOffset.Now.ToUnixTimeSeconds()}"
+                        // });
                     }
                     else
                     {
                         // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
-                        return new ObjectResult(new { Code = 302, Location = model.ReturnUrl });
+                        return new ObjectResult(new RedirectResult(model.ReturnUrl));
                     }
                 }
 
-                // request for a local page
-                if (Url.IsLocalUrl(model.ReturnUrl))
-                {
-                    return new ObjectResult(new { Code = 302, Location = model.ReturnUrl });
-                }
-                else if (string.IsNullOrWhiteSpace(model.ReturnUrl))
-                {
-                    return new ObjectResult(new { Code = 302, Location = "/" });
-                }
-                else
-                {
-                    return new ObjectResult(new
-                    {
-                        Code = Errors.InvalidReturnUrl,
-                        Location = "/error.html?errorId=" + Errors.InvalidReturnUrl + "&returnUrl=" +
-                                   model.ReturnUrl
-                    });
-                }
+                return new ObjectResult(
+                    new RedirectResult(string.IsNullOrWhiteSpace(model.ReturnUrl) ? "/" : model.ReturnUrl));
             }
             else
             {
+                // TODO: 2 次认证需要支持
                 if (result.RequiresTwoFactor)
                 {
-                    return new ObjectResult(new
+                    return new ObjectResult(new ApiResult
                     {
-                        Code = Errors.IdentityTwoFactorIsNotSupported,
-                        Location = "/error.html?errorId=" + Errors.IdentityTwoFactorIsNotSupported
+                        Code = Errors.IdentityTwoFactorIsNotSupported, Success = false, Message = ""
                     });
                 }
 
                 if (result.IsNotAllowed)
                 {
-                    return new ObjectResult(new ApiResult { Code = Errors.IdentityUserIsNotAllowed, });
+                    return new ObjectResult(new ApiResult
+                    {
+                        Code = Errors.IdentityUserIsNotAllowed, Success = false, Message = "禁止登录"
+                    });
                 }
                 else if (result.IsLockedOut)
                 {
-                    return new ObjectResult(new ApiResult { Code = Errors.IdentityUserIsLockedOut, });
+                    return new ObjectResult(new ApiResult
+                    {
+                        Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "帐号被锁定"
+                    });
                 }
                 else
                 {
                     await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
                         clientId: context?.Client.ClientId));
-                    return new ObjectResult(new ApiResult { Code = Errors.IdentityInvalidCredentials, });
+                    return new ObjectResult(
+                        new ApiResult { Code = Errors.IdentityInvalidCredentials, Success = false, Message = "登录失败" });
                 }
             }
 
@@ -281,54 +346,39 @@ namespace SecurityTokenService.Controllers
         }
 
         [HttpPost("SendSmsCode")]
-        [EnableCors("configuration")]
-        public async Task<ApiResult> SendPhoneNumber([FromBody] Inputs.V1.SendSmsCode input)
+        [HttpPost("sms")]
+        public async Task<ApiResult> SendSmsCodeAsync([FromBody] Inputs.V1.SendSmsCode input)
         {
+            var user = await _userManager.FindAsync(input.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
+            if (user == null)
+            {
+                return new ApiResult { Message = "用户不存在", Success = false, Code = Errors.IdentityUserIsNotExist };
+            }
+
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                return new ApiResult { Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "帐号被锁定" };
+            }
+
             var code = RandomNumberGenerator.GetInt32(1111, 9999).ToString();
-            await _phoneCodeStore.UpdateAsync(input.PhoneNumber, code);
             if (_hostEnvironment.IsDevelopment())
             {
-                _logger.LogInformation($"Send sms code to {input.PhoneNumber}: {code}");
-                return new ApiResult() { Data = string.Empty, Message = string.Empty, Success = true, Code = 0 };
+                _logger.LogDebug($"Send sms code to {input.PhoneNumber}: {code}");
+                return new ApiResult { Success = true, Code = 0 };
             }
             else
             {
-                var smsClient = CreateClient();
                 var countryCode = string.IsNullOrWhiteSpace(input.CountryCode) ? "+86" : input.CountryCode;
-                var template = _aliyunSmsOptions.Templates.GetOrDefault(countryCode);
-                if (string.IsNullOrEmpty(template))
-                {
-                    _logger.LogError($"CountryCode {countryCode} no sms template");
-                    return new ApiResult() { Data = string.Empty, Message = "不支持的国家", Success = false, Code = 1 };
-                }
-
-                var sendSmsRequest =
-                    new AlibabaCloud.SDK.Dysmsapi20170525.Models.SendSmsRequest
-                    {
-                        PhoneNumbers = $"{countryCode}{input.PhoneNumber}",
-                        SignName = _aliyunSmsOptions.SignName,
-                        TemplateCode = template,
-                        TemplateParam = JsonSerializer.Serialize(new { code })
-                    };
-
+                var phoneNumber = $"{countryCode} {input.PhoneNumber}";
+                await _phoneCodeStore.UpdateAsync(input.PhoneNumber, code);
                 try
                 {
-                    var response = await smsClient.SendSmsAsync(sendSmsRequest);
-                    if (response.Body.Code == "OK")
-                    {
-                        return new ApiResult()
-                        {
-                            Data = string.Empty, Message = string.Empty, Success = true, Code = 0
-                        };
-                    }
-
-                    _logger.LogError(response.Body.Message);
-                    return new ApiResult() { Data = string.Empty, Message = "发送验证码失败", Success = false, Code = 1 };
+                    await _smsSender.SendAsync(phoneNumber, code);
+                    return new ApiResult { Success = true, Message = "发送成功" };
                 }
-                catch (Exception e)
+                catch (FriendlyException fe)
                 {
-                    _logger.LogError(e.ToString());
-                    return new ApiResult() { Data = string.Empty, Message = "发送验证码失败", Success = false, Code = 1 };
+                    return new ApiResult { Message = fe.Message, Success = false, Code = Errors.SendSmsFailed };
                 }
             }
         }
@@ -375,11 +425,13 @@ namespace SecurityTokenService.Controllers
                 return SignOut(new AuthenticationProperties { RedirectUri = url }, vm.ExternalAuthenticationScheme);
             }
 
+            var postLogoutRedirect = HttpUtility.UrlEncode(vm.PostLogoutRedirectUri);
+            var signOutIframe = HttpUtility.UrlEncode(vm.SignOutIframeUrl);
             var query =
-                $"postLogoutRedirectUri={vm.PostLogoutRedirectUri}&clientName={vm.ClientName}&signOutIframeUrl={vm.SignOutIframeUrl}&automaticRedirectAfterSignOut={(vm.AutomaticRedirectAfterSignOut ? "true" : "false")}";
+                $"postLogoutRedirectUri={postLogoutRedirect}&clientName={HttpUtility.UrlEncode(vm.ClientName)}&signOutIframeUrl={signOutIframe}&automaticRedirectAfterSignOut={(vm.AutomaticRedirectAfterSignOut ? "true" : "false")}";
 
             return Redirect(
-                $"~/loggedout.html?" + HttpUtility.UrlPathEncode(query));
+                $"~/loggedout.html?" + query);
         }
 
         private async Task<Outputs.V1.LoggedOutOutput> BuildLoggedOutOutputAsync(string logoutId)
@@ -441,27 +493,6 @@ namespace SecurityTokenService.Controllers
 
             // show the logout prompt. this prevents attacks where the user
             // is automatically signed out by another malicious web page.
-        }
-
-        /**
-         * 使用AK SK初始化账号Client
-         * @param accessKeyId
-         * @param accessKeySecret
-         * @return Client
-         * @throws Exception
-         */
-        private AlibabaCloud.SDK.Dysmsapi20170525.Client CreateClient()
-        {
-            var config = new AlibabaCloud.OpenApiClient.Models.Config
-            {
-                // 您的AccessKey ID
-                AccessKeyId = _aliyunOptions.AccessKey,
-                // 您的AccessKey Secret
-                AccessKeySecret = _aliyunOptions.Secret,
-                Endpoint = _aliyunOptions.Endpoint,
-            };
-            // 访问的域名
-            return new AlibabaCloud.SDK.Dysmsapi20170525.Client(config);
         }
     }
 }

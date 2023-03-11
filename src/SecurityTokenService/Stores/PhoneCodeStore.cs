@@ -4,9 +4,9 @@ using Dapper;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 using Npgsql;
-using SecurityTokenService.IdentityServer.Stores;
+using SecurityTokenService.Extensions;
 
-namespace SecurityTokenService.Data;
+namespace SecurityTokenService.Stores;
 
 public class PhoneCodeStore : IPhoneCodeStore
 {
@@ -64,7 +64,7 @@ create table if not exists {tablePrefix}sms_code
     private DbConnection GetConnection()
     {
         var connectionString = _configuration["ConnectionStrings:Identity"];
-        var database = _configuration["Database"].ToLower();
+        var database = _configuration.GetDatabaseType().ToLower();
         DbConnection conn = database switch
         {
             "mysql" => new MySqlConnection(connectionString),
@@ -75,7 +75,7 @@ create table if not exists {tablePrefix}sms_code
 
     private string GetUpdateSql()
     {
-        var database = _configuration["Database"].ToLower();
+        var database = _configuration.GetDatabaseType().ToLower();
         var tablePrefix = _configuration["Identity:TablePrefix"];
         var conn = database switch
         {
@@ -91,7 +91,7 @@ on conflict (phone_number) do update set code = @code, modification_time = floor
 
     private string GetSelectSql()
     {
-        var database = _configuration["Database"].ToLower();
+        var database = _configuration.GetDatabaseType().ToLower();
         var tablePrefix = _configuration["Identity:TablePrefix"];
         var conn = database switch
         {

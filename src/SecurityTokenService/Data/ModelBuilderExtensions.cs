@@ -12,15 +12,7 @@ public static class ModelBuilderExtensions
     {
         builder.Entity<User>(b =>
         {
-            if (identityExtensionOptions.Tables != null &&
-                !string.IsNullOrEmpty(identityExtensionOptions.Tables.User))
-            {
-                b.ToTable(identityExtensionOptions.Tables.User);
-            }
-            else
-            {
-                b.ToTable("user");
-            }
+            b.ToTable("user");
 
             if (!string.IsNullOrWhiteSpace(identityExtensionOptions.SoftDeleteColumn))
             {
@@ -33,75 +25,27 @@ public static class ModelBuilderExtensions
         });
         builder.Entity<IdentityRole>(b =>
         {
-            if (identityExtensionOptions.Tables != null &&
-                !string.IsNullOrEmpty(identityExtensionOptions.Tables.Role))
-            {
-                b.ToTable(identityExtensionOptions.Tables.Role);
-            }
-            else
-            {
-                b.ToTable("role");
-            }
+            b.ToTable("role");
         });
         builder.Entity<IdentityUserRole<string>>(b =>
         {
-            if (identityExtensionOptions.Tables != null &&
-                !string.IsNullOrEmpty(identityExtensionOptions.Tables.UserRole))
-            {
-                b.ToTable(identityExtensionOptions.Tables.UserRole);
-            }
-            else
-            {
-                b.ToTable("user_role");
-            }
+            b.ToTable("user_role");
         });
         builder.Entity<IdentityRoleClaim<string>>(b =>
         {
-            if (identityExtensionOptions.Tables != null &&
-                !string.IsNullOrEmpty(identityExtensionOptions.Tables.RoleClaim))
-            {
-                b.ToTable(identityExtensionOptions.Tables.RoleClaim);
-            }
-            else
-            {
-                b.ToTable("role_claim");
-            }
+            b.ToTable("role_claim");
         });
         builder.Entity<IdentityUserClaim<string>>(b =>
         {
-            if (identityExtensionOptions.Tables != null &&
-                !string.IsNullOrEmpty(identityExtensionOptions.Tables.UserClaim))
-            {
-                b.ToTable(identityExtensionOptions.Tables.UserClaim);
-            }
-            else
-            {
-                b.ToTable("user_claim");
-            }
+            b.ToTable("user_claim");
         });
         builder.Entity<IdentityUserLogin<string>>(b =>
         {
-            if (identityExtensionOptions.Tables != null &&
-                !string.IsNullOrEmpty(identityExtensionOptions.Tables.UserLogin))
-            {
-                b.ToTable(identityExtensionOptions.Tables.UserLogin);
-            }
-            else
-            {
-                b.ToTable("user_login");
-            }
+            b.ToTable("user_login");
         });
         builder.Entity<IdentityUserToken<string>>(b =>
         {
-            if (identityExtensionOptions.Tables != null &&
-                !string.IsNullOrEmpty(identityExtensionOptions.Tables.UserToken))
-            {
-                b.ToTable(identityExtensionOptions.Tables.UserToken);
-            }
-            else
-            {
-                b.ToTable("user_token");
-            }
+            b.ToTable("user_token");
         });
     }
 
@@ -109,8 +53,6 @@ public static class ModelBuilderExtensions
         string tablePrefix)
     {
         builder.SetDefaultStringLength();
-
-        // var tablePrefix = identityExtensionOptions.TablePrefix;
 
         if (!string.IsNullOrWhiteSpace(tablePrefix))
         {

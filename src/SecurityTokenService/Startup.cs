@@ -3,7 +3,7 @@ using System.IO;
 using System.Reflection;
 using IdentityServer4;
 using IdentityServer4.Configuration;
-using IdentityServer4.ResponseHandling;
+using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -17,9 +17,12 @@ using Microsoft.Extensions.Hosting;
 using SecurityTokenService.Data;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
+using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 using SecurityTokenService.IdentityServer;
-using SecurityTokenService.IdentityServer.Stores;
+using SecurityTokenService.Options;
+using SecurityTokenService.Sms;
+using SecurityTokenService.Stores;
 
 namespace SecurityTokenService
 {
@@ -48,6 +51,7 @@ namespace SecurityTokenService
                 .PersistKeysToFileSystem(keysFolder)
                 .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
             services.AddRouting(options => options.LowercaseUrls = true);
+
             services.AddScoped<SeedData>();
 
             services.AddCors(option => option
@@ -57,6 +61,18 @@ namespace SecurityTokenService
                         .AllowAnyHeader()
                         .AllowCredentials()
                 ));
+
+            // 注册短信平台
+            switch (Configuration["SmsProvider"])
+            {
+                case "TencentCloud":
+                    services.AddTransient<ISmsSender, TencentCloudSmsSender>();
+                    break;
+                default:
+                    services.AddTransient<ISmsSender, AliyunSmsSender>();
+                    break;
+            }
+
             ConfigureDbContext(services);
             ConfigureIdentity(services);
             ConfigureIdentityServer(services);
@@ -66,17 +82,27 @@ namespace SecurityTokenService
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.LoadIdentityData();
-            app.ConfigureIdentityServerStore();
+            IdentitySeedData.Load(app);
+
+            app.MigrateIdentityServer();
 
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-            // else
-            // {
-            //     app.UseExceptionHandler("/Error");
-            // }
+            else
+            {
+                // app.UseExceptionHandler("/Error");
+                var htmlFiles = Directory.GetFiles("wwwroot", "*.html");
+                foreach (var htmlFile in htmlFiles)
+                {
+                    var html = File.ReadAllText(htmlFile);
+                    if (html.Contains("site.js"))
+                    {
+                        File.WriteAllText(htmlFile, html.Replace("site.js", "site.min.js"));
+                    }
+                }
+            }
 
             if (Configuration["IdentityServer:ForceHttps"]?.ToLower() == "true")
             {
@@ -106,7 +132,7 @@ namespace SecurityTokenService
             identityBuilder.AddDefaultTokenProviders()
                 .AddErrorDescriber<SecurityTokenServiceIdentityErrorDescriber>();
 
-            if (Configuration["Database"] == "MySql")
+            if (Configuration.GetDatabaseType() == "MySql")
             {
                 identityBuilder.AddEntityFrameworkStores<MySqlSecurityTokenServiceDbContext>();
             }
@@ -118,6 +144,7 @@ namespace SecurityTokenService
 
         private void ConfigureIdentityServer(IServiceCollection services)
         {
+            // IdentityServer4.Endpoints.TokenEndpoint
             var builder = services.AddIdentityServer(options =>
                 {
                     options.Events.RaiseErrorEvents = true;
@@ -134,17 +161,13 @@ namespace SecurityTokenService
                 .AddProfileService<ProfileService>()
                 .AddResourceOwnerValidator<ResourceOwnerPasswordValidator>();
 
-            // services
-            //     .AddTransient<ITokenResponseGenerator, IdentityServer.TokenResponseGenerator>();
             services.AddScoped<IPhoneCodeStore, PhoneCodeStore>();
-            services.AddScoped<IPasswordSecurityInfoStore, PasswordSecurityInfoStore>();
 
-            // builder.Services.AddTransient<IUserClaimsPrincipalFactory<IdentityUser>, UserClaimsFactory<IdentityUser>>();
-            if (Configuration["Database"] == "MySql")
+            if (Configuration.GetDatabaseType() == "MySql")
             {
                 builder.AddOperationalStore<MySqlPersistedGrantDbContext>();
             }
-            else if (Configuration["Database"] == "Postgre")
+            else if (Configuration.GetDatabaseType() == "Postgre")
             {
                 builder.AddOperationalStore<PostgreSqlPersistedGrantDbContext>();
             }
@@ -161,7 +184,7 @@ namespace SecurityTokenService
         private void ConfigureDbContext(IServiceCollection services)
         {
             var connectionString = Configuration.GetConnectionString("Identity");
-            if (Configuration["Database"] == "MySql")
+            if (Configuration.GetDatabaseType() == "MySql")
             {
                 services.AddDbContextPool<MySqlSecurityTokenServiceDbContext>(b =>
                 {
@@ -230,7 +253,6 @@ namespace SecurityTokenService
             services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.DefaultCheckSessionCookieName,
                 Configuration.GetSection("IdentityServerCheckSessionCookieAuthentication"));
             services.Configure<AliyunOptions>(Configuration.GetSection("Aliyun"));
-            services.Configure<AliyunSMSOptions>(Configuration.GetSection("Aliyun:SMS"));
         }
     }
 }

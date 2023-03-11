@@ -24,10 +24,30 @@
         "picture",
         "website",
         "gender",
+        "phone_number",
         "birthdate",
         "zoneinfo",
         "locale",
+        "picture",
         "updated_at"
+      ]
+    },
+    {
+      "Emphasize": true,
+      "Name": "picture",
+      "DisplayName": "邮件",
+      "Description": "您的邮件信息",
+      "UserClaims": [
+        "picture"
+      ]
+    },
+    {
+      "Emphasize": true,
+      "Name": "email",
+      "DisplayName": "邮件",
+      "Description": "您的邮件信息",
+      "UserClaims": [
+        "email"
       ]
     },
     {
@@ -44,69 +64,75 @@
     {
       "name": "cerberus-api",
       "displayName": "通用权限系统 API",
-      "UserClaims": [
+      "userClaims": [
         "role"
       ]
     },
     {
-      "name": "ziranziyuanjiance-api",
-      "displayName": "GIS 服务接口",
-      "UserClaims": [
+      "name": "expert-api",
+      "displayName": "专家网络后端 API",
+      "userClaims": [
         "role",
+        "email",
         "name",
-        "email"
+        "surname",
+        "given_name",
+        "family_name",
+        "nickname",
+        "phone_number",
+        "picture"
       ]
     },
     {
-      "name": "shlzz-api",
-      "displayName": "上海林长制服务",
-      "UserClaims": [
+      "name": "sales-collection-api",
+      "displayName": "回款 API",
+      "userClaims": [
         "role",
+        "email",
         "name",
-        "email"
+        "surname",
+        "given_name",
+        "family_name"
+      ]
+    },
+    {
+      "name": "pricing-api",
+      "displayName": "价格策略 API",
+      "userClaims": [
+        "role",
+        "email",
+        "name",
+        "surname",
+        "given_name",
+        "family_name"
+      ]
+    },
+    {
+      "name": "billing-api",
+      "displayName": "帐单 API",
+      "userClaims": [
+        "role",
+        "email",
+        "name",
+        "surname",
+        "given_name",
+        "family_name"
+      ]
+    },
+    {
+      "name": "invoice-api",
+      "displayName": "发票 API",
+      "userClaims": [
+        "role",
+        "email",
+        "name",
+        "surname",
+        "given_name",
+        "family_name"
       ]
     }
   ],
   "clients": [
-    {
-      "ClientId": "cerberus-client",
-      "ClientSecrets": [
-        {
-          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
-          "Type": "SharedSecret"
-        }
-      ],
-      "AllowedGrantTypes": [
-        "client_credentials"
-      ],
-      "AllowedScopes": [
-        "cerberus-access-server-api"
-      ]
-    },
-    {
-      "ClientId": "mvc",
-      "ClientSecrets": [
-        {
-          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
-          "Type": "SharedSecret"
-        }
-      ],
-      "RequireConsent": true,
-      "AllowedGrantTypes": [
-        "authorization_code"
-      ],
-      "RedirectUris": [
-        "http://localhost:5002/signin-oidc"
-      ],
-      "PostLogoutRedirectUris": [
-        "http://localhost:5002/signout-callback-oidc"
-      ],
-      "AllowedScopes": [
-        "openid",
-        "profile",
-        "api1"
-      ]
-    },
     {
       "ClientId": "cerberus-web",
       "AllowAccessTokensViaBrowser": true,
@@ -115,13 +141,19 @@
         "implicit"
       ],
       "RedirectUris": [
-        "http://localhost:3002/signin-oidc"
+        "http://localhost:8101/signin-oidc",
+        "https://cerberus-dev.tp.com/signin-oidc",
+        "https://cerberus-dev.turning-point.cc/signin-oidc"
       ],
       "PostLogoutRedirectUris": [
-        "http://localhost:3002/signout-callback-oidc"
+        "http://localhost:8101/signout-callback-oidc",
+        "https://cerberus-dev.tp.com/signout-callback-oidc",
+        "https://cerberus-dev.turning-point.cc/signout-callback-oidc"
       ],
       "AllowedCorsOrigins": [
-        "http://localhost:3002"
+        "http://localhost:8101",
+        "https://cerberus-dev.tp.com",
+        "https://cerberus-dev.turning-point.cc"
       ],
       "AllowedScopes": [
         "openid",
@@ -131,71 +163,50 @@
       ]
     },
     {
-      "ClientId": "ziranziyuanjiance-web",
+      "ClientId": "expert-web",
+      "AllowAccessTokensViaBrowser": true,
+      "RequireConsent": false,
+      "AllowedGrantTypes": [
+        "authorization_code"
+      ],
+      "IdentityTokenLifetime": 108000,
+      "AccessTokenLifetime": 108000,
+      "RequirePkce": true,
+      "RedirectUris": [
+        "http://localhost:1236/signin-oidc",
+        "http://192.168.50.61:1236/signin-oidc",
+        "https://expert-dev.tp.com/signin-oidc",
+        "https://expert-dev.turning-point.cc/signin-oidc"
+      ],
       "ClientSecrets": [
         {
           "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
           "Type": "SharedSecret"
         }
       ],
-      "AllowAccessTokensViaBrowser": true,
-      "RequireConsent": false,
-      "AllowedGrantTypes": [
-        "implicit",
-        "password"
-      ],
-      "IdentityTokenLifetime": 108000,
-      "AccessTokenLifetime": 108000,
-      "RedirectUris": [
-        "http://localhost:3000/signin-oidc"
-      ],
       "PostLogoutRedirectUris": [
-        "http://localhost:3000/signout-callback-oidc"
+        "http://localhost:1236/signout-callback-oidc",
+        "http://192.168.50.61:1236/signout-callback-oidc",
+        "https://expert-dev.tp.com/signout-callback-oidc",
+        "https://expert-dev.turning-point.cc/signout-callback-oidc"
       ],
       "AllowedCorsOrigins": [
-        "http://localhost:3000"
+        "http://localhost:1236",
+        "http://192.168.50.61:1236",
+        "https://expert-dev.tp.com",
+        "https://expert-dev.turning-point.cc"
       ],
       "AllowedScopes": [
         "openid",
         "profile",
         "role",
+        "picture",
         "email",
+        "expert-api",
         "cerberus-api",
-        "ziranziyuanjiance-api"
-      ]
-    },
-    {
-      "ClientId": "shlzz-web",
-      "ClientSecrets": [
-        {
-          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
-          "Type": "SharedSecret"
-        }
-      ],
-      "AllowAccessTokensViaBrowser": true,
-      "RequireConsent": false,
-      "AllowedGrantTypes": [
-        "implicit",
-        "password"
-      ],
-      "IdentityTokenLifetime": 108000,
-      "AccessTokenLifetime": 108000,
-      "RedirectUris": [
-        "http://localhost:3000/signin-oidc"
-      ],
-      "PostLogoutRedirectUris": [
-        "http://localhost:3000/signout-callback-oidc"
-      ],
-      "AllowedCorsOrigins": [
-        "http://localhost:3000"
-      ],
-      "AllowedScopes": [
-        "openid",
-        "profile",
-        "role",
-        "email",
-        "cerberus-api",
-        "shlzz-api"
+        "sales-collection-api",
+        "pricing-api",
+        "invoice-api"
       ]
     }
   ]

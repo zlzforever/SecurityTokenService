@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
 namespace SecurityTokenService.Controllers
@@ -31,33 +32,26 @@ namespace SecurityTokenService.Controllers
 
             public class DiagnosticsOutput
             {
-                public DiagnosticsOutput(AuthenticateResult result)
+                public DiagnosticsOutput(AuthenticateResult authenticateResult)
                 {
                     var claims = new List<object>();
-                    if (result.Principal != null)
+                    var principal = authenticateResult.Principal;
+                    if (principal != null)
                     {
-                        foreach (var claim in result.Principal.Claims)
+                        foreach (var claim in principal.Claims)
                         {
-                            claims.Add(new
-                            {
-                                claim.Type,
-                                claim.Value
-                            });
+                            claims.Add(new { claim.Type, claim.Value });
                         }
 
                         Claims = claims;
                     }
 
-                    if (result.Properties != null)
+                    if (authenticateResult.Properties != null)
                     {
                         var properties = new List<object>();
-                        foreach (var prop in result.Properties.Items)
+                        foreach (var prop in authenticateResult.Properties.Items)
                         {
-                            properties.Add(new
-                            {
-                                prop.Key,
-                                prop.Value
-                            });
+                            properties.Add(new { prop.Key, prop.Value });
                         }
 
                         Properties = properties;
@@ -65,7 +59,7 @@ namespace SecurityTokenService.Controllers
                 }
 
                 public object Claims { get; }
-                public object Properties { get; }
+                public object Properties { get; set; }
             }
 
             public class LogoutOutput
