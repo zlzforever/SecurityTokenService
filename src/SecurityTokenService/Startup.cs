@@ -63,7 +63,7 @@ namespace SecurityTokenService
                 ));
 
             // 注册短信平台
-            switch (Configuration["SmsProvider"])
+            switch (Configuration["SecurityTokenService:SmsProvider"])
             {
                 case "TencentCloud":
                     services.AddTransient<ISmsSender, TencentCloudSmsSender>();

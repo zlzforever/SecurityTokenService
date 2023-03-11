@@ -174,8 +174,6 @@
       "RequirePkce": true,
       "RedirectUris": [
         "http://localhost:1236/signin-oidc",
-        "http://192.168.50.61:1236/signin-oidc",
-        "https://expert-dev.tp.com/signin-oidc",
         "https://expert-dev.turning-point.cc/signin-oidc"
       ],
       "ClientSecrets": [
@@ -186,14 +184,10 @@
       ],
       "PostLogoutRedirectUris": [
         "http://localhost:1236/signout-callback-oidc",
-        "http://192.168.50.61:1236/signout-callback-oidc",
-        "https://expert-dev.tp.com/signout-callback-oidc",
         "https://expert-dev.turning-point.cc/signout-callback-oidc"
       ],
       "AllowedCorsOrigins": [
         "http://localhost:1236",
-        "http://192.168.50.61:1236",
-        "https://expert-dev.tp.com",
         "https://expert-dev.turning-point.cc"
       ],
       "AllowedScopes": [
