@@ -14,7 +14,7 @@ namespace SecurityTokenService.Controllers
                 /// <summary>
                 /// 用户名或邮箱或手机号
                 /// </summary>
-                [Required, StringLength(24)]
+                [Required, StringLength(50)]
                 public string UserName { get; set; }
 
                 /// <summary>
@@ -33,7 +33,7 @@ namespace SecurityTokenService.Controllers
                 /// <summary>
                 /// 旧密码
                 /// </summary>
-                [StringLength(11)]
+                [StringLength(50)]
                 public string OldPassword { get; set; }
             }
 
@@ -55,14 +55,13 @@ namespace SecurityTokenService.Controllers
                 /// <summary>
                 /// 手机号
                 /// </summary>
-                [Required, StringLength(11)]
+                [Required(ErrorMessage = "手机号能不能空"), StringLength(20, ErrorMessage = "手机号长度超长")]
                 public string PhoneNumber { get; set; }
 
                 /// <summary>
                 /// 验证码
                 /// </summary>
-                [Required]
-                [StringLength(6)]
+                [Required(ErrorMessage = "请填写验证码"), StringLength(6, ErrorMessage = "验证码长度不正确")]
                 public string VerifyCode { get; set; }
             }
 
@@ -71,13 +70,13 @@ namespace SecurityTokenService.Controllers
                 /// <summary>
                 /// 
                 /// </summary>
-                [Required, StringLength(15)]
+                [Required(ErrorMessage = "手机号能不能空"), StringLength(20, ErrorMessage = "手机号长度超长")]
                 public string PhoneNumber { get; set; }
 
                 /// <summary>
                 /// 
                 /// </summary>
-                [StringLength(10)]
+                [StringLength(10, ErrorMessage = "国家地区码长度不正确")]
                 public string CountryCode { get; set; }
             }
 
@@ -110,6 +109,39 @@ namespace SecurityTokenService.Controllers
                 public string Description { get; set; }
             }
 
+            public class LoginBySmsInput
+            {
+                /// <summary>
+                /// 
+                /// </summary>
+                [Required(ErrorMessage = "手机号能不能空"), StringLength(20, ErrorMessage = "手机号长度超长")]
+                public string PhoneNumber { get; set; }
+
+                /// <summary>
+                /// 验证码
+                /// </summary>
+                [Required(ErrorMessage = "请填写验证码"), StringLength(6, ErrorMessage = "验证码长度不正确")]
+                public string VerifyCode { get; set; }
+
+                /// <summary>
+                /// 
+                /// </summary>
+                [Display(Name = "记住我")]
+                public bool RememberLogin { get; set; }
+
+                /// <summary>
+                /// 
+                /// </summary>
+                [StringLength(1000)]
+                public string ReturnUrl { get; set; }
+
+                /// <summary>
+                /// 
+                /// </summary>
+                [StringLength(5)]
+                public string Button { get; set; }
+            }
+            
             public class LoginInput
             {
                 /// <summary>

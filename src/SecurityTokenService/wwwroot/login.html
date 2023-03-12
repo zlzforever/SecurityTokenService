@@ -19,6 +19,10 @@
             padding-top: 5px;
             color: #EA5200;
         }
+
+        .tab-content {
+            padding-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -50,36 +54,69 @@
         </div>
         <div class="row">
             <div class="col-sm-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Local Account</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-danger" id="message" style="display: none"></div>
-                        <form id="form">
+                <ul id="localAccountTab" class="nav nav-tabs">
+                    <li class="active">
+                        <a href="#localAccount" data-toggle="tab">
+                            Local Account
+                        </a>
+                    </li>
+                    <li><a href="#sms" data-toggle="tab">SMS</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="alert alert-danger" id="message" style="display: none"></div>
+                    <div class="tab-pane fade in active" id="localAccount">
+                        <form id="form" onsubmit="return false">
                             <div class="form-group">
                                 <label for="userName">Username</label>
-                                <input class="form-control" placeholder="Username" autofocus type="text" id="userName"
+                                <input class="form-control" placeholder="Username" autofocus type="text"
+                                       id="userName"
                                        name="userName"
                                        value=""/>
                             </div>
                             <div class="form-group">
                                 <label for="password">Password</label>
-                                <input type="password" class="form-control" placeholder="Password" autocomplete="off"
+                                <input type="password" class="form-control" placeholder="Password"
+                                       autocomplete="off"
                                        id="password"
                                        name="password"/>
                             </div>
                             <div class="form-group">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="true" id="rememberLogin"
+                                    <input class="form-check-input" type="checkbox" value="true"
+                                           id="rememberLogin"
                                            name="rememberLogin"/>
                                     <label for="rememberLogin" class="form-check-label">
                                         Remember My Login
                                     </label>
                                 </div>
                             </div>
-                            <button class="btn btn-primary" name="button" id="loginButton" value="login">Login</button>
+                            <button class="btn btn-primary" name="button" id="loginButton" value="login">Login
+                            </button>
                             <button class="btn btn-secondary" name="button" value="cancel">Cancel</button>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade" id="sms">
+                        <form id="smsForm" class="form" onsubmit="return false">
+                            <div class="form-group">
+                                <label for="phoneNumber">PhoneNumber</label>
+                                <input class="form-control" placeholder="PhoneNumber" autofocus type="text"
+                                       id="phoneNumber"
+                                       name="phoneNumber"
+                                       value=""/>
+                                <button class="btn btn-primary" name="button" id="sendSmsBtn"
+                                        data-container="body" data-toggle="popover" data-placement="right"
+                                        data-content="发送成功">Send SMS
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <label for="verifyCode">VerifyCode</label>
+                                <input type="text" class="form-control" placeholder="VerifyCode"
+                                       autocomplete="off"
+                                       id="verifyCode"
+                                       name="verifyCode"/>
+
+                            </div>
+                            <button class="btn btn-primary" name="button" id="smsLoginBtn" value="login">Login</button>
                         </form>
                     </div>
                 </div>
@@ -90,6 +127,6 @@
 <script src="lib/jquery/dist/jquery.min.js"></script>
 <script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="lib/jquery-validation/dist/jquery.validate.min.js"></script>
-<script src="js/site.js"></script>
+<script src="js/site.js?_v=2023031208"></script>
 </body>
 </html>

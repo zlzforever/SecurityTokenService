@@ -210,7 +210,53 @@ function initLogin() {
         errorLabelContainer: $("#form div.error"),
         wrapper: "label"
     });
-
+    const message = $('#message');
+    $('#sendSmsBtn').click(function () {
+        message.hide();
+        const phoneNumber = $('#phoneNumber').val();
+        if (!phoneNumber || phoneNumber.length > 24 || phoneNumber.length < 11) {
+            message.text('手机号不正确')
+            message.show();
+        } else {
+            $.ajax({
+                xhrFields: {withCredentials: true},
+                type: "POST",
+                url: "account/sms",
+                dataType: 'json',
+                contentType: "application/json",
+                data: JSON.stringify({
+                    phoneNumber: phoneNumber,
+                    countryCode: '+86'
+                }),
+                success: function (res) {
+                    debugger
+                    if (res.code !== 200) {
+                        if (!res.message) {
+                            printError(res.code);
+                        } else {
+                            const messages = res.message.split('\n');
+                            let html = '';
+                            for (let i = 0; i < messages.length; ++i) {
+                                const message = messages[i];
+                                if (!message) {
+                                    continue;
+                                }
+                                html += i == 0 ? message : '<br/>' + message;
+                            }
+                            message.html(html)
+                        }
+                        message.show();
+                    } else {
+                        $('#sendSmsBtn').popover();
+                    }
+                },
+                error: function () {
+                    message.show();
+                    message.text('服务器出小差')
+                }
+            });
+        }
+    });
     $('#loginButton').click(function () {
         const message = $('#message');
         message.hide();
@@ -234,17 +280,12 @@ function initLogin() {
             submitHandler: function (form) {
                 let returnUrl = getQueryParam("returnUrl");
                 returnUrl = returnUrl ? returnUrl : "";
-
+                const data = $(form).serialize() + "&returnUrl=" + encodeURIComponent(returnUrl);
                 $.ajax({
                     xhrFields: {withCredentials: true},
                     type: "POST",
                     url: "account/login",
-                    data: $(form).serialize() + "&returnUrl=" + encodeURIComponent(returnUrl),
-                    beforeSend: function () {
-                        // todo:
-                        // $("#loading").css("display", "block"); //点击登录后显示loading，隐藏输入框
-                        // $("#login").css("display", "none");
-                    },
+                    data: data,
                     success: function (res, a, b) {
                         if (res.location) {
                             const url = res.location;
@@ -254,7 +295,6 @@ function initLogin() {
                             }
                             win.location.href = url;
                         } else if (res.code !== 200) {
-                            message.show();
                             if (!res.message) {
                                 printError(res.code);
                             } else {
@@ -269,14 +309,82 @@ function initLogin() {
                                 }
                                 message.html(html)
                             }
+                            message.show();
                         } else {
                             // 返回首地址
                             window.location.href = "/";
                         }
                     },
-                    error: function (XMLHttpRequest, textStatus, errorThrown) {
-                        message.show();
+                    error: function () {
                         message.text('服务器出小差')
+                        message.show();
+                    }
+                });
+            },
+        });
+    });
+    $('#smsLoginBtn').click(function () {
+        message.hide();
+        $("#smsForm").validate({
+            rules: {
+                phoneNumber: {
+                    required: true
+                },
+                verifyCode: {
+                    required: true
+                }
+            },
+            messages: {
+                phoneNumber: {
+                    required: "手机号不能为空",
+                },
+                verifyCode: {
+                    required: "请输入验证码"
+                }
+            },
+            submitHandler: function (form) {
+                let returnUrl = getQueryParam("returnUrl");
+                returnUrl = returnUrl ? returnUrl : "";
+                const data = $(form).serialize() + "&returnUrl=" + encodeURIComponent(returnUrl);
+                debugger
+                $.ajax({
+                    xhrFields: {withCredentials: true},
+                    type: "POST",
+                    url: "account/loginBySms",
+                    data: data,
+                    success: function (res, a, b) {
+                        if (res.location) {
+                            const url = res.location;
+                            let win = window;
+                            while (win !== win.top) {
+                                win = win.top;
+                            }
+                            win.location.href = url;
+                        } else if (res.code !== 200) {
+                            if (!res.message) {
+                                printError(res.code);
+                            } else {
+                                const messages = res.message.split('\n');
+                                let html = '';
+                                for (let i = 0; i < messages.length; ++i) {
+                                    const message = messages[i];
+                                    if (!message) {
+                                        continue;
+                                    }
+                                    html += i == 0 ? message : '<br/>' + message;
+                                }
+                                message.html(html)
+                            }
+                            message.show();
+                        } else {
+                            debugger
+                            // 返回首地址
+                            window.location.href = "/";
+                        }
+                    },
+                    error: function () {
+                        message.text('服务器出小差')
+                        message.show();
                     }
                 });
             },

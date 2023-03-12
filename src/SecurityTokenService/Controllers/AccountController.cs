@@ -9,7 +9,6 @@ using IdentityServer4.Events;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -34,7 +33,6 @@ namespace SecurityTokenService.Controllers
         private readonly IEventService _events;
         private readonly SignInManager<User> _signInManager;
         private readonly SecurityTokenServiceOptions _options;
-        private readonly IClientStore _clientStore;
         private readonly IdentityExtensionOptions _identityExtensionOptions;
         private readonly UserManager<User> _userManager;
         private readonly ILogger<AccountController> _logger;
@@ -46,7 +44,7 @@ namespace SecurityTokenService.Controllers
         public AccountController(IIdentityServerInteractionService interaction, IEventService events,
             SignInManager<User> signInManager, IOptionsMonitor<SecurityTokenServiceOptions> options,
             IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
-            IClientStore clientStore, UserManager<User> userManager,
+            UserManager<User> userManager,
             ILogger<AccountController> logger,
             IHostEnvironment hostEnvironment,
             IPhoneCodeStore phoneCodeStore,
@@ -57,7 +55,6 @@ namespace SecurityTokenService.Controllers
             _events = events;
 
             _signInManager = signInManager;
-            _clientStore = clientStore;
             _userManager = userManager;
             _logger = logger;
             _hostEnvironment = hostEnvironment;
@@ -74,7 +71,7 @@ namespace SecurityTokenService.Controllers
         /// <returns></returns>
         [HttpPost("ResetPassword2")]
         public async Task<IActionResult> ResetPasswordByOldPasswordAsync(
-           Inputs.V1.ResetPasswordByOldPasswordInput input)
+            Inputs.V1.ResetPasswordByOldPasswordInput input)
         {
             var user = await _userManager.FindAsync(input.UserName,
                 _identityExtensionOptions.SoftDeleteColumn);
@@ -113,7 +110,7 @@ namespace SecurityTokenService.Controllers
                 var result = await _userManager.ResetPasswordAsync(user, token, input.ConfirmNewPassword);
                 if (result.Succeeded)
                 {
-                    return new ObjectResult(new ApiResult { Code = 200, Message = "修改成功" });
+                    return new ObjectResult(new ApiResult { Message = "修改成功" });
                 }
 
                 var msg = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
@@ -122,15 +119,18 @@ namespace SecurityTokenService.Controllers
                     Code = Errors.ChangePasswordFailed, Success = false, Message = msg
                 });
             }
-            else
+
+            return new ObjectResult(new ApiResult
             {
-                return new ObjectResult(new ApiResult
-                {
-                    Code = Errors.IdentityInvalidCredentials, Success = false, Message = "用户名或密码不正确"
-                });
-            }
+                Code = Errors.IdentityInvalidCredentials, Success = false, Message = "用户名或密码不正确"
+            });
         }
 
+        /// <summary>
+        /// 通过手机号修改密码
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPasswordAsync(
             [FromBody] Inputs.V1.ResetPasswordByPhoneNumberInput input)
@@ -188,7 +188,7 @@ namespace SecurityTokenService.Controllers
             }
 
             await _phoneCodeStore.UpdateAsync(input.PhoneNumber, "");
-            return new ObjectResult(new ApiResult { Code = 200, Message = "修改成功" });
+            return new ObjectResult(new ApiResult { Message = "修改成功" });
         }
 
         [HttpPost("Login")]
@@ -254,11 +254,9 @@ namespace SecurityTokenService.Controllers
 
                     return new ObjectResult(new RedirectResult(model.ReturnUrl));
                 }
-                else
-                {
-                    // since we don't have a valid context, then we just go back to the home page
-                    return new ObjectResult(new RedirectResult("/"));
-                }
+
+                // since we don't have a valid context, then we just go back to the home page
+                return new ObjectResult(new RedirectResult("/"));
             }
 
             var user = await _userManager.FindAsync(model.Username, _identityExtensionOptions.SoftDeleteColumn);
@@ -282,67 +280,157 @@ namespace SecurityTokenService.Controllers
 
                 if (context != null)
                 {
-                    if (await _clientStore.IsPkceClientAsync(context.Client.ClientId))
-                    {
-                        // if the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        // TODO: 意义是说若是 PKCE 客户端，应该返回页面内容，而不是让终端用户自己跳转
-                        // 但这样， 不好定义纯 HTML 的内容
-                        return new ObjectResult(new RedirectResult(model.ReturnUrl));
-                        // return new ObjectResult(new
-                        // {
-                        //     Code = 302,
-                        //     Location =
-                        //         $"/redirect.html?redirectUrl={HttpUtility.UrlEncode(model.ReturnUrl)}&_t={DateTimeOffset.Now.ToUnixTimeSeconds()}"
-                        // });
-                    }
-                    else
-                    {
-                        // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
-                        return new ObjectResult(new RedirectResult(model.ReturnUrl));
-                    }
+                    // if (await _clientStore.IsPkceClientAsync(context.Client.ClientId))
+                    // {
+                    //     // if the client is PKCE then we assume it's native, so this change in how to
+                    //     // return the response is for better UX for the end user.
+                    //     // TODO: 意义是说若是 PKCE 客户端，应该返回页面内容，而不是让终端用户自己跳转
+                    //     // 但这样， 不好定义纯 HTML 的内容
+                    //     return new ObjectResult(new RedirectResult(model.ReturnUrl));
+                    //     // return new ObjectResult(new
+                    //     // {
+                    //     //     Code = 302,
+                    //     //     Location =
+                    //     //         $"/redirect.html?redirectUrl={HttpUtility.UrlEncode(model.ReturnUrl)}&_t={DateTimeOffset.Now.ToUnixTimeSeconds()}"
+                    //     // });
+                    // }
+                    // else
+                    // {
+                    //     // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
+                    //     return new ObjectResult(new RedirectResult(model.ReturnUrl));
+                    // }
+                    return new ObjectResult(new RedirectResult(model.ReturnUrl));
                 }
 
-                return new ObjectResult(
-                    new RedirectResult(string.IsNullOrWhiteSpace(model.ReturnUrl) ? "/" : model.ReturnUrl));
+                return new ObjectResult(new RedirectResult(model.ReturnUrl));
             }
-            else
+
+            // TODO: 2 次认证需要支持
+            if (result.RequiresTwoFactor)
             {
-                // TODO: 2 次认证需要支持
-                if (result.RequiresTwoFactor)
+                return new ObjectResult(new ApiResult
                 {
-                    return new ObjectResult(new ApiResult
-                    {
-                        Code = Errors.IdentityTwoFactorIsNotSupported, Success = false, Message = ""
-                    });
-                }
-
-                if (result.IsNotAllowed)
-                {
-                    return new ObjectResult(new ApiResult
-                    {
-                        Code = Errors.IdentityUserIsNotAllowed, Success = false, Message = "禁止登录"
-                    });
-                }
-                else if (result.IsLockedOut)
-                {
-                    return new ObjectResult(new ApiResult
-                    {
-                        Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "帐号被锁定"
-                    });
-                }
-                else
-                {
-                    await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
-                        clientId: context?.Client.ClientId));
-                    return new ObjectResult(
-                        new ApiResult { Code = Errors.IdentityInvalidCredentials, Success = false, Message = "登录失败" });
-                }
+                    Code = Errors.IdentityTwoFactorIsNotSupported, Success = false, Message = ""
+                });
             }
+
+            if (result.IsNotAllowed)
+            {
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.IdentityUserIsNotAllowed, Success = false, Message = "禁止登录"
+                });
+            }
+
+            if (result.IsLockedOut)
+            {
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "帐号被锁定"
+                });
+            }
+
+            await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
+                clientId: context?.Client.ClientId));
+            return new ObjectResult(
+                new ApiResult { Code = Errors.IdentityInvalidCredentials, Success = false, Message = "登录失败" });
 
             // something went wrong, show form with error
             // var vm = await BuildLoginViewModelAsync(model);
             // return View(vm);
+        }
+
+        [HttpPost("LoginBySms")]
+        public async Task<IActionResult> LoginBySmsAsync(Inputs.V1.LoginBySmsInput model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var messageBuilder = new StringBuilder();
+                foreach (var stateEntry in ModelState)
+                {
+                    if (stateEntry.Value.ValidationState != ModelValidationState.Invalid)
+                    {
+                        continue;
+                    }
+
+                    foreach (var error in stateEntry.Value.Errors)
+                    {
+                        messageBuilder.AppendLine(error.ErrorMessage);
+                    }
+                }
+
+                return new ObjectResult(new ApiResult
+                {
+                    Code = 400, Success = false, Message = messageBuilder.ToString()
+                });
+            }
+
+            var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+            // the user clicked the "cancel" button
+            if (model.Button != "login")
+            {
+                if (context != null)
+                {
+                    // if the user cancels, send a result back into IdentityServer as if they 
+                    // denied the consent (even if this client does not require consent).
+                    // this will send back an access denied OIDC error response to the client.
+                    await _interaction.DenyAuthorizationAsync(context, AuthorizationError.AccessDenied);
+
+                    // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
+                    if (context.IsNativeClient())
+                    {
+                        // The client is native, so this change in how to
+                        // return the response is for better UX for the end user.
+
+                        return new ObjectResult(new ApiResult
+                        {
+                            Code = Errors.IdentityNativeClientIsNotSupported,
+                            Success = false,
+                            Message = "不支持 NativeClient"
+                        });
+                    }
+
+                    return new ObjectResult(new RedirectResult(model.ReturnUrl));
+                }
+
+                // since we don't have a valid context, then we just go back to the home page
+                return new ObjectResult(new RedirectResult("/"));
+            }
+
+            var user = await _userManager.FindAsync(model.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
+
+            if (user == null)
+            {
+                await _events.RaiseAsync(new UserLoginFailureEvent(model.PhoneNumber, "invalid credentials",
+                    clientId: context?.Client.ClientId));
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.IdentityInvalidCredentials, Success = false, Message = "用户不存在"
+                });
+            }
+
+            var code = await _phoneCodeStore.GetAsync(model.PhoneNumber);
+            //获取手机号对应的缓存验证码
+            if (string.IsNullOrEmpty(code) || model.VerifyCode != code)
+            {
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "验证码不正确"
+                });
+            }
+
+            await _signInManager.SignInAsync(user, true);
+
+            await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
+                clientId: context?.Client.ClientId));
+
+            if (context == null)
+            {
+                return new ObjectResult(
+                    new RedirectResult(string.IsNullOrWhiteSpace(model.ReturnUrl) ? "/" : model.ReturnUrl));
+            }
+
+            return new ObjectResult(new RedirectResult(model.ReturnUrl));
         }
 
         [HttpPost("SendSmsCode")]
@@ -361,25 +449,25 @@ namespace SecurityTokenService.Controllers
             }
 
             var code = RandomNumberGenerator.GetInt32(1111, 9999).ToString();
+
+            var countryCode = string.IsNullOrWhiteSpace(input.CountryCode) ? "+86" : input.CountryCode;
+            var phoneNumber = $"{countryCode} {input.PhoneNumber}";
+            await _phoneCodeStore.UpdateAsync(input.PhoneNumber, code);
+
             if (_hostEnvironment.IsDevelopment())
             {
-                _logger.LogDebug($"Send sms code to {input.PhoneNumber}: {code}");
-                return new ApiResult { Success = true, Code = 0 };
+                _logger.LogInformation($"Send sms code to {input.PhoneNumber}: {code}");
+                return new ApiResult { Success = true };
             }
-            else
+
+            try
             {
-                var countryCode = string.IsNullOrWhiteSpace(input.CountryCode) ? "+86" : input.CountryCode;
-                var phoneNumber = $"{countryCode} {input.PhoneNumber}";
-                await _phoneCodeStore.UpdateAsync(input.PhoneNumber, code);
-                try
-                {
-                    await _smsSender.SendAsync(phoneNumber, code);
-                    return new ApiResult { Success = true, Message = "发送成功" };
-                }
-                catch (FriendlyException fe)
-                {
-                    return new ApiResult { Message = fe.Message, Success = false, Code = Errors.SendSmsFailed };
-                }
+                await _smsSender.SendAsync(phoneNumber, code);
+                return new ApiResult { Success = true, Message = "发送成功" };
+            }
+            catch (FriendlyException fe)
+            {
+                return new ApiResult { Message = fe.Message, Success = false, Code = Errors.SendSmsFailed };
             }
         }
 
