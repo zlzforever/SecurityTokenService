@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using IdentityServer4.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -14,6 +15,8 @@ namespace SecurityTokenService
     {
         public static void Main(string[] args)
         {
+            var secret = "secret".Sha256();
+            Console.WriteLine($"Secret: {secret}");
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             CreateHostBuilder(args).Build().Run();

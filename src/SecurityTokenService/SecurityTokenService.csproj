@@ -89,4 +89,9 @@
     <_ContentIncludedByDefault Remove="security_token_service_out\wwwroot\lib\jquery\package.json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Identity\IPasswordSecurityInfoStore.cs" />
+    <Compile Remove="Identity\PasswordSecurityInfoStore.cs" />
+  </ItemGroup>
+
 </Project>

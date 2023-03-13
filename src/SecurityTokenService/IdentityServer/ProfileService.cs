@@ -24,25 +24,27 @@ public class ProfileService : IdentityServer4.AspNetIdentity.ProfileService<User
     protected override async Task<ClaimsPrincipal> GetUserClaimsAsync(User user)
     {
         var principal = await base.GetUserClaimsAsync(user);
-        var identity = principal.Identities.First();
-        if (!identity.HasClaim(x => x.Type == JwtClaimTypes.GivenName))
+        var identity = new ClaimsIdentity();
+        
+        if (!principal.HasClaim(x => x.Type == JwtClaimTypes.GivenName))
         {
             identity.AddClaim(new Claim(JwtClaimTypes.GivenName,
                 string.IsNullOrWhiteSpace(user.GivenName) ? string.Empty : user.GivenName));
         }
 
-        if (!identity.HasClaim(x => x.Type == JwtClaimTypes.FamilyName))
+        if (!principal.HasClaim(x => x.Type == JwtClaimTypes.FamilyName))
         {
             identity.AddClaim(new Claim(JwtClaimTypes.FamilyName,
                 string.IsNullOrWhiteSpace(user.FamilyName) ? string.Empty : user.FamilyName));
         }
 
-        if (!identity.HasClaim(x => x.Type == JwtClaimTypes.Picture))
+        if (!principal.HasClaim(x => x.Type == JwtClaimTypes.Picture))
         {
             identity.AddClaim(new Claim(JwtClaimTypes.Picture,
                 string.IsNullOrWhiteSpace(user.Picture) ? string.Empty : user.Picture));
         }
 
+        principal.AddIdentity(identity);
         return principal;
     }
 }

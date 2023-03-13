@@ -18,5 +18,6 @@ namespace SecurityTokenService
         public const int VerifyCodeIsInCorrect = 4014;
         public const int PasswordValidateFailed = 4015;
         public const int ChangePasswordFailed = 4016;
+        public const int SendSmsFailed = 4017;
     }
 }

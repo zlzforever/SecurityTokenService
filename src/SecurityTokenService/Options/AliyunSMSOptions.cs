@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SecurityTokenService.IdentityServer;
+namespace SecurityTokenService.Options;
 
 public class AliyunSMSOptions
 {

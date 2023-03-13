@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
+using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 using SecurityTokenService.IdentityServer.Stores;
 
@@ -134,11 +135,11 @@ namespace SecurityTokenService.IdentityServer
             return builder;
         }
 
-        public static void ConfigureIdentityServerStore(this IApplicationBuilder app)
+        public static void MigrateIdentityServer(this IApplicationBuilder app)
         {
             var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
             using var scope = app.ApplicationServices.CreateScope();
-            if (configuration["Database"] == "MySql")
+            if (configuration.GetDatabaseType() == "MySql")
             {
                 using var persistedGrantDbContext =
                     scope.ServiceProvider.GetRequiredService<MySqlPersistedGrantDbContext>();

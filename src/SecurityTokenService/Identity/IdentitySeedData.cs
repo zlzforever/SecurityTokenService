@@ -6,18 +6,19 @@ using Microsoft.Extensions.DependencyInjection;
 using SecurityTokenService.Data;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
-using SecurityTokenService.IdentityServer.Stores;
+using SecurityTokenService.Extensions;
+using SecurityTokenService.Stores;
 
 namespace SecurityTokenService.Identity
 {
-    public static class IdentityExtensions
+    public static class IdentitySeedData
     {
-        public static void LoadIdentityData(this IApplicationBuilder app)
+        public static void Load(IApplicationBuilder app)
         {
             using var scope = app.ApplicationServices.CreateScope();
             var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
             DbContext securityTokenServiceDbContext;
-            if (configuration["Database"] == "MySql")
+            if (configuration.GetDatabaseType() == "MySql")
             {
                 securityTokenServiceDbContext =
                     scope.ServiceProvider.GetRequiredService<MySqlSecurityTokenServiceDbContext>();
