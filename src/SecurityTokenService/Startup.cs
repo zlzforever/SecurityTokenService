@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using IdentityServer4;
 using IdentityServer4.Configuration;
 using IdentityServer4.Services;
@@ -14,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SecurityTokenService.Data;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
@@ -82,6 +84,7 @@ namespace SecurityTokenService
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            var logger = app.ApplicationServices.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
             IdentitySeedData.Load(app);
 
             app.MigrateIdentityServer();
@@ -99,9 +102,12 @@ namespace SecurityTokenService
                     var html = File.ReadAllText(htmlFile);
                     if (html.Contains("site.js"))
                     {
-                        File.WriteAllText(htmlFile, html.Replace("site.js", "site.min.js"));
+                        File.WriteAllText(htmlFile,
+                            html.Replace("site.js", $"site.min.js?_t={DateTimeOffset.Now.ToUnixTimeSeconds()}"));
                     }
                 }
+
+                logger.LogInformation("处理 js 引用完成");
             }
 
             if (Configuration["IdentityServer:ForceHttps"]?.ToLower() == "true")
