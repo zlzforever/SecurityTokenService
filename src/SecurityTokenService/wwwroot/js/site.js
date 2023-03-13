@@ -406,8 +406,9 @@ function initChangePassword() {
                 username: {
                     required: true
                 },
-                password: {
-                    required: true
+                newPassword: {
+                    required: true,
+                    regex: /^(?=.*\d)(?=.*[A-Za-z])(?=.*[^\da-zA-Z\s]).{8,30}$/
                 },
                 oldPassword: {
                     required: true
@@ -420,12 +421,14 @@ function initChangePassword() {
                 username: {
                     required: "用户名不能为空",
                 },
-                password: {
-                    required: "请输入密码"
+                newPassword: {
+                    required: "请输入密码",
+                    regex: "密码必须包含字母、数字和特殊符号，最少 8 位"
                 }
             },
             submitHandler: function (form) {
                 const data = $(form).serialize();
+                debugger
                 $.ajax({
                     xhrFields: {withCredentials: true},
                     type: "POST",

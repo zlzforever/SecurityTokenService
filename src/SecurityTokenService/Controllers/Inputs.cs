@@ -26,14 +26,14 @@ namespace SecurityTokenService.Controllers
                 /// <summary>
                 /// 确认新密码
                 /// </summary>
-                [StringLength(32)]
+                [Required, StringLength(32)]
                 [Compare("NewPassword", ErrorMessage = "两次密码不一致")]
                 public string ConfirmNewPassword { get; set; }
 
                 /// <summary>
                 /// 旧密码
                 /// </summary>
-                [StringLength(50)]
+                [Required, StringLength(50)]
                 public string OldPassword { get; set; }
             }
 
@@ -141,7 +141,7 @@ namespace SecurityTokenService.Controllers
                 [StringLength(5)]
                 public string Button { get; set; }
             }
-            
+
             public class LoginInput
             {
                 /// <summary>
