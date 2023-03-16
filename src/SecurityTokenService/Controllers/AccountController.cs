@@ -73,6 +73,12 @@ namespace SecurityTokenService.Controllers
         public async Task<IActionResult> ResetPasswordByOldPasswordAsync(
             Inputs.V1.ResetPasswordByOldPasswordInput input)
         {
+            var modelErrorResult = BuildModelValidResult();
+            if (modelErrorResult != null)
+            {
+                return modelErrorResult;
+            }
+
             var user = await _userManager.FindAsync(input.UserName,
                 _identityExtensionOptions.SoftDeleteColumn);
 
@@ -135,6 +141,12 @@ namespace SecurityTokenService.Controllers
         public async Task<IActionResult> ResetPasswordAsync(
             [FromBody] Inputs.V1.ResetPasswordByPhoneNumberInput input)
         {
+            var modelErrorResult = BuildModelValidResult();
+            if (modelErrorResult != null)
+            {
+                return modelErrorResult;
+            }
+
             var user = await _userManager.FindAsync(input.PhoneNumber,
                 _identityExtensionOptions.SoftDeleteColumn);
 
@@ -194,26 +206,10 @@ namespace SecurityTokenService.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> LoginAsync(Inputs.V1.LoginInput model)
         {
-            if (!ModelState.IsValid)
+            var modelErrorResult = BuildModelValidResult();
+            if (modelErrorResult != null)
             {
-                var messageBuilder = new StringBuilder();
-                foreach (var stateEntry in ModelState)
-                {
-                    if (stateEntry.Value.ValidationState != ModelValidationState.Invalid)
-                    {
-                        continue;
-                    }
-
-                    foreach (var error in stateEntry.Value.Errors)
-                    {
-                        messageBuilder.AppendLine(error.ErrorMessage);
-                    }
-                }
-
-                return new ObjectResult(new ApiResult
-                {
-                    Code = 400, Success = false, Message = messageBuilder.ToString()
-                });
+                return modelErrorResult;
             }
 
             var passwordValidateResult = await _passwordValidator.ValidateAsync(_userManager, null, model.Password);
@@ -437,6 +433,12 @@ namespace SecurityTokenService.Controllers
         [HttpPost("sms")]
         public async Task<ApiResult> SendSmsCodeAsync([FromBody] Inputs.V1.SendSmsCode input)
         {
+            var modelErrorResult = BuildModelValidApiResult();
+            if (modelErrorResult != null)
+            {
+                return modelErrorResult;
+            }
+
             var user = await _userManager.FindAsync(input.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
             if (user == null)
             {
@@ -581,6 +583,38 @@ namespace SecurityTokenService.Controllers
 
             // show the logout prompt. this prevents attacks where the user
             // is automatically signed out by another malicious web page.
+        }
+
+        private ApiResult BuildModelValidApiResult()
+        {
+            if (!ModelState.IsValid)
+            {
+                var messageBuilder = new StringBuilder();
+                foreach (var stateEntry in ModelState)
+                {
+                    if (stateEntry.Value.ValidationState != ModelValidationState.Invalid)
+                    {
+                        continue;
+                    }
+
+                    foreach (var error in stateEntry.Value.Errors)
+                    {
+                        messageBuilder.AppendLine(error.ErrorMessage);
+                    }
+                }
+
+                return new ApiResult { Code = 400, Success = false, Message = messageBuilder.ToString() };
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private ObjectResult BuildModelValidResult()
+        {
+            var apiErrorResult = BuildModelValidApiResult();
+            return apiErrorResult == null ? null : new ObjectResult(apiErrorResult);
         }
     }
 }
