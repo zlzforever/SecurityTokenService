@@ -53,7 +53,7 @@ public class AliyunSmsSender : ISmsSender
                 return;
             }
 
-            _logger.LogError(response.Body.Message);
+            _logger.LogError($"{number} {response.Body.Message}");
             throw new FriendlyException("发送验证码失败");
         }
         catch (Exception e)
