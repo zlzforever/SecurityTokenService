@@ -36,10 +36,12 @@ public class AliyunSmsSender : ISmsSender
             throw new FriendlyException("不支持的国家");
         }
 
+        var phone = pieces[1];
+
         var request =
             new AlibabaCloud.SDK.Dysmsapi20170525.Models.SendSmsRequest
             {
-                PhoneNumbers = number,
+                PhoneNumbers = phone,
                 SignName = _aliyunOptions.Sms.SignName,
                 TemplateCode = template,
                 TemplateParam = JsonSerializer.Serialize(new { code })
