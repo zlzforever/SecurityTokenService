@@ -39,7 +39,7 @@ public class AliyunSmsSender : ISmsSender
         var request =
             new AlibabaCloud.SDK.Dysmsapi20170525.Models.SendSmsRequest
             {
-                PhoneNumbers = $"{countryCode}{number}",
+                PhoneNumbers = number,
                 SignName = _aliyunOptions.Sms.SignName,
                 TemplateCode = template,
                 TemplateParam = JsonSerializer.Serialize(new { code })
