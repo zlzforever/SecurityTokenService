@@ -439,16 +439,15 @@ namespace SecurityTokenService.Controllers
                 return modelErrorResult;
             }
 
-            var user = await _userManager.FindAsync(input.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
-            if (user == null)
-            {
-                return new ApiResult { Message = "用户不存在", Success = false, Code = Errors.IdentityUserIsNotExist };
-            }
-
-            if (await _userManager.IsLockedOutAsync(user))
-            {
-                return new ApiResult { Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "帐号被锁定" };
-            }
+            // 不存在也应该发短信， 因为可以是通过短信注册的
+            // var user = await _userManager.FindAsync(input.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
+            // if (user != null)
+            // {
+            //     if (await _userManager.IsLockedOutAsync(user))
+            //     {
+            //         return new ApiResult { Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "帐号被锁定" };
+            //     }
+            // }
 
             var code = RandomNumberGenerator.GetInt32(1111, 9999).ToString();
 
