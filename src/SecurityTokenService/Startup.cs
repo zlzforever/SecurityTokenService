@@ -183,8 +183,9 @@ namespace SecurityTokenService
             }
 
             // not recommended for production - you need to store your key material somewhere secure
-            // https 证书？
+#if DEBUG
             builder.AddDeveloperSigningCredential();
+#endif
         }
 
         private void ConfigureDbContext(IServiceCollection services)

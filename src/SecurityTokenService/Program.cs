@@ -55,7 +55,10 @@ namespace SecurityTokenService
                             .MinimumLevel.Override("System", LogEventLevel.Warning)
                             .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Warning)
                             .Enrich.FromLogContext()
-                            .WriteTo.Console().WriteTo.RollingFile(logFile)
+#if DEBUG
+                            .WriteTo.Console()
+#endif
+                            .WriteTo.Async(x => x.File(logFile, rollingInterval: RollingInterval.Day))
                             .CreateLogger();
                     }
 

@@ -42,176 +42,57 @@
   ],
   "apiScopes": [
     {
-      "name": "cerberus-api",
-      "displayName": "通用权限系统 API",
-      "UserClaims": ["role", "name"]
-    },
-    {
-      "name": "cerberus-client-api",
-      "displayName": "通用权限系统 API",
-      "UserClaims": ["role", "name"]
-    },
-    {
-      "name": "lhgylc-api",
-      "displayName": "临海国有林场",
+      "name": "wildgoose-api",
+      "displayName": "wildgoose-api",
       "UserClaims": [
         "role",
-        "name",
-        "email"
+        "name"
       ]
     },
     {
-      "name": "oss-sts-api",
-      "displayName": "OSS获取token服务",
+      "name": "socodb-api",
+      "displayName": "socodb",
       "UserClaims": [
         "role",
-        "name",
-        "email"
-      ]
-    },
-    {
-      "name": "shlzz-oss-sts-api",
-      "displayName": "OSS获取token服务",
-      "UserClaims": [
-        "role",
-        "name",
-        "email"
-      ]
-    },
-    {
-      "name": "lhgylc-xlt-api",
-      "displayName": "临海国有林场小林通服务",
-      "UserClaims": [
-        "role",
-        "name",
-        "email"
-      ]
-    },
-    {
-      "name": "shlzz-api",
-      "displayName": "上海林长制服务",
-      "UserClaims": [
-        "role",
-        "name",
-        "email"
-      ]
-    },
-    {
-      "name": "shlzz-xlt-api",
-      "displayName": "上海林长制小林通服务",
-      "UserClaims": [
-        "role",
-        "name",
-        "email"
-      ]
-    },
-    {
-      "name": "yhsw-xlt-api",
-      "displayName": "简化数字森防小林通服务",
-      "UserClaims": [
-        "role",
-        "name",
-        "email"
+        "name"
       ]
     }
   ],
   "clients": [
     {
-      "ClientId": "cerberus-client",
+      "ClientId": "wildgoose-web",
       "ClientSecrets": [
         {
           "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
           "Type": "SharedSecret"
         }
       ],
-      "AllowedGrantTypes": ["client_credentials"],
-      "AllowedScopes": ["cerberus-client-api"]
-    },
-    {
-      "ClientId": "mvc",
-      "ClientSecrets": [
-        {
-          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
-          "Type": "SharedSecret"
-        }
-      ],
-      "RequireConsent": true,
+      "AllowAccessTokensViaBrowser": true,
+      "RequireConsent": false,
       "AllowedGrantTypes": [
         "authorization_code"
       ],
-      "RedirectUris": [
-        "http://localhost:5002/signin-oidc"
-      ],
-      "PostLogoutRedirectUris": [
-        "http://localhost:5002/signout-callback-oidc"
-      ],
-      "AllowedScopes": [
-        "openid",
-        "profile",
-        "api1"
-      ]
-    },
-    {
-      "ClientId": "cerberus-web",
-      "AllowAccessTokensViaBrowser": true,
-      "RequireConsent": false,
-      "AllowedGrantTypes": [
-        "implicit"
-      ],
-      "RedirectUris": [
-        "http://localhost:3002/signin-oidc"
-      ],
-      "PostLogoutRedirectUris": [
-        "http://localhost:3002/signout-callback-oidc"
-      ],
-      "AllowedCorsOrigins": [
-        "http://localhost:3002"
-      ],
-      "AllowedScopes": [
-        "openid",
-        "profile",
-        "role",
-        "cerberus-api"
-      ]
-    },
-    {
-      "ClientId": "lhgylc-web",
-      "ClientSecrets": [
-        {
-          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
-          "Type": "SharedSecret"
-        }
-      ],
-      "AllowAccessTokensViaBrowser": true,
-      "RequireConsent": false,
-      "AllowedGrantTypes": [
-        "implicit",
-        "password"
-      ],
+      "AllowOfflineAccess": true,
       "IdentityTokenLifetime": 108000,
       "AccessTokenLifetime": 108000,
       "RedirectUris": [
-        "http://localhost:3000/signin-oidc"
+        "http://localhost:5174/signin-redirect-callback"
       ],
       "PostLogoutRedirectUris": [
-        "http://localhost:3000/signout-callback-oidc"
+        "http://localhost:5174/signout-callback-oidc"
       ],
       "AllowedCorsOrigins": [
-        "http://localhost:3000"
+        "http://localhost:5174"
       ],
       "AllowedScopes": [
         "openid",
         "profile",
         "role",
-        "email",
-        "cerberus-api",
-        "lhgylc-api",
-        "lhgylc-xlt-api",
-        "oss-sts-api"
+        "wildgoose-api"
       ]
     },
     {
-      "ClientId": "shlzz-web",
+      "ClientId": "socodb-web",
       "ClientSecrets": [
         {
           "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
@@ -221,69 +102,25 @@
       "AllowAccessTokensViaBrowser": true,
       "RequireConsent": false,
       "AllowedGrantTypes": [
-        "implicit",
-        "password"
+        "authorization_code"
       ],
       "AllowOfflineAccess": true,
       "IdentityTokenLifetime": 108000,
       "AccessTokenLifetime": 108000,
       "RedirectUris": [
-        "http://localhost:3000/signin-oidc"
+        "http://localhost:5173/signin-redirect-callback"
       ],
       "PostLogoutRedirectUris": [
-        "http://localhost:3000/signout-callback-oidc"
+        "http://localhost:5173/signout-callback-oidc"
       ],
       "AllowedCorsOrigins": [
-        "http://localhost:3000"
+        "http://localhost:5173"
       ],
       "AllowedScopes": [
         "openid",
         "profile",
         "role",
-        "email",
-        "cerberus-api",
-        "shlzz-api",
-        "shlzz-xlt-api",
-        "offline_access",
-        "oss-sts-api",
-        "shlzz-oss-sts-api"
-      ]
-    },
-    {
-      "ClientId": "yhsw-web",
-      "ClientSecrets": [
-        {
-          "Value": "K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=",
-          "Type": "SharedSecret"
-        }
-      ],
-      "AllowAccessTokensViaBrowser": true,
-      "RequireConsent": false,
-      "AllowedGrantTypes": [
-        "implicit",
-        "password"
-      ],
-      "AllowOfflineAccess": true,
-      "IdentityTokenLifetime": 108000,
-      "AccessTokenLifetime": 108000,
-      "RedirectUris": [
-        "http://localhost:3000/signin-oidc"
-      ],
-      "PostLogoutRedirectUris": [
-        "http://localhost:3000/signout-callback-oidc"
-      ],
-      "AllowedCorsOrigins": [
-        "http://localhost:3000"
-      ],
-      "AllowedScopes": [
-        "openid",
-        "profile",
-        "role",
-        "email",
-        "cerberus-api",
-        "yhsw-xlt-api",
-        "offline_access",
-        "oss-sts-api"
+        "socodb-api"
       ]
     }
   ]
