@@ -1,4 +1,5 @@
 using System;
+using Dapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -33,6 +34,17 @@ namespace SecurityTokenService.Identity
             {
                 securityTokenServiceDbContext.Database.Migrate();
             }
+
+            using var conn = securityTokenServiceDbContext.Database.GetDbConnection();
+            conn.Execute($"""
+                         create table if not exists system_data_protection_keys
+                         (
+                             id int auto_increment primary key,
+                             friendly_name varchar(64) not null,
+                             xml varchar(2000) not null
+                         );
+                         """
+            );
 
             var phoneCodeStore = scope.ServiceProvider.GetService<IPhoneCodeStore>();
             phoneCodeStore?.InitializeAsync().Wait();

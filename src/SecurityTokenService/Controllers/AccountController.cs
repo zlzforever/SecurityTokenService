@@ -27,46 +27,26 @@ namespace SecurityTokenService.Controllers
     [SecurityHeaders]
     [AllowAnonymous]
     [Route("[controller]")]
-    public class AccountController : ControllerBase
+    public class AccountController(
+        IIdentityServerInteractionService interaction,
+        IEventService events,
+        SignInManager<User> signInManager,
+        IOptionsMonitor<SecurityTokenServiceOptions> options,
+        IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
+        UserManager<User> userManager,
+        ILogger<AccountController> logger,
+        IHostEnvironment hostEnvironment,
+        IPhoneCodeStore phoneCodeStore,
+        IPasswordValidator<User> passwordValidator,
+        ISmsSender smsSender)
+        : ControllerBase
     {
-        private readonly IIdentityServerInteractionService _interaction;
-        private readonly IEventService _events;
-        private readonly SignInManager<User> _signInManager;
-        private readonly SecurityTokenServiceOptions _options;
-        private readonly IdentityExtensionOptions _identityExtensionOptions;
-        private readonly UserManager<User> _userManager;
-        private readonly ILogger<AccountController> _logger;
-        private readonly ISmsSender _smsSender;
-        private readonly IHostEnvironment _hostEnvironment;
-        private readonly IPhoneCodeStore _phoneCodeStore;
-        private readonly IPasswordValidator<User> _passwordValidator;
-
-        public AccountController(IIdentityServerInteractionService interaction, IEventService events,
-            SignInManager<User> signInManager, IOptionsMonitor<SecurityTokenServiceOptions> options,
-            IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
-            UserManager<User> userManager,
-            ILogger<AccountController> logger,
-            IHostEnvironment hostEnvironment,
-            IPhoneCodeStore phoneCodeStore,
-            IPasswordValidator<User> passwordValidator,
-            ISmsSender smsSender)
-        {
-            _interaction = interaction;
-            _events = events;
-
-            _signInManager = signInManager;
-            _userManager = userManager;
-            _logger = logger;
-            _hostEnvironment = hostEnvironment;
-            _phoneCodeStore = phoneCodeStore;
-            _passwordValidator = passwordValidator;
-            _smsSender = smsSender;
-            _options = options.CurrentValue;
-            _identityExtensionOptions = identityExtensionOptions.CurrentValue;
-        }
+        private readonly SecurityTokenServiceOptions _options = options.CurrentValue;
+        private readonly IdentityExtensionOptions _identityExtensionOptions = identityExtensionOptions.CurrentValue;
 
         /// <summary>
         /// 通过旧密码修改密码
+        /// 要提供用户名
         /// </summary>
         /// <returns></returns>
         [HttpPost("ResetPassword2")]
@@ -79,7 +59,7 @@ namespace SecurityTokenService.Controllers
                 return modelErrorResult;
             }
 
-            var user = await _userManager.FindAsync(input.UserName,
+            var user = await userManager.FindAsync(input.UserName,
                 _identityExtensionOptions.SoftDeleteColumn);
 
             if (user == null)
@@ -90,7 +70,7 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            if (await _userManager.IsLockedOutAsync(user))
+            if (await userManager.IsLockedOutAsync(user))
             {
                 return new ObjectResult(new ApiResult
                 {
@@ -99,7 +79,7 @@ namespace SecurityTokenService.Controllers
             }
 
             var passwordValidateResult =
-                await _passwordValidator.ValidateAsync(_userManager, user, input.NewPassword);
+                await passwordValidator.ValidateAsync(userManager, user, input.NewPassword);
             if (!passwordValidateResult.Succeeded)
             {
                 var msg = string.Join(Environment.NewLine, passwordValidateResult.Errors.Select(x => x.Description));
@@ -109,11 +89,11 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            var checkPasswordResult = await _userManager.CheckPasswordAsync(user, input.OldPassword);
+            var checkPasswordResult = await userManager.CheckPasswordAsync(user, input.OldPassword);
             if (checkPasswordResult)
             {
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var result = await _userManager.ResetPasswordAsync(user, token, input.ConfirmNewPassword);
+                var token = await userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await userManager.ResetPasswordAsync(user, token, input.ConfirmNewPassword);
                 if (result.Succeeded)
                 {
                     return new ObjectResult(new ApiResult { Message = "修改成功" });
@@ -147,7 +127,7 @@ namespace SecurityTokenService.Controllers
                 return modelErrorResult;
             }
 
-            var user = await _userManager.FindAsync(input.PhoneNumber,
+            var user = await userManager.FindAsync(input.PhoneNumber,
                 _identityExtensionOptions.SoftDeleteColumn);
 
             if (user == null)
@@ -158,7 +138,7 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            if (await _userManager.IsLockedOutAsync(user))
+            if (await userManager.IsLockedOutAsync(user))
             {
                 return new ObjectResult(new ApiResult
                 {
@@ -167,7 +147,7 @@ namespace SecurityTokenService.Controllers
             }
 
             var passwordValidateResult =
-                await _passwordValidator.ValidateAsync(_userManager, user, input.NewPassword);
+                await passwordValidator.ValidateAsync(userManager, user, input.NewPassword);
             if (!passwordValidateResult.Succeeded)
             {
                 var msg = string.Join(Environment.NewLine, passwordValidateResult.Errors.Select(x => x.Description));
@@ -177,7 +157,7 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            var code = await _phoneCodeStore.GetAsync(input.PhoneNumber);
+            var code = await phoneCodeStore.GetAsync(input.PhoneNumber);
             //获取手机号对应的缓存验证码
             if (string.IsNullOrEmpty(code) || input.VerifyCode != code)
             {
@@ -187,8 +167,8 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, input.ConfirmNewPassword);
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await userManager.ResetPasswordAsync(user, token, input.ConfirmNewPassword);
 
             if (!result.Succeeded)
             {
@@ -199,7 +179,7 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            await _phoneCodeStore.UpdateAsync(input.PhoneNumber, "");
+            await phoneCodeStore.UpdateAsync(input.PhoneNumber, "");
             return new ObjectResult(new ApiResult { Message = "修改成功" });
         }
 
@@ -212,7 +192,7 @@ namespace SecurityTokenService.Controllers
                 return modelErrorResult;
             }
 
-            var passwordValidateResult = await _passwordValidator.ValidateAsync(_userManager, null, model.Password);
+            var passwordValidateResult = await passwordValidator.ValidateAsync(userManager, null, model.Password);
             if (!passwordValidateResult.Succeeded)
             {
                 var message = string.Join(Environment.NewLine,
@@ -223,7 +203,7 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+            var context = await interaction.GetAuthorizationContextAsync(model.ReturnUrl);
             // the user clicked the "cancel" button
             if (model.Button != "login")
             {
@@ -232,7 +212,7 @@ namespace SecurityTokenService.Controllers
                     // if the user cancels, send a result back into IdentityServer as if they 
                     // denied the consent (even if this client does not require consent).
                     // this will send back an access denied OIDC error response to the client.
-                    await _interaction.DenyAuthorizationAsync(context, AuthorizationError.AccessDenied);
+                    await interaction.DenyAuthorizationAsync(context, AuthorizationError.AccessDenied);
 
                     // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
                     if (context.IsNativeClient())
@@ -255,11 +235,11 @@ namespace SecurityTokenService.Controllers
                 return new ObjectResult(new RedirectResult("/"));
             }
 
-            var user = await _userManager.FindAsync(model.Username, _identityExtensionOptions.SoftDeleteColumn);
+            var user = await userManager.FindAsync(model.Username, _identityExtensionOptions.SoftDeleteColumn);
 
             if (user == null)
             {
-                await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
+                await events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
                     clientId: context?.Client.ClientId));
                 return new ObjectResult(new ApiResult
                 {
@@ -267,11 +247,11 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            var result = await _signInManager.PasswordSignInAsync(user, model.Password,
+            var result = await signInManager.PasswordSignInAsync(user, model.Password,
                 model.RememberLogin, false);
             if (result.Succeeded)
             {
-                await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
+                await events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
                     clientId: context?.Client.ClientId));
 
                 if (context != null)
@@ -326,7 +306,7 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
+            await events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
                 clientId: context?.Client.ClientId));
             return new ObjectResult(
                 new ApiResult { Code = Errors.IdentityInvalidCredentials, Success = false, Message = "登录失败" });
@@ -336,6 +316,11 @@ namespace SecurityTokenService.Controllers
             // return View(vm);
         }
 
+        /// <summary>
+        /// 通过短信登录
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("LoginBySms")]
         public async Task<IActionResult> LoginBySmsAsync(Inputs.V1.LoginBySmsInput model)
         {
@@ -361,7 +346,7 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+            var context = await interaction.GetAuthorizationContextAsync(model.ReturnUrl);
             // the user clicked the "cancel" button
             if (model.Button != "login")
             {
@@ -370,7 +355,7 @@ namespace SecurityTokenService.Controllers
                     // if the user cancels, send a result back into IdentityServer as if they 
                     // denied the consent (even if this client does not require consent).
                     // this will send back an access denied OIDC error response to the client.
-                    await _interaction.DenyAuthorizationAsync(context, AuthorizationError.AccessDenied);
+                    await interaction.DenyAuthorizationAsync(context, AuthorizationError.AccessDenied);
 
                     // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
                     if (context.IsNativeClient())
@@ -393,11 +378,11 @@ namespace SecurityTokenService.Controllers
                 return new ObjectResult(new RedirectResult("/"));
             }
 
-            var user = await _userManager.FindAsync(model.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
+            var user = await userManager.FindAsync(model.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
 
             if (user == null)
             {
-                await _events.RaiseAsync(new UserLoginFailureEvent(model.PhoneNumber, "invalid credentials",
+                await events.RaiseAsync(new UserLoginFailureEvent(model.PhoneNumber, "invalid credentials",
                     clientId: context?.Client.ClientId));
                 return new ObjectResult(new ApiResult
                 {
@@ -405,7 +390,7 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            var code = await _phoneCodeStore.GetAsync(model.PhoneNumber);
+            var code = await phoneCodeStore.GetAsync(model.PhoneNumber);
             //获取手机号对应的缓存验证码
             if (string.IsNullOrEmpty(code) || model.VerifyCode != code)
             {
@@ -415,9 +400,9 @@ namespace SecurityTokenService.Controllers
                 });
             }
 
-            await _signInManager.SignInAsync(user, true);
+            await signInManager.SignInAsync(user, true);
 
-            await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
+            await events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
                 clientId: context?.Client.ClientId));
 
             if (context == null)
@@ -429,6 +414,11 @@ namespace SecurityTokenService.Controllers
             return new ObjectResult(new RedirectResult(model.ReturnUrl));
         }
 
+        /// <summary>
+        /// 发送短信验证码
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         [HttpPost("SendSmsCode")]
         [HttpPost("sms")]
         public async Task<ApiResult> SendSmsCodeAsync([FromBody] Inputs.V1.SendSmsCode input)
@@ -453,17 +443,17 @@ namespace SecurityTokenService.Controllers
 
             var countryCode = string.IsNullOrWhiteSpace(input.CountryCode) ? "+86" : input.CountryCode;
             var phoneNumber = $"{countryCode} {input.PhoneNumber}";
-            await _phoneCodeStore.UpdateAsync(input.PhoneNumber, code);
+            await phoneCodeStore.UpdateAsync(input.PhoneNumber, code);
 
-            if (_hostEnvironment.IsDevelopment())
+            if (hostEnvironment.IsDevelopment())
             {
-                _logger.LogInformation($"Send sms code to {input.PhoneNumber}: {code}");
+                logger.LogInformation($"Send sms code to {input.PhoneNumber}: {code}");
                 return new ApiResult { Success = true };
             }
 
             try
             {
-                await _smsSender.SendAsync(phoneNumber, code);
+                await smsSender.SendAsync(phoneNumber, code);
                 return new ApiResult { Success = true, Message = "发送成功" };
             }
             catch (FriendlyException fe)
@@ -496,10 +486,10 @@ namespace SecurityTokenService.Controllers
             if (User.Identity?.IsAuthenticated == true)
             {
                 // delete local authentication cookie
-                await _signInManager.SignOutAsync();
+                await signInManager.SignOutAsync();
 
                 // raise the logout event
-                await _events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
+                await events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
             }
 
             // check if we need to trigger sign-out at an upstream identity provider
@@ -525,7 +515,7 @@ namespace SecurityTokenService.Controllers
 
         private async Task<Outputs.V1.LoggedOutOutput> BuildLoggedOutOutputAsync(string logoutId)
         {
-            var logout = await _interaction.GetLogoutContextAsync(logoutId);
+            var logout = await interaction.GetLogoutContextAsync(logoutId);
 
             var vm = new Outputs.V1.LoggedOutOutput
             {
@@ -553,7 +543,7 @@ namespace SecurityTokenService.Controllers
                 return vm;
             }
 
-            vm.LogoutId ??= await _interaction.CreateLogoutContextAsync();
+            vm.LogoutId ??= await interaction.CreateLogoutContextAsync();
             vm.ExternalAuthenticationScheme = idp;
 
             return vm;
@@ -570,7 +560,7 @@ namespace SecurityTokenService.Controllers
                 return vm;
             }
 
-            var context = await _interaction.GetLogoutContextAsync(logoutId);
+            var context = await interaction.GetLogoutContextAsync(logoutId);
             if (context?.ShowSignoutPrompt != false)
             {
                 return vm;

@@ -1,22 +1,38 @@
 using System.Threading.Tasks;
+using IdentityServer4.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace SecurityTokenService.IdentityServer;
 
-public class PublicFacingUrlMiddleware
+public class PublicFacingUrlMiddleware(RequestDelegate next, IConfiguration configuration)
 {
-    private readonly RequestDelegate _next;
-
-    public PublicFacingUrlMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
     public async Task Invoke(HttpContext context)
     {
-        context.Request.Scheme = "https";
-        context.Request.IsHttps = true;
+        var schema = configuration["IdentityServer:Scheme"];
+        if (schema == "http")
+        {
+            context.Request.Scheme = "http";
+            context.Request.IsHttps = false;
+        }
+        else if (schema == "https")
+        {
+            context.Request.Scheme = "https";
+            context.Request.IsHttps = true;
+        }
 
-        await _next(context);
+        var basePath = configuration["IdentityServer:BasePath"];
+        if (!string.IsNullOrEmpty(basePath))
+        {
+            context.SetIdentityServerBasePath(basePath);
+        }
+
+        var origin = configuration["IdentityServer:Origin"];
+        if (!string.IsNullOrEmpty(origin))
+        {
+            context.SetIdentityServerOrigin(origin);
+        }
+
+        await next(context);
     }
 }

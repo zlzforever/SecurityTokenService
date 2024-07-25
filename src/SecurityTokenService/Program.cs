@@ -68,11 +68,11 @@ namespace SecurityTokenService
                         builder.AddJsonFile(path, true, true);
                     }
 
-                    var nacosSection = configuration.GetSection("Nacos");
-                    if (nacosSection.GetChildren().Any())
-                    {
-                        builder.AddNacosV2Configuration(nacosSection);
-                    }
+                    // var nacosSection = configuration.GetSection("Nacos");
+                    // if (nacosSection.GetChildren().Any())
+                    // {
+                    //     builder.AddNacosV2Configuration(nacosSection);
+                    // }
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

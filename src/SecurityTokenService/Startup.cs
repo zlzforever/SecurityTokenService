@@ -1,10 +1,9 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Text;
 using IdentityServer4;
 using IdentityServer4.Configuration;
-using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -40,18 +39,28 @@ namespace SecurityTokenService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var keysFolder = new DirectoryInfo("KEYS");
-            if (!keysFolder.Exists)
-            {
-                keysFolder.Create();
-            }
+            // var keysFolder = new DirectoryInfo("KEYS");
+            // if (!keysFolder.Exists)
+            // {
+            //     keysFolder.Create();
+            // }
 
             services.AddControllers();
 
             // 影响隐私数据加密、AntiToken 加解密
-            services.AddDataProtection().SetApplicationName("SecurityTokenService")
-                .PersistKeysToFileSystem(keysFolder)
+            var dataProtectionBuilder = services.AddDataProtection()
+                .SetApplicationName("SecurityTokenService")
                 .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
+
+            if (Configuration.GetDatabaseType() == "MySql")
+            {
+                dataProtectionBuilder.PersistKeysToDbContext<MySqlSecurityTokenServiceDbContext>();
+            }
+            else
+            {
+                dataProtectionBuilder.PersistKeysToDbContext<PostgreSqlSecurityTokenServiceDbContext>();
+            }
+
             services.AddRouting(options => options.LowercaseUrls = true);
 
             services.AddScoped<SeedData>();
@@ -84,6 +93,15 @@ namespace SecurityTokenService
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // comments by lewis at 20240222
+            // 必须是 128、256 位
+
+            var dataProtectionKey = Configuration["DataProtection:Key"];
+            if (!string.IsNullOrEmpty(dataProtectionKey))
+            {
+                Util.DataProtectionKeyAes.Key = Encoding.UTF8.GetBytes(dataProtectionKey);
+            }
+
             var logger = app.ApplicationServices.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
             IdentitySeedData.Load(app);
 
@@ -110,11 +128,7 @@ namespace SecurityTokenService
                 logger.LogInformation("处理 js 引用完成");
             }
 
-            if (Configuration["IdentityServer:ForceHttps"]?.ToLower() == "true")
-            {
-                app.UseMiddleware<PublicFacingUrlMiddleware>();
-            }
-
+            app.UseMiddleware<PublicFacingUrlMiddleware>(Configuration);
             app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Lax });
             app.UseFileServer();
             app.UseRouting();
