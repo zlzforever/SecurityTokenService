@@ -30,5 +30,5 @@ public class MySqlSecurityTokenServiceDbContext(DbContextOptions<MySqlSecurityTo
     }
 
     // ReSharper disable once UnassignedGetOnlyAutoProperty
-    public DbSet<DataProtectionKey> DataProtectionKeys { get; }
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 }

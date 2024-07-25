@@ -31,6 +31,6 @@ namespace SecurityTokenService.Data.PostgreSql
         }
 
         // ReSharper disable once UnassignedGetOnlyAutoProperty
-        public DbSet<DataProtectionKey> DataProtectionKeys { get; }
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
     }
 }
