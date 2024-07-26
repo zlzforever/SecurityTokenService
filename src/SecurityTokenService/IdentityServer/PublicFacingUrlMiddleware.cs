@@ -13,30 +13,31 @@ public class PublicFacingUrlMiddleware(RequestDelegate next, IConfiguration conf
     {
         var logger = context.RequestServices.GetRequiredService<ILogger<PublicFacingUrlMiddleware>>();
         var schema = configuration["IdentityServer:Scheme"];
+        logger.LogInformation("Invoking PublicFacingUrlMiddleware");
         if (schema == "http")
         {
             context.Request.Scheme = "http";
             context.Request.IsHttps = false;
-            logger.LogDebug("Setting scheme to http");
+            logger.LogInformation("Setting scheme to http");
         }
         else if (schema == "https")
         {
             context.Request.Scheme = "https";
             context.Request.IsHttps = true;
-            logger.LogDebug("Setting scheme to https");
+            logger.LogInformation("Setting scheme to https");
         }
 
         var basePath = configuration["IdentityServer:BasePath"];
         if (!string.IsNullOrEmpty(basePath))
         {
-            logger.LogDebug("Setting base path to {BasePath}", basePath);
+            logger.LogInformation("Setting base path to {BasePath}", basePath);
             context.SetIdentityServerBasePath(basePath);
         }
 
         var origin = configuration["IdentityServer:Origin"];
         if (!string.IsNullOrEmpty(origin))
         {
-            logger.LogDebug("Setting base path to {Origin}", origin);
+            logger.LogInformation("Setting base path to {Origin}", origin);
             context.SetIdentityServerOrigin(origin);
         }
 
