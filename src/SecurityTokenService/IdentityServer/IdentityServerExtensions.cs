@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using IdentityServer4;
+using IdentityServer4.Hosting;
 using IdentityServer4.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +19,42 @@ namespace SecurityTokenService.IdentityServer
 {
     public static class IdentityServerExtensions
     {
+        /// <summary>
+        /// 重写 UseIdentityServer 的原因是默认添加了 BaseUrlMiddleware
+        /// 其会调用 SetIdentityServerBasePath 设置系统的 BasePath
+        /// 暂时没有好的办法移除此中间件的注册
+        /// 又不能直接把 Request.BasePath 进行全局修改（会影响其它功能）
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="configuration"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static IApplicationBuilder UseIdentityServer(this IApplicationBuilder app,
+            IConfiguration configuration,
+            IdentityServerMiddlewareOptions options = null)
+        {
+            var method = typeof(IdentityServerApplicationBuilderExtensions)
+                .GetMethod("Validate", BindingFlags.NonPublic | BindingFlags.Static);
+            method?.Invoke(null, [app]);
+
+            app.UseMiddleware<PublicFacingUrlMiddleware>(configuration);
+
+            app.ConfigureCors();
+
+            // it seems ok if we have UseAuthentication more than once in the pipeline --
+            // this will just re-run the various callback handlers and the default authN 
+            // handler, which just re-assigns the user on the context. claims transformation
+            // will run twice, since that's not cached (whereas the authN handler result is)
+            // related: https://github.com/aspnet/Security/issues/1399
+            if (options == null) options = new IdentityServerMiddlewareOptions();
+            options.AuthenticationMiddleware(app);
+
+            app.UseMiddleware<MutualTlsEndpointMiddleware>();
+            app.UseMiddleware<IdentityServerMiddleware>();
+
+            return app;
+        }
+
         // class Config
         // {
         //     public List<ApiScope> ApiScopes { get; set; }

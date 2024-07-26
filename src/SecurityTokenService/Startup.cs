@@ -128,11 +128,16 @@ namespace SecurityTokenService
                 logger.LogInformation("处理 js 引用完成");
             }
 
-            app.UseMiddleware<PublicFacingUrlMiddleware>(Configuration);
+            if (!string.IsNullOrEmpty(Configuration["BasePath"]))
+            {
+                app.UsePathBase(Configuration["BasePath"]);
+            }
+
             app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Lax });
             app.UseFileServer();
             app.UseRouting();
             app.UseCors("cors");
+            app.UseMiddleware<PublicFacingUrlMiddleware>(Configuration);
             app.UseIdentityServer();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
