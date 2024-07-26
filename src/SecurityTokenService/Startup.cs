@@ -44,6 +44,14 @@ namespace SecurityTokenService
             // {
             //     keysFolder.Create();
             // }
+            // comments by lewis at 20240222
+            // 必须是 128、256 位
+
+            var dataProtectionKey = Configuration["DataProtection:Key"];
+            if (!string.IsNullOrEmpty(dataProtectionKey))
+            {
+                Util.DataProtectionKeyAes.Key = Encoding.UTF8.GetBytes(dataProtectionKey);
+            }
 
             services.AddControllers();
 
@@ -93,15 +101,6 @@ namespace SecurityTokenService
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            // comments by lewis at 20240222
-            // 必须是 128、256 位
-
-            var dataProtectionKey = Configuration["DataProtection:Key"];
-            if (!string.IsNullOrEmpty(dataProtectionKey))
-            {
-                Util.DataProtectionKeyAes.Key = Encoding.UTF8.GetBytes(dataProtectionKey);
-            }
-
             var logger = app.ApplicationServices.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
             IdentitySeedData.Load(app);
 

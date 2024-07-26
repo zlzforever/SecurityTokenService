@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
-using IdentityServer4.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -15,8 +15,14 @@ namespace SecurityTokenService
     {
         public static void Main(string[] args)
         {
-            var secret = "secret".Sha256();
-            Console.WriteLine($"Secret: {secret}");
+            if (args.Contains("--g-aes-key"))
+            {
+                using Aes aes = Aes.Create();
+                aes.KeySize = 128; // 可以设置为 128、192 或 256 位
+                aes.GenerateKey();
+                Console.WriteLine("生成的 AES 密钥: " + Convert.ToBase64String(aes.Key));
+            }
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             CreateHostBuilder(args).Build().Run();
