@@ -3,7 +3,7 @@ WORKDIR /app
 COPY src/SecurityTokenService .
 RUN dotnet publish SecurityTokenService.csproj -c Release -o out
 RUN rm -rf /app/out/wwwroot/css/site.css
-RUN rm -rf /app/out/wwwroot/js/site.js
+RUN mv /app/out/wwwroot/js/site.min.js /app/out/wwwroot/js/site.js
 RUN rm -rf /app/out/sts.json
 RUN rm -rf /app/out/runtimes/linux-arm64
 RUN rm -rf /app/out/runtimes/osx-x64
