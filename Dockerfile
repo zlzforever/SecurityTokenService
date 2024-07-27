@@ -14,7 +14,10 @@ RUN mv -f /app/out/sts_backup.json /app/sts.json
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-COPY --from=build /app/out .
-ENTRYPOINT ["dotnet", "SecurityTokenService.dll"]
 ENV LANG zh_CN.UTF-8
 EXPOSE 8080
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+COPY --from=build /app/out .
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["dotnet", "SecurityTokenService.dll"]
