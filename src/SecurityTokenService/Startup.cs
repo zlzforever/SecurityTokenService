@@ -70,7 +70,7 @@ namespace SecurityTokenService
             }
 
             services.AddRouting(options => options.LowercaseUrls = true);
-
+            services.AddHealthChecks();
             services.AddScoped<SeedData>();
 
             services.AddCors(option => option
@@ -132,6 +132,7 @@ namespace SecurityTokenService
                 app.UsePathBase(Configuration["BasePath"]);
             }
 
+            app.UseHealthChecks("/healthz");
             app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Lax });
             app.UseFileServer();
             app.UseRouting();
