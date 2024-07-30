@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eu
 
 generate() {
     # 输入文件名
@@ -22,8 +21,7 @@ generate() {
     fi
 }
 
-CONFIG_SOURCE_V=$(env | grep "CONFIG_SOURCE")
-if [ -z "$CONFIG_SOURCE_V" ]; then
+if [ -z "$CONFIG_SOURCE" ]; then
     echo "环境变量 CONFIG_SOURCE 不存在， 使用默认配置文件"
 else
     generate "${CONFIG_SOURCE}" "/app/appsettings.json"
