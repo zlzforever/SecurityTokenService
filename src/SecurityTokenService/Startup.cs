@@ -53,7 +53,11 @@ namespace SecurityTokenService
                 Util.DataProtectionKeyAes.Key = Encoding.UTF8.GetBytes(dataProtectionKey);
             }
 
-            services.AddControllers();
+            var builder = services.AddControllers();
+            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DAPR_HTTP_PORT")))
+            {
+                builder.AddDapr();
+            }
 
             // 影响隐私数据加密、AntiToken 加解密
             var dataProtectionBuilder = services.AddDataProtection()
@@ -140,8 +144,19 @@ namespace SecurityTokenService
             app.UseMiddleware<PublicFacingUrlMiddleware>(Configuration);
             app.UseIdentityServer();
             app.UseAuthorization();
+            var inDapr = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DAPR_HTTP_PORT"));
+            if (inDapr)
+            {
+                app.UseCloudEvents();
+            }
+
             app.UseEndpoints(endpoints =>
             {
+                if (inDapr)
+                {
+                    endpoints.MapSubscribeHandler();
+                }
+
                 endpoints.MapControllers().RequireCors("cors");
             });
         }
