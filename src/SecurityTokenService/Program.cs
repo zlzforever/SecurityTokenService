@@ -99,7 +99,7 @@ namespace SecurityTokenService
                     //         (Action<ListenOptions>)(listenOptions => listenOptions.UseHttps(cert)));
                     // });
                     webBuilder.UseStartup<Startup>();
-                });
+                }).UseSerilog();
 
         // private static X509Certificate2 CreateX509Certificate2(
         //     string certificatePath,
