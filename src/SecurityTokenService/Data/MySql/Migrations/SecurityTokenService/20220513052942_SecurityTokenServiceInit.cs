@@ -4,16 +4,16 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace SecurityTokenService.Data.MySql.Migrations.SecurityTokenService
-{
-    public partial class SecurityTokenServiceInit : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AlterDatabase()
-                .Annotation("MySql:CharSet", "utf8mb4");
+namespace SecurityTokenService.Data.MySql.Migrations.SecurityTokenService;
 
-            migrationBuilder.CreateTable(
+public partial class SecurityTokenServiceInit : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.AlterDatabase()
+            .Annotation("MySql:CharSet", "utf8mb4");
+
+        migrationBuilder.CreateTable(
                 name: "sts_role",
                 columns: table => new
                 {
@@ -30,9 +30,9 @@ namespace SecurityTokenService.Data.MySql.Migrations.SecurityTokenService
                 {
                     table.PrimaryKey("PK_sts_role", x => x.id);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
                 name: "sts_user",
                 columns: table => new
                 {
@@ -70,9 +70,9 @@ namespace SecurityTokenService.Data.MySql.Migrations.SecurityTokenService
                 {
                     table.PrimaryKey("PK_sts_user", x => x.id);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
                 name: "sts_role_claim",
                 columns: table => new
                 {
@@ -95,9 +95,9 @@ namespace SecurityTokenService.Data.MySql.Migrations.SecurityTokenService
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
                 name: "sts_user_claim",
                 columns: table => new
                 {
@@ -120,9 +120,9 @@ namespace SecurityTokenService.Data.MySql.Migrations.SecurityTokenService
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
                 name: "sts_user_login",
                 columns: table => new
                 {
@@ -145,9 +145,9 @@ namespace SecurityTokenService.Data.MySql.Migrations.SecurityTokenService
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
                 name: "sts_user_role",
                 columns: table => new
                 {
@@ -172,9 +172,9 @@ namespace SecurityTokenService.Data.MySql.Migrations.SecurityTokenService
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
                 name: "sts_user_token",
                 columns: table => new
                 {
@@ -197,68 +197,67 @@ namespace SecurityTokenService.Data.MySql.Migrations.SecurityTokenService
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateIndex(
-                name: "RoleNameIndex",
-                table: "sts_role",
-                column: "normalized_name",
-                unique: true);
+        migrationBuilder.CreateIndex(
+            name: "RoleNameIndex",
+            table: "sts_role",
+            column: "normalized_name",
+            unique: true);
 
-            migrationBuilder.CreateIndex(
-                name: "IX_sts_role_claim_role_id",
-                table: "sts_role_claim",
-                column: "role_id");
+        migrationBuilder.CreateIndex(
+            name: "IX_sts_role_claim_role_id",
+            table: "sts_role_claim",
+            column: "role_id");
 
-            migrationBuilder.CreateIndex(
-                name: "EmailIndex",
-                table: "sts_user",
-                column: "normalized_email");
+        migrationBuilder.CreateIndex(
+            name: "EmailIndex",
+            table: "sts_user",
+            column: "normalized_email");
 
-            migrationBuilder.CreateIndex(
-                name: "UserNameIndex",
-                table: "sts_user",
-                column: "normalized_user_name",
-                unique: true);
+        migrationBuilder.CreateIndex(
+            name: "UserNameIndex",
+            table: "sts_user",
+            column: "normalized_user_name",
+            unique: true);
 
-            migrationBuilder.CreateIndex(
-                name: "IX_sts_user_claim_user_id",
-                table: "sts_user_claim",
-                column: "user_id");
+        migrationBuilder.CreateIndex(
+            name: "IX_sts_user_claim_user_id",
+            table: "sts_user_claim",
+            column: "user_id");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_sts_user_login_user_id",
-                table: "sts_user_login",
-                column: "user_id");
+        migrationBuilder.CreateIndex(
+            name: "IX_sts_user_login_user_id",
+            table: "sts_user_login",
+            column: "user_id");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_sts_user_role_role_id",
-                table: "sts_user_role",
-                column: "role_id");
-        }
+        migrationBuilder.CreateIndex(
+            name: "IX_sts_user_role_role_id",
+            table: "sts_user_role",
+            column: "role_id");
+    }
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
-                name: "sts_role_claim");
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropTable(
+            name: "sts_role_claim");
 
-            migrationBuilder.DropTable(
-                name: "sts_user_claim");
+        migrationBuilder.DropTable(
+            name: "sts_user_claim");
 
-            migrationBuilder.DropTable(
-                name: "sts_user_login");
+        migrationBuilder.DropTable(
+            name: "sts_user_login");
 
-            migrationBuilder.DropTable(
-                name: "sts_user_role");
+        migrationBuilder.DropTable(
+            name: "sts_user_role");
 
-            migrationBuilder.DropTable(
-                name: "sts_user_token");
+        migrationBuilder.DropTable(
+            name: "sts_user_token");
 
-            migrationBuilder.DropTable(
-                name: "sts_role");
+        migrationBuilder.DropTable(
+            name: "sts_role");
 
-            migrationBuilder.DropTable(
-                name: "sts_user");
-        }
+        migrationBuilder.DropTable(
+            name: "sts_user");
     }
 }

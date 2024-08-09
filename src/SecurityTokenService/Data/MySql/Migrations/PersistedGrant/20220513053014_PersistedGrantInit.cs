@@ -3,16 +3,16 @@
 using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace SecurityTokenService.Data.MySql.Migrations.PersistedGrant
-{
-    public partial class PersistedGrantInit : Migration
-    {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AlterDatabase()
-                .Annotation("MySql:CharSet", "utf8mb4");
+namespace SecurityTokenService.Data.MySql.Migrations.PersistedGrant;
 
-            migrationBuilder.CreateTable(
+public partial class PersistedGrantInit : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.AlterDatabase()
+            .Annotation("MySql:CharSet", "utf8mb4");
+
+        migrationBuilder.CreateTable(
                 name: "identity_server_device_codes",
                 columns: table => new
                 {
@@ -37,9 +37,9 @@ namespace SecurityTokenService.Data.MySql.Migrations.PersistedGrant
                 {
                     table.PrimaryKey("PK_identity_server_device_codes", x => x.user_code);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
                 name: "identity_server_persisted_grants",
                 columns: table => new
                 {
@@ -65,42 +65,41 @@ namespace SecurityTokenService.Data.MySql.Migrations.PersistedGrant
                 {
                     table.PrimaryKey("PK_identity_server_persisted_grants", x => x.key);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_identity_server_device_codes_device_code",
-                table: "identity_server_device_codes",
-                column: "device_code",
-                unique: true);
+        migrationBuilder.CreateIndex(
+            name: "IX_identity_server_device_codes_device_code",
+            table: "identity_server_device_codes",
+            column: "device_code",
+            unique: true);
 
-            migrationBuilder.CreateIndex(
-                name: "IX_identity_server_device_codes_expiration",
-                table: "identity_server_device_codes",
-                column: "expiration");
+        migrationBuilder.CreateIndex(
+            name: "IX_identity_server_device_codes_expiration",
+            table: "identity_server_device_codes",
+            column: "expiration");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_identity_server_persisted_grants_expiration",
-                table: "identity_server_persisted_grants",
-                column: "expiration");
+        migrationBuilder.CreateIndex(
+            name: "IX_identity_server_persisted_grants_expiration",
+            table: "identity_server_persisted_grants",
+            column: "expiration");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_identity_server_persisted_grants_subject_id_client_id_type",
-                table: "identity_server_persisted_grants",
-                columns: new[] { "subject_id", "client_id", "type" });
+        migrationBuilder.CreateIndex(
+            name: "IX_identity_server_persisted_grants_subject_id_client_id_type",
+            table: "identity_server_persisted_grants",
+            columns: new[] { "subject_id", "client_id", "type" });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_identity_server_persisted_grants_subject_id_session_id_type",
-                table: "identity_server_persisted_grants",
-                columns: new[] { "subject_id", "session_id", "type" });
-        }
+        migrationBuilder.CreateIndex(
+            name: "IX_identity_server_persisted_grants_subject_id_session_id_type",
+            table: "identity_server_persisted_grants",
+            columns: new[] { "subject_id", "session_id", "type" });
+    }
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
-                name: "identity_server_device_codes");
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropTable(
+            name: "identity_server_device_codes");
 
-            migrationBuilder.DropTable(
-                name: "identity_server_persisted_grants");
-        }
+        migrationBuilder.DropTable(
+            name: "identity_server_persisted_grants");
     }
 }

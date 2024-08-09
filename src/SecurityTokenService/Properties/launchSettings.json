@@ -7,7 +7,8 @@
       "applicationUrl": "http://*:8099",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "commandLineArgs": "--g-aes-key"
     }
   }
 }

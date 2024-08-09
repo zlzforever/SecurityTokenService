@@ -6,7 +6,7 @@ namespace SecurityTokenService;
 
 public static class Util
 {
-    public static readonly Aes DataProtectionKeyAes = Aes.Create();
+    public static Aes DataProtectionKeyAes;
 
     public static string Encrypt(Aes aes, string v)
     {

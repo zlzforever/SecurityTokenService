@@ -22,9 +22,13 @@ public class MySqlSecurityTokenServiceDbContext(DbContextOptions<MySqlSecurityTo
         entityTypeBuilder.ToTable("system_data_protection_key");
         entityTypeBuilder.Property(x => x.Id).HasColumnName("id");
         entityTypeBuilder.Property(x => x.FriendlyName).HasMaxLength(64).HasColumnName("friendly_name");
-        entityTypeBuilder.Property(x => x.Xml).HasMaxLength(1200).HasColumnName("xml")
-            .HasConversion(v => Util.Encrypt(Util.DataProtectionKeyAes, v),
+
+        var xmlPropertyBuilder = entityTypeBuilder.Property(x => x.Xml).HasMaxLength(1200).HasColumnName("xml");
+        if (Util.DataProtectionKeyAes != null)
+        {
+            xmlPropertyBuilder.HasConversion(v => Util.Encrypt(Util.DataProtectionKeyAes, v),
                 v => Util.Decrypt(Util.DataProtectionKeyAes, v));
+        }
 
         entityTypeBuilder.HasKey(x => x.Id);
     }

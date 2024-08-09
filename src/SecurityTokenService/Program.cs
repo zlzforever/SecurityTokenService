@@ -3,124 +3,165 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.Hosting;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using SecurityTokenService.Data;
+using SecurityTokenService.Identity;
+using SecurityTokenService.IdentityServer;
 using Serilog;
-using Serilog.Events;
 
-namespace SecurityTokenService
+namespace SecurityTokenService;
+
+public static class Program
 {
-    public class Program
+    public static async Task Main(string[] args)
     {
-        public static void Main(string[] args)
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        GenerateAesKey(args);
+
+        var app = CreateApp(args);
+        var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Program");
+        IdentitySeedData.Load(app);
+        app.MigrateIdentityServer();
+        if (!app.Environment.IsDevelopment())
         {
-            if (args.Contains("--g-aes-key"))
+            var htmlFiles = Directory.GetFiles("wwwroot", "*.html");
+            foreach (var htmlFile in htmlFiles)
             {
-                using Aes aes = Aes.Create();
-                aes.KeySize = 128; // 可以设置为 128、192 或 256 位
-                aes.GenerateKey();
-                Console.WriteLine("生成的 AES 密钥: " + Convert.ToBase64String(aes.Key));
+                var html = await File.ReadAllTextAsync(htmlFile);
+                if (html.Contains("site.js"))
+                {
+                    await File.WriteAllTextAsync(htmlFile,
+                        html.Replace("site.js", $"site.min.js?_t={DateTimeOffset.Now.ToUnixTimeSeconds()}"));
+                }
             }
 
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-            CreateHostBuilder(args).Build().Run();
+            logger.LogInformation("处理 js 引用完成");
         }
 
-        internal static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((_, builder) =>
-                {
-                    // if (File.Exists("appsettings.Nacos.json"))
-                    // {
-                    //     builder.AddJsonFile("appsettings.Nacos.json", true, true);
-                    // }
+        if (!string.IsNullOrEmpty(app.Configuration["BasePath"]))
+        {
+            app.UsePathBase(app.Configuration["BasePath"]);
+        }
 
-                    var configuration = builder.Build();
+        app.UseHealthChecks("/healthz");
+        app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Lax });
+        app.UseFileServer();
+        app.UseRouting();
+        app.UseCors("cors");
+        app.UseMiddleware<PublicFacingUrlMiddleware>(app.Configuration);
+        app.UseIdentityServer();
+        app.UseAuthorization();
+        var inDapr = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DAPR_HTTP_PORT"));
+        if (inDapr)
+        {
+            app.UseCloudEvents();
+            app.MapSubscribeHandler();
+        }
 
-                    var serilogSection = configuration.GetSection("Serilog");
-                    if (serilogSection.GetChildren().Any())
-                    {
-                        Log.Logger = new LoggerConfiguration().ReadFrom
-                            .Configuration(configuration)
-                            .CreateLogger();
-                    }
-                    else
-                    {
-                        var logFile = Environment.GetEnvironmentVariable("LOG");
-                        if (string.IsNullOrEmpty(logFile))
-                        {
-                            logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs/sts.log");
-                        }
-
-                        Log.Logger = new LoggerConfiguration()
-                            .MinimumLevel.Information()
-                            .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
-                            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                            .MinimumLevel.Override("System", LogEventLevel.Warning)
-                            .MinimumLevel.Override("Microsoft.AspNetCore.Authentication", LogEventLevel.Warning)
-                            .Enrich.FromLogContext()
-#if DEBUG
-                            .WriteTo.Console()
-#endif
-                            .WriteTo.Async(x => x.File(logFile, rollingInterval: RollingInterval.Day))
-                            .CreateLogger();
-                    }
-
-                    var path = "sts.json";
-                    if (File.Exists(path))
-                    {
-                        builder.AddJsonFile(path, true, true);
-                    }
-
-                    // var nacosSection = configuration.GetSection("Nacos");
-                    // if (nacosSection.GetChildren().Any())
-                    // {
-                    //     builder.AddNacosV2Configuration(nacosSection);
-                    // }
-                })
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    // webBuilder.ConfigureKestrel(serverOptions =>
-                    // {
-                    //     serverOptions.Listen(IPAddress.Any, 80);
-                    //
-                    //     var certPath = Environment.GetEnvironmentVariable("X509Certificate2");
-                    //     if (string.IsNullOrWhiteSpace(certPath))
-                    //     {
-                    //         return;
-                    //     }
-                    //
-                    //     var privateKeyPath = Path.GetFileNameWithoutExtension(certPath) + ".key";
-                    //     var cert = CreateX509Certificate2(certPath, privateKeyPath);
-                    //
-                    //     serverOptions.Listen(IPAddress.Any, 8100,
-                    //         (Action<ListenOptions>)(listenOptions => listenOptions.UseHttps(cert)));
-                    // });
-                    webBuilder.UseStartup<Startup>();
-                }).UseSerilog();
-
-        // private static X509Certificate2 CreateX509Certificate2(
-        //     string certificatePath,
-        //     string privateKeyPath)
-        // {
-        //     using var certificate = new X509Certificate2(certificatePath);
-        //     var strArray = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
-        //     var source = Convert.FromBase64String(strArray[1]);
-        //     using var privateKey = RSA.Create();
-        //     int bytesRead;
-        //     switch (strArray[0])
-        //     {
-        //         case "BEGIN PRIVATE KEY":
-        //             privateKey.ImportPkcs8PrivateKey((ReadOnlySpan<byte>)source, out bytesRead);
-        //             break;
-        //         case "BEGIN RSA PRIVATE KEY":
-        //             privateKey.ImportRSAPrivateKey((ReadOnlySpan<byte>)source, out bytesRead);
-        //             break;
-        //     }
-        //
-        //     return new X509Certificate2(certificate.CopyWithPrivateKey(privateKey).Export(X509ContentType.Pfx));
-        // }
+        app.MapControllers().RequireCors("cors");
+        await app.RunAsync();
     }
+
+    internal static WebApplication CreateApp(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+        builder.AddSerilog();
+
+        var dataPath = builder.Configuration["DATAPATH"] ?? builder.Configuration["DATA_PATH"] ?? "sts.json";
+        if (File.Exists(dataPath))
+        {
+            builder.Configuration.AddJsonFile(dataPath, true, true);
+        }
+
+        var mvcBuilder = builder.Services.AddControllers();
+        var daprHttpPort = builder.Configuration["DaprHttpPort"] ?? builder.Configuration["DAPR_HTTP_PORT"];
+        if (!string.IsNullOrWhiteSpace(daprHttpPort))
+        {
+            mvcBuilder.AddDapr();
+        }
+
+        builder.AddDataProtection();
+        builder.AddSmsSender();
+        builder.AddDbContext();
+        builder.AddIdentity();
+        builder.AddIdentityServer();
+        builder.ConfigureOptions();
+        builder.Services.AddScoped<SeedData>();
+
+        builder.Services.AddRouting(options => options.LowercaseUrls = true);
+        builder.Services.AddHealthChecks();
+        builder.Services.AddCors(option => option
+            .AddPolicy("cors", policy =>
+                policy.AllowAnyMethod()
+                    .SetIsOriginAllowed(_ => true)
+                    .AllowAnyHeader()
+                    .AllowCredentials()
+            ));
+        builder.Host.UseSerilog();
+
+        var app = builder.Build();
+        return app;
+    }
+
+    private static void GenerateAesKey(string[] args)
+    {
+        if (args.Contains("--g-aes-key"))
+        {
+            using Aes aes = Aes.Create();
+            aes.KeySize = 128; // 可以设置为 128、192 或 256 位
+            aes.GenerateKey();
+            Console.WriteLine("生成的 AES 密钥: " + Convert.ToBase64String(aes.Key));
+        }
+    }
+
+    // internal static IHostBuilder CreateHostBuilder(string[] args) =>
+    //     Host.CreateDefaultBuilder(args)
+    //         .ConfigureWebHostDefaults(webBuilder =>
+    //         {
+    //             // webBuilder.ConfigureKestrel(serverOptions =>
+    //             // {
+    //             //     serverOptions.Listen(IPAddress.Any, 80);
+    //             //
+    //             //     var certPath = Environment.GetEnvironmentVariable("X509Certificate2");
+    //             //     if (string.IsNullOrWhiteSpace(certPath))
+    //             //     {
+    //             //         return;
+    //             //     }
+    //             //
+    //             //     var privateKeyPath = Path.GetFileNameWithoutExtension(certPath) + ".key";
+    //             //     var cert = CreateX509Certificate2(certPath, privateKeyPath);
+    //             //
+    //             //     serverOptions.Listen(IPAddress.Any, 8100,
+    //             //         (Action<ListenOptions>)(listenOptions => listenOptions.UseHttps(cert)));
+    //             // });
+    //             webBuilder.UseStartup<Startup>();
+    //         }).UseSerilog();
+
+    // private static X509Certificate2 CreateX509Certificate2(
+    //     string certificatePath,
+    //     string privateKeyPath)
+    // {
+    //     using var certificate = new X509Certificate2(certificatePath);
+    //     var strArray = File.ReadAllText(privateKeyPath).Split("-", StringSplitOptions.RemoveEmptyEntries);
+    //     var source = Convert.FromBase64String(strArray[1]);
+    //     using var privateKey = RSA.Create();
+    //     int bytesRead;
+    //     switch (strArray[0])
+    //     {
+    //         case "BEGIN PRIVATE KEY":
+    //             privateKey.ImportPkcs8PrivateKey((ReadOnlySpan<byte>)source, out bytesRead);
+    //             break;
+    //         case "BEGIN RSA PRIVATE KEY":
+    //             privateKey.ImportRSAPrivateKey((ReadOnlySpan<byte>)source, out bytesRead);
+    //             break;
+    //     }
+    //
+    //     return new X509Certificate2(certificate.CopyWithPrivateKey(privateKey).Export(X509ContentType.Pfx));
+    // }
 }

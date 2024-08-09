@@ -4,31 +4,30 @@ using Newtonsoft.Json;
 using SecurityTokenService.Identity;
 using Serilog;
 
-namespace SecurityTokenService.Data
+namespace SecurityTokenService.Data;
+
+public class SeedData
 {
-    public class SeedData
+    private readonly UserManager<User> _userManager;
+
+    public SeedData(UserManager<User> userManager)
     {
-        private readonly UserManager<User> _userManager;
+        _userManager = userManager;
+    }
 
-        public SeedData(UserManager<User> userManager)
+    public void Load()
+    {
+        if (!_userManager.Users.Any())
         {
-            _userManager = userManager;
-        }
-
-        public void Load()
-        {
-            if (!_userManager.Users.Any())
+            foreach (var user in TestUsers.Users)
             {
-                foreach (var user in TestUsers.Users)
+                var result = _userManager
+                    .CreateAsync(new User(user.Username), user.Password)
+                    .Result;
+                if (!result.Succeeded)
                 {
-                    var result = _userManager
-                        .CreateAsync(new User(user.Username), user.Password)
-                        .Result;
-                    if (!result.Succeeded)
-                    {
-                        Log.Logger.Error(
-                            $"Create user: {user.Username} failed: {JsonConvert.SerializeObject(result.Errors)}");
-                    }
+                    Log.Logger.Error(
+                        $"Create user: {user.Username} failed: {JsonConvert.SerializeObject(result.Errors)}");
                 }
             }
         }

@@ -4,21 +4,18 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Options;
 using SecurityTokenService.IdentityServer;
 
-namespace SecurityTokenService.Data.PostgreSql
-{
-    public class PostgreSqlPersistedGrantDbContext : IdentityServer4.EntityFramework.DbContexts.PersistedGrantDbContext<
-        PostgreSqlPersistedGrantDbContext>
-    {
-        public PostgreSqlPersistedGrantDbContext(DbContextOptions<PostgreSqlPersistedGrantDbContext> options,
-            OperationalStoreOptions storeOptions) : base(options, storeOptions)
-        {
-        }
+namespace SecurityTokenService.Data.PostgreSql;
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            var extensionOptions = this.GetService<IOptionsMonitor<IdentityServerExtensionOptions>>().CurrentValue;
-            modelBuilder.ConfigureDefault(extensionOptions.TablePrefix);
-        }
+public class PostgreSqlPersistedGrantDbContext(
+    DbContextOptions<PostgreSqlPersistedGrantDbContext> options,
+    OperationalStoreOptions storeOptions)
+    : IdentityServer4.EntityFramework.DbContexts.PersistedGrantDbContext<
+        PostgreSqlPersistedGrantDbContext>(options, storeOptions)
+{
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        var extensionOptions = this.GetService<IOptionsMonitor<IdentityServerExtensionOptions>>().CurrentValue;
+        modelBuilder.ConfigureDefault(extensionOptions.TablePrefix);
     }
 }
