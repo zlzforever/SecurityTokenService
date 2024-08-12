@@ -44,9 +44,10 @@ public static class Program
             logger.LogInformation("处理 js 引用完成");
         }
 
-        if (!string.IsNullOrEmpty(app.Configuration["BasePath"]))
+        var path = app.Configuration["BasePath"] ?? app.Configuration["PathBase"] ?? app.Configuration["PATH_BASE"];
+        if (!string.IsNullOrEmpty(path))
         {
-            app.UsePathBase(app.Configuration["BasePath"]);
+            app.UsePathBase(path);
         }
 
         app.UseHealthChecks("/healthz");
