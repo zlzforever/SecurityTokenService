@@ -6,22 +6,15 @@ using Serilog;
 
 namespace SecurityTokenService.Data;
 
-public class SeedData
+public class SeedData(UserManager<User> userManager)
 {
-    private readonly UserManager<User> _userManager;
-
-    public SeedData(UserManager<User> userManager)
-    {
-        _userManager = userManager;
-    }
-
     public void Load()
     {
-        if (!_userManager.Users.Any())
+        if (!userManager.Users.Any())
         {
             foreach (var user in TestUsers.Users)
             {
-                var result = _userManager
+                var result = userManager
                     .CreateAsync(new User(user.Username), user.Password)
                     .Result;
                 if (!result.Succeeded)

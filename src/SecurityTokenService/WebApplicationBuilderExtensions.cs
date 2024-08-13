@@ -1,9 +1,11 @@
 using System;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Intrinsics.Arm;
 using System.Text;
+using Dapper;
 using IdentityServer4;
 using IdentityServer4.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -13,6 +15,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MySqlConnector;
+using Npgsql;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
 using SecurityTokenService.Extensions;
@@ -128,6 +132,35 @@ public static class WebApplicationBuilderExtensions
                 Log.Logger.Error("DataProtectionKey 长度不正确");
                 Environment.Exit(-1);
             }
+        }
+
+        var connectionString = builder.Configuration.GetConnectionString("Identity");
+
+        if (builder.Configuration.GetDatabaseType() == "MySql")
+        {
+            using var conn = new MySqlConnection(connectionString);
+            conn.Execute(
+                $"""
+                 create table if not exists system_data_protection_keys
+                 (
+                     id int auto_increment primary key,
+                     friendly_name varchar(64) not null,
+                     xml varchar(2000) not null
+                 );
+                 """
+            );
+        }
+        else
+        {
+            using var conn = new NpgsqlConnection(connectionString);
+            conn.Execute($"""
+                          create table if not exists system_data_protection_keys
+                          (
+                              id int auto_increment primary key,
+                              friendly_name varchar(64) not null,
+                              xml varchar(2000) not null
+                          );
+                          """);
         }
 
         // 影响隐私数据加密、AntiToken 加解密
