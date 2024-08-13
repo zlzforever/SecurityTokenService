@@ -149,6 +149,7 @@ public static class WebApplicationBuilderExtensions
                  );
                  """
             );
+            Console.WriteLine("创建 MySql system_data_protection_keys 表成功");
         }
         else
         {
@@ -161,6 +162,7 @@ public static class WebApplicationBuilderExtensions
                               xml varchar(2000) not null
                           );
                           """);
+            Console.WriteLine("创建 Postgre system_data_protection_keys 表成功");
         }
 
         // 影响隐私数据加密、AntiToken 加解密
