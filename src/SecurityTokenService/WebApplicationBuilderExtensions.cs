@@ -141,7 +141,7 @@ public static class WebApplicationBuilderExtensions
             using var conn = new MySqlConnection(connectionString);
             conn.Execute(
                 $"""
-                 create table if not exists system_data_protection_keys
+                 create table if not exists system_data_protection_key
                  (
                      id int auto_increment primary key,
                      friendly_name varchar(64) not null,
@@ -149,20 +149,18 @@ public static class WebApplicationBuilderExtensions
                  );
                  """
             );
-            Console.WriteLine("创建 MySql system_data_protection_keys 表成功");
         }
         else
         {
             using var conn = new NpgsqlConnection(connectionString);
             conn.Execute($"""
-                          create table if not exists system_data_protection_keys
+                          create table if not exists system_data_protection_key
                           (
                               id int auto_increment primary key,
                               friendly_name varchar(64) not null,
                               xml varchar(2000) not null
                           );
                           """);
-            Console.WriteLine("创建 Postgre system_data_protection_keys 表成功");
         }
 
         // 影响隐私数据加密、AntiToken 加解密
