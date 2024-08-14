@@ -7,7 +7,7 @@ public static class DisableAnyOneSecurityTokenPlugin
 {
     public static void RegisterServices(IServiceCollection services)
     {
-        Console.WriteLine("register DisableAnyOneValidator...");
+        Console.WriteLine("Load DisableAnyOneSecurityTokenPlugin");
         services.AddTransient<IExtensionGrantValidator, DisableAnyOneValidator>();
     }
 }
