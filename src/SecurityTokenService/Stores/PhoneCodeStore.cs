@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 using System.Threading.Tasks;
 using Dapper;
@@ -43,11 +44,7 @@ create table if not exists {tablePrefix}sms_code
     {
         var sql = GetSelectSql();
         await using var conn = GetConnection();
-        var code = await conn.QueryFirstOrDefaultAsync<string>(sql, new
-        {
-            phoneNumber,
-            ttl
-        }, commandTimeout: 30);
+        var code = await conn.QueryFirstOrDefaultAsync<string>(sql, new { phoneNumber, ttl }, commandTimeout: 30);
         return code;
     }
 
@@ -55,51 +52,47 @@ create table if not exists {tablePrefix}sms_code
     {
         await using var conn = GetConnection();
 
-        await conn.ExecuteAsync(GetUpdateSql(), new
-        {
-            phoneNumber, code
-        }, commandTimeout: 30);
+        await conn.ExecuteAsync(GetUpdateSql(), new { phoneNumber, code }, commandTimeout: 30);
     }
 
     private DbConnection GetConnection()
     {
         var connectionString = _configuration["ConnectionStrings:Identity"];
-        var database = _configuration.GetDatabaseType().ToLower();
-        DbConnection conn = database switch
+
+        if ("mysql".Equals(_configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {
-            "mysql" => new MySqlConnection(connectionString),
-            _ => new NpgsqlConnection(connectionString)
-        };
-        return conn;
+            return new MySqlConnection(connectionString);
+        }
+
+        return new NpgsqlConnection(connectionString);
     }
 
     private string GetUpdateSql()
     {
-        var database = _configuration.GetDatabaseType().ToLower();
         var tablePrefix = _configuration["Identity:TablePrefix"];
-        var conn = database switch
+
+        if ("mysql".Equals(_configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {
-            "mysql" =>
+            return
                 $@"INSERT INTO {tablePrefix}sms_code (phone_number, code, modification_time) VALUES (@phoneNumber, @code, UNIX_TIMESTAMP()) 
-ON DUPLICATE KEY UPDATE code = @code, modification_time = UNIX_TIMESTAMP()",
-            _ =>
-                $@"INSERT INTO {tablePrefix}sms_code (phone_number, code, modification_time) VALUES (@phoneNumber, @code, floor(extract(epoch from now()))) 
-on conflict (phone_number) do update set code = @code, modification_time = floor(extract(epoch from now()))"
-        };
-        return conn;
+ON DUPLICATE KEY UPDATE code = @code, modification_time = UNIX_TIMESTAMP()";
+        }
+
+        return
+            $@"INSERT INTO {tablePrefix}sms_code (phone_number, code, modification_time) VALUES (@phoneNumber, @code, floor(extract(epoch from now()))) 
+on conflict (phone_number) do update set code = @code, modification_time = floor(extract(epoch from now()))";
     }
 
     private string GetSelectSql()
     {
-        var database = _configuration.GetDatabaseType().ToLower();
         var tablePrefix = _configuration["Identity:TablePrefix"];
-        var conn = database switch
+        if ("mysql".Equals(_configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {
-            "mysql" =>
-                $"SELECT code FROM {tablePrefix}sms_code WHERE phone_number = @phoneNumber AND modification_time >= UNIX_TIMESTAMP() - @ttl;",
-            _ =>
-                $"SELECT code FROM {tablePrefix}sms_code WHERE phone_number = @phoneNumber AND modification_time >= floor(extract(epoch from now())) - @ttl;"
-        };
-        return conn;
+            return
+                $"SELECT code FROM {tablePrefix}sms_code WHERE phone_number = @phoneNumber AND modification_time >= UNIX_TIMESTAMP() - @ttl;";
+        }
+
+        return
+            $"SELECT code FROM {tablePrefix}sms_code WHERE phone_number = @phoneNumber AND modification_time >= floor(extract(epoch from now())) - @ttl;";
     }
 }

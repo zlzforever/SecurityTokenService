@@ -177,7 +177,7 @@ public static class IdentityServerExtensions
     {
         var configuration = app.ApplicationServices.GetRequiredService<IConfiguration>();
         using var scope = app.ApplicationServices.CreateScope();
-        if (configuration.GetDatabaseType() == "MySql")
+        if ("mysql".Equals(configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {
             using var persistedGrantDbContext =
                 scope.ServiceProvider.GetRequiredService<MySqlPersistedGrantDbContext>();

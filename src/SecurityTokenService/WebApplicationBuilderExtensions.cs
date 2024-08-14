@@ -144,7 +144,7 @@ public static class WebApplicationBuilderExtensions
             dataProtectionBuilder.ProtectKeysWithCertificate(new X509Certificate2(protectKeysWithCertPath));
         }
 
-        if (builder.Configuration.GetDatabaseType() == "MySql")
+        if ("mysql".Equals(builder.Configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {
             dataProtectionBuilder.PersistKeysToDbContext<MySqlSecurityTokenServiceDbContext>();
         }
@@ -178,7 +178,7 @@ public static class WebApplicationBuilderExtensions
         identityBuilder.AddDefaultTokenProviders()
             .AddErrorDescriber<SecurityTokenServiceIdentityErrorDescriber>();
 
-        if (builder.Configuration.GetDatabaseType() == "MySql")
+        if ("mysql".Equals(builder.Configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {
             identityBuilder.AddEntityFrameworkStores<MySqlSecurityTokenServiceDbContext>();
         }
@@ -211,11 +211,11 @@ public static class WebApplicationBuilderExtensions
 
         identityServerBuilder.Services.AddScoped<IPhoneCodeStore, PhoneCodeStore>();
 
-        if (builder.Configuration.GetDatabaseType() == "MySql")
+        if ("mysql".Equals(builder.Configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {
             identityServerBuilder.AddOperationalStore<MySqlPersistedGrantDbContext>();
         }
-        else if (builder.Configuration.GetDatabaseType() == "Postgre")
+        else if ("postgre".Equals(builder.Configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {
             identityServerBuilder.AddOperationalStore<PostgreSqlPersistedGrantDbContext>();
         }

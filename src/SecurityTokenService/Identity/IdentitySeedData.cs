@@ -23,7 +23,7 @@ public static class IdentitySeedData
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
         DbContext securityTokenServiceDbContext;
 
-        if (configuration.GetDatabaseType() == "MySql")
+        if ("mysql".Equals(configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {
             securityTokenServiceDbContext =
                 scope.ServiceProvider.GetRequiredService<MySqlSecurityTokenServiceDbContext>();
