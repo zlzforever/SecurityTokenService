@@ -71,7 +71,7 @@ public static class WebApplicationBuilderExtensions
     public static WebApplicationBuilder AddDbContext(this WebApplicationBuilder builder)
     {
         var connectionString = builder.Configuration.GetConnectionString("Identity");
-        if (builder.Configuration.GetDatabaseType() == "MySql")
+        if ("mysql".Equals(builder.Configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {
             builder.Services.AddDbContextPool<MySqlSecurityTokenServiceDbContext>(b =>
             {

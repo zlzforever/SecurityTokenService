@@ -6,6 +6,6 @@ public static class ConfigurationExtensions
 {
     public static string GetDatabaseType(this IConfiguration configuration)
     {
-        return configuration["Database"];
+        return configuration["DATABASE_TYPE"] ?? configuration["DatabaseType"] ?? configuration["Database"];
     }
 }
