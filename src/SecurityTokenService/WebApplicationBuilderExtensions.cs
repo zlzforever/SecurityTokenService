@@ -124,35 +124,6 @@ public static class WebApplicationBuilderExtensions
 
     public static WebApplicationBuilder AddDataProtection(this WebApplicationBuilder builder)
     {
-        var connectionString = builder.Configuration.GetConnectionString("Identity");
-
-        if (builder.Configuration.GetDatabaseType() == "MySql")
-        {
-            using var conn = new MySqlConnection(connectionString);
-            conn.Execute(
-                $"""
-                 create table if not exists system_data_protection_key
-                 (
-                     id int auto_increment primary key,
-                     friendly_name varchar(64) not null,
-                     xml varchar(2000) not null
-                 );
-                 """
-            );
-        }
-        else
-        {
-            using var conn = new NpgsqlConnection(connectionString);
-            conn.Execute($"""
-                          create table if not exists system_data_protection_key
-                          (
-                              id int auto_increment primary key,
-                              friendly_name varchar(64) not null,
-                              xml varchar(2000) not null
-                          );
-                          """);
-        }
-
         // 影响隐私数据加密、AntiToken 加解密
         var dataProtectionBuilder = builder.Services.AddDataProtection()
                 .SetApplicationName("SecurityTokenService")
@@ -161,7 +132,7 @@ public static class WebApplicationBuilderExtensions
                 .DisableAutomaticKeyGeneration()
             ;
         var protectKeysWithCertPath =
-            builder.Configuration["PROTECT_KEYS_WITH_CERT"] ??
+            builder.Configuration["DATA_PROTECTION_PROTECT_KEYS_WITH_CERT"] ??
             builder.Configuration["DataProtection:ProtectKeysWithCert"];
         if (!string.IsNullOrEmpty(protectKeysWithCertPath))
         {

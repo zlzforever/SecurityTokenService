@@ -87,7 +87,13 @@ public static class Program
             mvcBuilder.AddDapr();
         }
 
-        builder.AddDataProtection();
+        var enableDataProtection = builder.Configuration["DATA_PROTECTION_ENABLE"] ??
+                                   builder.Configuration["DataProtection:Enable"];
+        if ("true".Equals(enableDataProtection, StringComparison.OrdinalIgnoreCase))
+        {
+            builder.AddDataProtection();
+        }
+
         builder.AddSmsSender();
         builder.AddDbContext();
         builder.AddIdentity();
