@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JavaScriptClient", "src\Jav
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcClient", "src\MvcClient\MvcClient.csproj", "{2775FB23-EC1E-496C-85FC-26E5820C3559}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityTokenServicePluginDemo", "src\SecurityTokenServicePluginDemo\SecurityTokenServicePluginDemo.csproj", "{83F692C2-2498-497D-AD53-2CCB4B60E0DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,18 @@ Global
 		{2775FB23-EC1E-496C-85FC-26E5820C3559}.Release|x64.Build.0 = Release|Any CPU
 		{2775FB23-EC1E-496C-85FC-26E5820C3559}.Release|x86.ActiveCfg = Release|Any CPU
 		{2775FB23-EC1E-496C-85FC-26E5820C3559}.Release|x86.Build.0 = Release|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Debug|x64.Build.0 = Debug|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Debug|x86.Build.0 = Debug|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Release|x64.ActiveCfg = Release|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Release|x64.Build.0 = Release|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Release|x86.ActiveCfg = Release|Any CPU
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -111,6 +125,7 @@ Global
 		{0C920EC3-5FD5-4BF8-9D31-F66075143FD7} = {BD8BA25C-A91D-419D-99B6-B575ADD6D061}
 		{E4C71DA8-2051-4832-9034-01BCEEF49253} = {BD8BA25C-A91D-419D-99B6-B575ADD6D061}
 		{2775FB23-EC1E-496C-85FC-26E5820C3559} = {BD8BA25C-A91D-419D-99B6-B575ADD6D061}
+		{83F692C2-2498-497D-AD53-2CCB4B60E0DD} = {BD8BA25C-A91D-419D-99B6-B575ADD6D061}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {84D5AF06-1243-46F1-9D58-70ED572832C3}
