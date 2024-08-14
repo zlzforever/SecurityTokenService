@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Intrinsics.Arm;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Dapper;
 using IdentityServer4;
@@ -11,10 +12,15 @@ using IdentityServer4.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.XmlEncryption;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using MySqlConnector;
 using Npgsql;
 using SecurityTokenService.Data.MySql;
@@ -118,22 +124,6 @@ public static class WebApplicationBuilderExtensions
 
     public static WebApplicationBuilder AddDataProtection(this WebApplicationBuilder builder)
     {
-        var dataProtectionKey = builder.Configuration["DataProtection:Key"];
-        if (!string.IsNullOrEmpty(dataProtectionKey))
-        {
-            Util.DataProtectionKeyAes = System.Security.Cryptography.Aes.Create();
-            var key = Encoding.UTF8.GetBytes(dataProtectionKey);
-            if (Util.DataProtectionKeyAes.ValidKeySize(key.Length))
-            {
-                Util.DataProtectionKeyAes.Key = key;
-            }
-            else
-            {
-                Log.Logger.Error("DataProtectionKey 长度不正确");
-                Environment.Exit(-1);
-            }
-        }
-
         var connectionString = builder.Configuration.GetConnectionString("Identity");
 
         if (builder.Configuration.GetDatabaseType() == "MySql")
@@ -165,8 +155,24 @@ public static class WebApplicationBuilderExtensions
 
         // 影响隐私数据加密、AntiToken 加解密
         var dataProtectionBuilder = builder.Services.AddDataProtection()
-            .SetApplicationName("SecurityTokenService")
-            .SetDefaultKeyLifetime(TimeSpan.FromDays(90));
+                .SetApplicationName("SecurityTokenService")
+                // .SetDefaultKeyLifetime(TimeSpan.FromDays(90))
+                // STS 不进行 KEY 的生成， 应该交由业务方
+                .DisableAutomaticKeyGeneration()
+            ;
+        var protectKeysWithCertPath =
+            builder.Configuration["PROTECT_KEYS_WITH_CERT"] ??
+            builder.Configuration["DataProtection:ProtectKeysWithCert"];
+        if (!string.IsNullOrEmpty(protectKeysWithCertPath))
+        {
+            if (!File.Exists(protectKeysWithCertPath))
+            {
+                throw new ArgumentException($"ProtectKeysWithCert： {protectKeysWithCertPath} 文件不存在");
+            }
+
+            dataProtectionBuilder.ProtectKeysWithCertificate(new X509Certificate2(protectKeysWithCertPath));
+        }
+
         if (builder.Configuration.GetDatabaseType() == "MySql")
         {
             dataProtectionBuilder.PersistKeysToDbContext<MySqlSecurityTokenServiceDbContext>();

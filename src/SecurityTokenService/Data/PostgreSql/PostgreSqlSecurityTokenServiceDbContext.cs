@@ -20,15 +20,10 @@ public class PostgreSqlSecurityTokenServiceDbContext(
         builder.ConfigureDefault(identityExtensionOptions.TablePrefix);
 
         var entityTypeBuilder = builder.Entity<DataProtectionKey>();
-        entityTypeBuilder.ToTable("system_data_protection_keys");
+        entityTypeBuilder.ToTable("system_data_protection_key");
         entityTypeBuilder.Property(x => x.Id).HasColumnName("id");
         entityTypeBuilder.Property(x => x.FriendlyName).HasMaxLength(64).HasColumnName("friendly_name");
-        var xmlPropertyBuilder = entityTypeBuilder.Property(x => x.Xml).HasMaxLength(1200).HasColumnName("xml");
-        if (Util.DataProtectionKeyAes != null)
-        {
-            xmlPropertyBuilder.HasConversion(v => Util.Encrypt(Util.DataProtectionKeyAes, v),
-                v => Util.Decrypt(Util.DataProtectionKeyAes, v));
-        }
+        entityTypeBuilder.Property(x => x.Xml).HasMaxLength(1200).HasColumnName("xml");
 
         entityTypeBuilder.HasKey(x => x.Id);
     }
