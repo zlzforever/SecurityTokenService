@@ -112,7 +112,7 @@ public static class Program
                     .AllowCredentials()
             ));
         builder.Host.UseSerilog();
-        builder.Services.LoadPlugins();
+        builder.LoadPlugins();
         var app = builder.Build();
         return app;
     }
