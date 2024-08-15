@@ -10,26 +10,28 @@ namespace SecurityTokenService.Extensions;
 
 public static class PluginsExtensions
 {
-    private static readonly List<Type> _pluginTypes;
+    private static readonly List<Type> PluginTypes;
 
     static PluginsExtensions()
     {
-        _pluginTypes = new();
+        PluginTypes = new();
+        if (!Directory.Exists("Plugins"))
+        {
+            return;
+        }
+
         var pluginFiles = Directory.GetFiles("Plugins", "*.dll");
         foreach (var pluginFile in pluginFiles)
         {
             var assembly = Assembly.LoadFrom(pluginFile);
             var pluginTypes = assembly.GetTypes().Where(t => t.Name.Contains("SecurityTokenPlugin"));
-            if (pluginTypes.Any())
-            {
-                _pluginTypes.AddRange(pluginTypes);
-            }
+            PluginTypes.AddRange(pluginTypes);
         }
     }
 
     public static void LoadPlugins(this IHostApplicationBuilder builder)
     {
-        foreach (var pluginType in _pluginTypes)
+        foreach (var pluginType in PluginTypes)
         {
             var loadMethod = pluginType.GetMethod("Load");
             loadMethod?.Invoke(null, new object[] { builder });
@@ -38,7 +40,7 @@ public static class PluginsExtensions
 
     public static void UsePlugins(this WebApplication app)
     {
-        foreach (var pluginType in _pluginTypes)
+        foreach (var pluginType in PluginTypes)
         {
             var loadMethod = pluginType.GetMethod("Use");
             loadMethod?.Invoke(null, new object[] { app });
