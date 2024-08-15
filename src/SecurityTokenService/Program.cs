@@ -67,6 +67,7 @@ public static class Program
         }
 
         app.MapControllers().RequireCors("cors");
+        app.UsePlugins();
         await app.RunAsync();
     }
 
