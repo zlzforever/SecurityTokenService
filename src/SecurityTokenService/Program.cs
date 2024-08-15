@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SecurityTokenService.Data;
+using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 using SecurityTokenService.IdentityServer;
 using Serilog;
@@ -66,6 +67,7 @@ public static class Program
         }
 
         app.MapControllers().RequireCors("cors");
+        app.UsePlugins();
         await app.RunAsync();
     }
 
@@ -111,7 +113,7 @@ public static class Program
                     .AllowCredentials()
             ));
         builder.Host.UseSerilog();
-
+        builder.LoadPlugins();
         var app = builder.Build();
         return app;
     }
