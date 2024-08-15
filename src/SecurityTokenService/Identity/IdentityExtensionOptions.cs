@@ -13,4 +13,9 @@ public sealed class IdentityExtensionOptions
     /// 表前缀
     /// </summary>
     public string TablePrefix { get; set; }
+    
+    /// <summary>
+    /// 开启失败锁定功能
+    /// </summary>
+    public bool LockoutOnFailureOff { get; set; }
 }

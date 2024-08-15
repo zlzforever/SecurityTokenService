@@ -248,7 +248,7 @@ public class AccountController(
         }
 
         var result = await signInManager.PasswordSignInAsync(user, model.Password,
-            model.RememberLogin, false);
+            model.RememberLogin, _identityExtensionOptions.LockoutOnFailureOff);
         if (result.Succeeded)
         {
             await events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
