@@ -8,8 +8,8 @@ namespace SecurityTokenServicePluginDemo.Controllers;
 public class TestController
 {
     [HttpGet]
-    public async Task<IActionResult> GetAsync()
+    public Task<IActionResult> GetAsync()
     {
-        return new ObjectResult("OK");
+        return Task.FromResult<IActionResult>(new ObjectResult("OK"));
     }
 }

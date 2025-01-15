@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -55,7 +56,7 @@ public static class Program
         app.UseHealthChecks("/healthz");
         app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Lax });
         app.UseFileServer();
-        app.UseRateLimiter();
+        // app.UseRateLimiter();
         app.UseRouting();
         app.UseCors("cors");
         app.UseMiddleware<PublicFacingUrlMiddleware>(app.Configuration);
@@ -114,19 +115,21 @@ public static class Program
                     .AllowAnyHeader()
                     .AllowCredentials()
             ));
-        builder.Services.AddRateLimiter(b =>
-        {
-            b.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            b.OnRejected = async (ctx, cancellationToken) =>
-            {
-                await ctx.HttpContext.Response.WriteAsync("访问过于频繁", cancellationToken);
-            };
-            b.AddFixedWindowLimiter(policyName: "fixed", options =>
-            {
-                options.PermitLimit = 1;
-                options.Window = TimeSpan.FromSeconds(60);
-            });
-        });
+        // builder.Services.AddRateLimiter(b =>
+        // {
+        //     b.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        //     b.OnRejected = async (ctx, cancellationToken) =>
+        //     {
+        //         await ctx.HttpContext.Response.WriteAsync("访问过于频繁", cancellationToken);
+        //     };
+        //     b.AddSlidingWindowLimiter(policyName: "sliding", options =>
+        //     {
+        //         options.PermitLimit = 10;
+        //         options.Window = TimeSpan.FromSeconds(60);
+        //         options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        //         options.QueueLimit = 20;
+        //     });
+        // });
         builder.Host.UseSerilog();
         builder.LoadPlugins();
 

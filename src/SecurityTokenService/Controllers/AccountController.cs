@@ -415,7 +415,7 @@ public class AccountController(
     /// <returns></returns>
     [HttpPost("SendSmsCode")]
     [HttpPost("sms")]
-    [EnableRateLimiting("fixed")]
+    // [EnableRateLimiting("sliding")]
     public async Task<ApiResult> SendSmsCodeAsync([FromBody] Inputs.V1.SendSmsCode input)
     {
         var modelErrorResult = BuildModelValidApiResult();

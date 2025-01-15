@@ -9,7 +9,7 @@ public class DisableAnyOneValidator : IExtensionGrantValidator
 {
     public string GrantType => "disableAnyOne";
 
-    public async Task ValidateAsync(ExtensionGrantValidationContext context)
+    public Task ValidateAsync(ExtensionGrantValidationContext context)
     {
         throw new Exception("DisableAnyOne!");
     }
