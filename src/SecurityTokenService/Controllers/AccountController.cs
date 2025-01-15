@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -100,10 +101,8 @@ public class AccountController(
             }
 
             var msg = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
-            return new ObjectResult(new ApiResult
-            {
-                Code = Errors.ChangePasswordFailed, Success = false, Message = msg
-            });
+            return new ObjectResult(
+                new ApiResult { Code = Errors.ChangePasswordFailed, Success = false, Message = msg });
         }
 
         return new ObjectResult(new ApiResult
@@ -173,10 +172,8 @@ public class AccountController(
         if (!result.Succeeded)
         {
             var msg = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
-            return new ObjectResult(new ApiResult
-            {
-                Code = Errors.ChangePasswordFailed, Success = false, Message = msg
-            });
+            return new ObjectResult(
+                new ApiResult { Code = Errors.ChangePasswordFailed, Success = false, Message = msg });
         }
 
         await phoneCodeStore.UpdateAsync(input.PhoneNumber, "");
@@ -340,10 +337,7 @@ public class AccountController(
                 }
             }
 
-            return new ObjectResult(new ApiResult
-            {
-                Code = 400, Success = false, Message = messageBuilder.ToString()
-            });
+            return new ObjectResult(new ApiResult { Code = 400, Success = false, Message = messageBuilder.ToString() });
         }
 
         var context = await interaction.GetAuthorizationContextAsync(model.ReturnUrl);
@@ -421,6 +415,7 @@ public class AccountController(
     /// <returns></returns>
     [HttpPost("SendSmsCode")]
     [HttpPost("sms")]
+    [EnableRateLimiting("fixed")]
     public async Task<ApiResult> SendSmsCodeAsync([FromBody] Inputs.V1.SendSmsCode input)
     {
         var modelErrorResult = BuildModelValidApiResult();
