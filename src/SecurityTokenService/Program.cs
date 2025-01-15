@@ -3,11 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -51,11 +49,6 @@ public static class Program
         if (!string.IsNullOrEmpty(path))
         {
             app.UsePathBase(path);
-        }
-
-        if (!"false".Equals(app.Configuration["EnableSMSRateLimiter"], StringComparison.OrdinalIgnoreCase))
-        {
-            app.UseMiddleware<SMSRateLimiter>();
         }
 
         app.UseHealthChecks("/healthz");

@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -39,7 +40,8 @@ public class AccountController(
     IHostEnvironment hostEnvironment,
     IPhoneCodeStore phoneCodeStore,
     IPasswordValidator<User> passwordValidator,
-    ISmsSender smsSender)
+    ISmsSender smsSender,
+    IMemoryCache memoryCache)
     : ControllerBase
 {
     private readonly SecurityTokenServiceOptions _options = options.CurrentValue;
@@ -424,6 +426,14 @@ public class AccountController(
             return modelErrorResult;
         }
 
+        var key = $"SMS:PHONE:LIMIT:{input.PhoneNumber}";
+        var timestamp = memoryCache.Get<long?>(key);
+        var now = DateTimeOffset.Now.ToUnixTimeSeconds();
+        if (timestamp != null && now - timestamp < 60)
+        {
+            return new ApiResult { Code = 429, Message = "验证码发送过于频繁，请稍后再试", Success = false };
+        }
+
         // 不存在也应该发短信， 因为可以是通过短信注册的
         // var user = await _userManager.FindAsync(input.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
         // if (user != null)
@@ -443,12 +453,14 @@ public class AccountController(
         if (hostEnvironment.IsDevelopment())
         {
             logger.LogInformation($"Send sms code to {input.PhoneNumber}: {code}");
+            memoryCache.Set(key, now, TimeSpan.FromSeconds(60));
             return new ApiResult { Success = true };
         }
 
         try
         {
             await smsSender.SendAsync(phoneNumber, code);
+            memoryCache.Set(key, now, TimeSpan.FromSeconds(60));
             return new ApiResult { Success = true, Message = "发送成功" };
         }
         catch (FriendlyException fe)
