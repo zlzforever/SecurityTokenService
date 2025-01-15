@@ -53,6 +53,11 @@ public static class Program
             app.UsePathBase(path);
         }
 
+        if (!"false".Equals(app.Configuration["EnableSMSRateLimiter"], StringComparison.OrdinalIgnoreCase))
+        {
+            app.UseMiddleware<SMSRateLimiter>();
+        }
+
         app.UseHealthChecks("/healthz");
         app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Lax });
         app.UseFileServer();
