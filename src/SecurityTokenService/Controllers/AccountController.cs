@@ -443,8 +443,10 @@ public class AccountController(
         //         return new ApiResult { Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "帐号被锁定" };
         //     }
         // }
-
-        var code = RandomNumberGenerator.GetInt32(1111, 9999).ToString();
+        var codeLength = _options.GetSmsCodeNumberLength();
+        // 范围是10^(n-1)到10^n,如果是4,则生成的范围是1000到9999,以此类推
+        var code = RandomNumberGenerator.GetInt32((int)Math.Pow(10, codeLength - 1), (int)Math.Pow(10, codeLength))
+            .ToString();
 
         var countryCode = string.IsNullOrWhiteSpace(input.CountryCode) ? "+86" : input.CountryCode;
         var phoneNumber = $"{countryCode} {input.PhoneNumber}";
