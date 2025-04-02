@@ -242,7 +242,7 @@ public class AccountController(
                 clientId: context?.Client.ClientId));
             return new ObjectResult(new ApiResult
             {
-                Code = Errors.IdentityInvalidCredentials, Success = false, Message = "用户不存在"
+                Code = Errors.IdentityInvalidCredentials, Success = false, Message = "用户名或密码错误"
             });
         }
 
@@ -285,7 +285,7 @@ public class AccountController(
         {
             return new ObjectResult(new ApiResult
             {
-                Code = Errors.IdentityTwoFactorIsNotSupported, Success = false, Message = ""
+                Code = Errors.IdentityTwoFactorIsNotSupported, Success = false, Message = "多因素认证不支持"
             });
         }
 
@@ -293,7 +293,7 @@ public class AccountController(
         {
             return new ObjectResult(new ApiResult
             {
-                Code = Errors.IdentityUserIsNotAllowed, Success = false, Message = "禁止登录"
+                Code = Errors.IdentityUserIsNotAllowed, Success = false, Message = "用户被禁用"
             });
         }
 
@@ -301,14 +301,14 @@ public class AccountController(
         {
             return new ObjectResult(new ApiResult
             {
-                Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "帐号被锁定"
+                Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "用户被锁定"
             });
         }
 
         await events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials",
             clientId: context?.Client.ClientId));
         return new ObjectResult(
-            new ApiResult { Code = Errors.IdentityInvalidCredentials, Success = false, Message = "登录失败" });
+            new ApiResult { Code = Errors.IdentityInvalidCredentials, Success = false, Message = "用户名或密码错误" });
 
         // something went wrong, show form with error
         // var vm = await BuildLoginViewModelAsync(model);
