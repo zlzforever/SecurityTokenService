@@ -8,4 +8,11 @@ public class SecurityTokenServiceOptions
     public bool ShowLogoutPrompt { get; set; }
     public int RememberMeLoginDuration { get; set; }
     public string WindowsAuthenticationSchemeName { get; set; }
+    public int SmsCodeLength { get; set; }
+
+    public int GetSmsCodeNumberLength()
+    {
+        // 必须小于等于9,否则整数会溢出
+        return SmsCodeLength <= 0 ? 4 : SmsCodeLength >= 9 ? 9 : SmsCodeLength;
+    }
 }
