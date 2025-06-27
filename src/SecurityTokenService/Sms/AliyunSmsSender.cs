@@ -8,16 +8,12 @@ using SecurityTokenService.Options;
 
 namespace SecurityTokenService.Sms;
 
-public class AliyunSmsSender : ISmsSender
+public class AliyunSmsSender(
+    IOptionsMonitor<AliyunOptions> aliyunOptions,
+    ILogger<AliyunSmsSender> logger)
+    : ISmsSender
 {
-    private readonly AliyunOptions _aliyunOptions;
-    private readonly ILogger<AliyunSmsSender> _logger;
-
-    public AliyunSmsSender(IOptionsMonitor<AliyunOptions> aliyunOptions, ILogger<AliyunSmsSender> logger)
-    {
-        _logger = logger;
-        _aliyunOptions = aliyunOptions.CurrentValue;
-    }
+    private readonly AliyunOptions _aliyunOptions = aliyunOptions.CurrentValue;
 
     public async Task SendAsync(string number, string code)
     {
@@ -32,7 +28,7 @@ public class AliyunSmsSender : ISmsSender
         var template = _aliyunOptions.Sms.Templates.GetOrDefault(countryCode);
         if (string.IsNullOrEmpty(template))
         {
-            _logger.LogError($"CountryCode {countryCode} no sms template");
+            logger.LogError($"CountryCode {countryCode} no sms template");
             throw new FriendlyException("不支持的国家");
         }
 
@@ -55,12 +51,12 @@ public class AliyunSmsSender : ISmsSender
                 return;
             }
 
-            _logger.LogError($"{number} {response.Body.Message}");
+            logger.LogError($"{number} {response.Body.Message}");
             throw new FriendlyException("发送验证码失败");
         }
         catch (Exception e)
         {
-            _logger.LogError(e.ToString());
+            logger.LogError(e.ToString());
             throw new FriendlyException("发送验证码失败");
         }
     }

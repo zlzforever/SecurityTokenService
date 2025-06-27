@@ -16,24 +16,14 @@ namespace SecurityTokenService.Controllers;
 [SecurityHeaders]
 [Route("[controller]")]
 [Authorize]
-public class ConsentController : ControllerBase
+public class ConsentController(
+    IClientStore clientStore,
+    IIdentityServerInteractionService interaction,
+    IResourceStore resourceStore,
+    IEventService events,
+    ILogger<ConsentController> logger)
+    : ControllerBase
 {
-    private readonly IIdentityServerInteractionService _interaction;
-    private readonly IClientStore _clientStore;
-    private readonly IResourceStore _resourceStore;
-    private readonly IEventService _events;
-    private readonly ILogger<ConsentController> _logger;
-
-    public ConsentController(IClientStore clientStore, IIdentityServerInteractionService interaction,
-        IResourceStore resourceStore, IEventService events, ILogger<ConsentController> logger)
-    {
-        _clientStore = clientStore;
-        _interaction = interaction;
-        _resourceStore = resourceStore;
-        _events = events;
-        _logger = logger;
-    }
-
     /// <summary>
     /// Shows the consent screen
     /// </summary>
@@ -42,14 +32,14 @@ public class ConsentController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Index(string returnUrl)
     {
-        var request = await _interaction.GetAuthorizationContextAsync(returnUrl);
+        var request = await interaction.GetAuthorizationContextAsync(returnUrl);
         string error;
         if (request != null)
         {
-            var client = await _clientStore.FindEnabledClientByIdAsync(request.Client.ClientId);
+            var client = await clientStore.FindEnabledClientByIdAsync(request.Client.ClientId);
             if (client != null)
             {
-                var resources = await _resourceStore.FindEnabledResourcesByScopeAsync(request.Client.AllowedScopes);
+                var resources = await resourceStore.FindEnabledResourcesByScopeAsync(request.Client.AllowedScopes);
                 if (resources != null && (resources.IdentityResources.Any() || resources.ApiResources.Any()))
                 {
                     var output = await CreateConsentOutputAsync(returnUrl, client, resources);
@@ -61,7 +51,7 @@ public class ConsentController : ControllerBase
                 else
                 {
                     error = $"No scopes matching: {request.Client.AllowedScopes.Aggregate((x, y) => x + ", " + y)}";
-                    _logger.LogError(error);
+                    logger.LogError(error);
                     return new ObjectResult(new ApiResult
                     {
                         Message = error,
@@ -72,7 +62,7 @@ public class ConsentController : ControllerBase
             else
             {
                 error = $"Invalid client id: {request.Client.ClientId}";
-                _logger.LogError(error);
+                logger.LogError(error);
                 return new ObjectResult(new ApiResult
                 {
                     Message = error,
@@ -83,7 +73,7 @@ public class ConsentController : ControllerBase
         else
         {
             error = $"No consent request matching request: {returnUrl}";
-            _logger.LogError(error);
+            logger.LogError(error);
             return new ObjectResult(new ApiResult
             {
                 Message = error,
@@ -96,7 +86,7 @@ public class ConsentController : ControllerBase
     public async Task<IActionResult> Index(Inputs.V1.ConsentInput model)
     {
         // validate return url is still valid
-        var request = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+        var request = await interaction.GetAuthorizationContextAsync(model.ReturnUrl);
 
         ConsentResponse grantedConsent;
 
@@ -106,7 +96,7 @@ public class ConsentController : ControllerBase
             grantedConsent = new ConsentResponse { Error = AuthorizationError.AccessDenied };
 
             // emit event
-            await _events.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), request.Client.ClientId,
+            await events.RaiseAsync(new ConsentDeniedEvent(User.GetSubjectId(), request.Client.ClientId,
                 request.ValidatedResources.RawScopeValues));
         }
         // user clicked 'yes' - validate the data
@@ -130,7 +120,7 @@ public class ConsentController : ControllerBase
                 };
 
                 // emit event
-                await _events.RaiseAsync(new ConsentGrantedEvent(User.GetSubjectId(), request.Client.ClientId,
+                await events.RaiseAsync(new ConsentGrantedEvent(User.GetSubjectId(), request.Client.ClientId,
                     request.ValidatedResources.RawScopeValues, grantedConsent.ScopesValuesConsented,
                     grantedConsent.RememberConsent));
             }
@@ -146,14 +136,14 @@ public class ConsentController : ControllerBase
         }
 
         // communicate outcome of consent back to identityserver
-        await _interaction.GrantConsentAsync(request, grantedConsent);
+        await interaction.GrantConsentAsync(request, grantedConsent);
 
         // indicate that's it ok to redirect back to authorization endpoint
         var redirectUrl = model.ReturnUrl;
 
         if (!string.IsNullOrWhiteSpace(redirectUrl))
         {
-            if (await _clientStore.IsPkceClientAsync(request.Client.ClientId))
+            if (await clientStore.IsPkceClientAsync(request.Client.ClientId))
             {
                 // if the client is PKCE then we assume it's native, so this change in how to
                 // return the response is for better UX for the end user.
@@ -182,7 +172,7 @@ public class ConsentController : ControllerBase
         };
 
         var scopeNames = resources.ApiResources.SelectMany(x => x.Scopes).ToHashSet();
-        var apiScopes = await _resourceStore.FindApiScopesByNameAsync(scopeNames);
+        var apiScopes = await resourceStore.FindApiScopesByNameAsync(scopeNames);
         vm.ResourceScopes = apiScopes.Select(x =>
             CreateApiScopeOutput(x, true)).ToArray();
         if (ConsentOptions.EnableOfflineAccess && resources.OfflineAccess)

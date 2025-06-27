@@ -11,16 +11,13 @@ namespace SecurityTokenService.Controllers;
 public class SessionController : ControllerBase
 {
     [HttpGet]
-    public ValueTask<IActionResult> IndexAsync()
+    public ValueTask<IActionResult> GetInfo()
     {
         IActionResult a = new ObjectResult(new ApiResult
         {
             Code = 200,
             Data = HttpContext.User.Claims.Where(x => x.Type != "AspNet.Identity.SecurityStamp")
-                .Select(x => new
-                {
-                    x.Type, x.Value
-                })
+                .Select(x => new { x.Type, x.Value })
         });
         return ValueTask.FromResult(a);
     }

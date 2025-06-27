@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -39,7 +38,7 @@ public class AccountController(
     ILogger<AccountController> logger,
     IHostEnvironment hostEnvironment,
     IPhoneCodeStore phoneCodeStore,
-    IPasswordValidator<User> passwordValidator,
+    // IPasswordValidator<User> passwordValidator,
     ISmsSender smsSender,
     IMemoryCache memoryCache)
     : ControllerBase
@@ -81,16 +80,16 @@ public class AccountController(
             });
         }
 
-        var passwordValidateResult =
-            await passwordValidator.ValidateAsync(userManager, user, input.NewPassword);
-        if (!passwordValidateResult.Succeeded)
-        {
-            var msg = string.Join(Environment.NewLine, passwordValidateResult.Errors.Select(x => x.Description));
-            return new ObjectResult(new ApiResult
-            {
-                Code = Errors.PasswordValidateFailed, Success = false, Message = msg
-            });
-        }
+        // var passwordValidateResult =
+        //     await passwordValidator.ValidateAsync(userManager, user, input.NewPassword);
+        // if (!passwordValidateResult.Succeeded)
+        // {
+        //     var msg = string.Join(Environment.NewLine, passwordValidateResult.Errors.Select(x => x.Description));
+        //     return new ObjectResult(new ApiResult
+        //     {
+        //         Code = Errors.PasswordValidateFailed, Success = false, Message = msg
+        //     });
+        // }
 
         var checkPasswordResult = await userManager.CheckPasswordAsync(user, input.OldPassword);
         if (checkPasswordResult)
@@ -147,16 +146,16 @@ public class AccountController(
             });
         }
 
-        var passwordValidateResult =
-            await passwordValidator.ValidateAsync(userManager, user, input.NewPassword);
-        if (!passwordValidateResult.Succeeded)
-        {
-            var msg = string.Join(Environment.NewLine, passwordValidateResult.Errors.Select(x => x.Description));
-            return new ObjectResult(new ApiResult
-            {
-                Code = Errors.PasswordValidateFailed, Success = false, Message = msg
-            });
-        }
+        // var passwordValidateResult =
+        //     await passwordValidator.ValidateAsync(userManager, user, input.NewPassword);
+        // if (!passwordValidateResult.Succeeded)
+        // {
+        //     var msg = string.Join(Environment.NewLine, passwordValidateResult.Errors.Select(x => x.Description));
+        //     return new ObjectResult(new ApiResult
+        //     {
+        //         Code = Errors.PasswordValidateFailed, Success = false, Message = msg
+        //     });
+        // }
 
         var code = await phoneCodeStore.GetAsync(input.PhoneNumber);
         //获取手机号对应的缓存验证码
@@ -191,16 +190,16 @@ public class AccountController(
             return modelErrorResult;
         }
 
-        var passwordValidateResult = await passwordValidator.ValidateAsync(userManager, null, model.Password);
-        if (!passwordValidateResult.Succeeded)
-        {
-            var message = string.Join(Environment.NewLine,
-                passwordValidateResult.Errors.Select(x => x.Description));
-            return new ObjectResult(new ApiResult
-            {
-                Code = Errors.PasswordValidateFailed, Success = false, Message = $"{message}\n请先修改密码后再登录"
-            });
-        }
+        // var passwordValidateResult = await passwordValidator.ValidateAsync(userManager, new User(""), model.Password);
+        // if (!passwordValidateResult.Succeeded)
+        // {
+        //     var message = string.Join(Environment.NewLine,
+        //         passwordValidateResult.Errors.Select(x => x.Description));
+        //     return new ObjectResult(new ApiResult
+        //     {
+        //         Code = Errors.PasswordValidateFailed, Success = false, Message = $"{message}\n请先修改密码后再登录"
+        //     });
+        // }
 
         var context = await interaction.GetAuthorizationContextAsync(model.ReturnUrl);
         // the user clicked the "cancel" button
@@ -274,7 +273,7 @@ public class AccountController(
                 //     // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
                 //     return new ObjectResult(new RedirectResult(model.ReturnUrl));
                 // }
-                return new ObjectResult(new RedirectResult(model.ReturnUrl));
+                // return new ObjectResult(new RedirectResult(model.ReturnUrl));
             }
 
             return new ObjectResult(new RedirectResult(model.ReturnUrl));
@@ -431,7 +430,7 @@ public class AccountController(
         var now = DateTimeOffset.Now.ToUnixTimeSeconds();
         if (timestamp != null && now - timestamp < 60)
         {
-            return new ApiResult { Code = 429, Message = "验证码发送过于频繁，请稍后再试", Success = false };
+            return new ApiResult { Code = 429, Message = "验证码发送过于频繁， 请稍后再试", Success = false };
         }
 
         // 不存在也应该发短信， 因为可以是通过短信注册的
