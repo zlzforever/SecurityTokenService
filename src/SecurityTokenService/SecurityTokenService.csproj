@@ -8,6 +8,7 @@
     <PackageReference Include="AlibabaCloud.SDK.Dysmsapi20170525" Version="2.0.24" />
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
+    <PackageReference Include="Identity.Sm" Version="1.0.1" />
     <PackageReference Include="IdentityServer4.Storage" Version="4.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="8.0.6" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
