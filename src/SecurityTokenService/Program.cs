@@ -4,8 +4,10 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Identity.Sm;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,6 +28,7 @@ public static class Program
         GenerateAesKey(args);
 
         var app = CreateApp(args);
+
         var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Program");
         IdentitySeedData.Load(app);
         app.MigrateIdentityServer();
@@ -76,7 +79,7 @@ public static class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.AddSerilog();
-
+        builder.Configuration.AddEnvironmentVariables();
         var dataPath = builder.Configuration["DATAPATH"] ?? builder.Configuration["DATA_PATH"] ?? "sts.json";
         if (File.Exists(dataPath))
         {
@@ -101,6 +104,14 @@ public static class Program
         builder.AddDbContext();
         builder.AddIdentity();
         builder.AddIdentityServer();
+        if (bool.TryParse(builder.Configuration["ENABLE_SM3_PASSWORD_HASHER"],
+                out var enable) &&
+            enable)
+        {
+            builder.Services.AddSm3PasswordHasher<User>();
+            builder.Services.AddSm3PasswordHasher<IdentityUser>();
+        }
+
         builder.ConfigureOptions();
         builder.Services.AddScoped<SeedData>();
 
