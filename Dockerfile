@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
+﻿FROM mcr.microsoft.com/dotnet/sdk:9.0 as build
 WORKDIR /app
 COPY src/SecurityTokenService .
 RUN dotnet publish SecurityTokenService.csproj -c Release -o out
@@ -12,7 +12,7 @@ RUN rm -rf /app/out/runtimes/win-x86
 RUN rm -rf /app/out/appsettings.Nacos.json
 RUN mv -f /app/out/sts_backup.json /app/sts.json
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 ENV LANG zh_CN.UTF-8
 EXPOSE 8080
