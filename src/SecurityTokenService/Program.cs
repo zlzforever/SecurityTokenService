@@ -73,6 +73,7 @@ public static class Program
         app.MapControllers().RequireCors("cors");
         app.UsePlugins();
         await app.RunAsync();
+        Console.WriteLine("Bye!");
     }
 
     internal static WebApplication CreateApp(string[] args)
