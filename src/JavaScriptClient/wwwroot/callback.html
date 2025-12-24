@@ -10,7 +10,7 @@
         new Oidc.UserManager({ response_mode: "query" }).signinRedirectCallback().then(function () {
             window.location = "index.html";
         }).catch(function (e) {
-            console.error(e);
+            console.error();
         });
     </script>
 </body>

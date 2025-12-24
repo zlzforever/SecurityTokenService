@@ -13608,7 +13608,7 @@ var onUnhandled = function (promise) {
         } else if (handler = global.onunhandledrejection) {
           handler({ promise: promise, reason: value });
         } else if ((console = global.console) && console.error) {
-          console.error('Unhandled promise rejection', value);
+          console.error(value);
         }
       });
       // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
@@ -16435,7 +16435,7 @@ var Subscription = function (observer, subscriber) {
       this._c = cleanup;
     }
   } catch (e) {
-    observer.error(e);
+    observer.error();
     return;
   } if (subscriptionClosed(this)) cleanupSubscription(this);
 };
@@ -16552,7 +16552,7 @@ redefineAll($Observable, {
             }) === RETURN) return;
           } catch (e) {
             if (done) throw e;
-            observer.error(e);
+            observer.error();
             return;
           } observer.complete();
         }
@@ -17876,7 +17876,7 @@ var CheckSessionIFrame = exports.CheckSessionIFrame = function () {
     CheckSessionIFrame.prototype._message = function _message(e) {
         if (e.origin === this._frame_origin && e.source === this._frame.contentWindow) {
             if (e.data === "error") {
-                _Log.Log.error("CheckSessionIFrame: error message from check session op iframe");
+                _Log.Log.error();
                 if (this._stopOnError) {
                     this.stop();
                 }
@@ -18096,7 +18096,7 @@ var CordovaPopupWindow = exports.CordovaPopupWindow = function () {
     CordovaPopupWindow.prototype._error = function _error(message) {
         this._cleanup();
 
-        _Log.Log.error(message);
+        _Log.Log.error();
         this._reject(new Error(message));
     };
 
@@ -18164,7 +18164,7 @@ var ErrorResponse = exports.ErrorResponse = function (_Error) {
                 _classCallCheck(this, ErrorResponse);
 
                 if (!error) {
-                        _Log.Log.error("No error passed to ErrorResponse");
+                        _Log.Log.error();
                         throw new Error("error");
                 }
 
@@ -18470,7 +18470,7 @@ var IFrameWindow = exports.IFrameWindow = function () {
     IFrameWindow.prototype._error = function _error(message) {
         this._cleanup();
 
-        _Log.Log.error(message);
+        _Log.Log.error();
         this._reject(new Error(message));
     };
 
@@ -18668,7 +18668,7 @@ function getJoseUtil(_ref) {
                     payload: token.payloadObj
                 };
             } catch (e) {
-                _Log.Log.error(e);
+                _Log.Log.error();
             }
         };
 
@@ -18683,24 +18683,24 @@ function getJoseUtil(_ref) {
                         var hex = b64tohex(key.x5c[0]);
                         key = X509.getPublicKeyFromCertHex(hex);
                     } else {
-                        _Log.Log.error("JoseUtil.validateJwt: RSA key missing key material", key);
+                        _Log.Log.error(key);
                         return Promise.reject(new Error("RSA key missing key material"));
                     }
                 } else if (key.kty === "EC") {
                     if (key.crv && key.x && key.y) {
                         key = KeyUtil.getKey(key);
                     } else {
-                        _Log.Log.error("JoseUtil.validateJwt: EC key missing key material", key);
+                        _Log.Log.error(key);
                         return Promise.reject(new Error("EC key missing key material"));
                     }
                 } else {
-                    _Log.Log.error("JoseUtil.validateJwt: Unsupported key type", key && key.kty);
+                    _Log.Log.error(key && key.kty);
                     return Promise.reject(new Error( true && key.kty));
                 }
 
                 return JoseUtil._validateJwt(jwt, key, issuer, audience, clockSkew, now, timeInsensitive);
             } catch (e) {
-                _Log.Log.error(e && e.message || e);
+                _Log.Log.error();
                 return Promise.reject("JWT validation failed");
             }
         };
@@ -18717,25 +18717,25 @@ function getJoseUtil(_ref) {
             var payload = JoseUtil.parseJwt(jwt).payload;
 
             if (!payload.iss) {
-                _Log.Log.error("JoseUtil._validateJwt: issuer was not provided");
+                _Log.Log.error();
                 return Promise.reject(new Error("issuer was not provided"));
             }
             if (payload.iss !== issuer) {
-                _Log.Log.error("JoseUtil._validateJwt: Invalid issuer in token", payload.iss);
+                _Log.Log.error(payload.iss);
                 return Promise.reject(new Error("Invalid issuer in token: " + payload.iss));
             }
 
             if (!payload.aud) {
-                _Log.Log.error("JoseUtil._validateJwt: aud was not provided");
+                _Log.Log.error();
                 return Promise.reject(new Error("aud was not provided"));
             }
             var validAudience = payload.aud === audience || Array.isArray(payload.aud) && payload.aud.indexOf(audience) >= 0;
             if (!validAudience) {
-                _Log.Log.error("JoseUtil._validateJwt: Invalid audience in token", payload.aud);
+                _Log.Log.error(payload.aud);
                 return Promise.reject(new Error("Invalid audience in token: " + payload.aud));
             }
             if (payload.azp && payload.azp !== audience) {
-                _Log.Log.error("JoseUtil._validateJwt: Invalid azp in token", payload.azp);
+                _Log.Log.error(payload.azp);
                 return Promise.reject(new Error("Invalid azp in token: " + payload.azp));
             }
 
@@ -18744,25 +18744,25 @@ function getJoseUtil(_ref) {
                 var upperNow = now - clockSkew;
 
                 if (!payload.iat) {
-                    _Log.Log.error("JoseUtil._validateJwt: iat was not provided");
+                    _Log.Log.error();
                     return Promise.reject(new Error("iat was not provided"));
                 }
                 if (lowerNow < payload.iat) {
-                    _Log.Log.error("JoseUtil._validateJwt: iat is in the future", payload.iat);
+                    _Log.Log.error(payload.iat);
                     return Promise.reject(new Error("iat is in the future: " + payload.iat));
                 }
 
                 if (payload.nbf && lowerNow < payload.nbf) {
-                    _Log.Log.error("JoseUtil._validateJwt: nbf is in the future", payload.nbf);
+                    _Log.Log.error(payload.nbf);
                     return Promise.reject(new Error("nbf is in the future: " + payload.nbf));
                 }
 
                 if (!payload.exp) {
-                    _Log.Log.error("JoseUtil._validateJwt: exp was not provided");
+                    _Log.Log.error();
                     return Promise.reject(new Error("exp was not provided"));
                 }
                 if (payload.exp < upperNow) {
-                    _Log.Log.error("JoseUtil._validateJwt: exp is in the past", payload.exp);
+                    _Log.Log.error(payload.exp);
                     return Promise.reject(new Error("exp is in the past:" + payload.exp));
                 }
             }
@@ -18775,13 +18775,13 @@ function getJoseUtil(_ref) {
             return JoseUtil.validateJwtAttributes(jwt, issuer, audience, clockSkew, now, timeInsensitive).then(function (payload) {
                 try {
                     if (!jws.JWS.verify(jwt, key, AllowedSigningAlgs)) {
-                        _Log.Log.error("JoseUtil._validateJwt: signature validation failed");
+                        _Log.Log.error();
                         return Promise.reject(new Error("signature validation failed"));
                     }
 
                     return payload;
                 } catch (e) {
-                    _Log.Log.error(e && e.message || e);
+                    _Log.Log.error();
                     return Promise.reject(new Error("signature validation failed"));
                 }
             });
@@ -18791,7 +18791,7 @@ function getJoseUtil(_ref) {
             try {
                 return crypto.Util.hashString(value, alg);
             } catch (e) {
-                _Log.Log.error(e);
+                _Log.Log.error();
             }
         };
 
@@ -18799,7 +18799,7 @@ function getJoseUtil(_ref) {
             try {
                 return hextob64u(value);
             } catch (e) {
-                _Log.Log.error(e);
+                _Log.Log.error();
             }
         };
 
@@ -18858,7 +18858,7 @@ var JsonService = exports.JsonService = function () {
         var _this = this;
 
         if (!url) {
-            _Log.Log.error("JsonService.getJson: No url passed");
+            _Log.Log.error();
             throw new Error("url");
         }
 
@@ -18896,7 +18896,7 @@ var JsonService = exports.JsonService = function () {
                                 resolve(JSON.parse(req.responseText));
                                 return;
                             } catch (e) {
-                                _Log.Log.error("JsonService.getJson: Error parsing JSON response", e.message);
+                                _Log.Log.error(e.message);
                                 reject(e);
                                 return;
                             }
@@ -18910,7 +18910,7 @@ var JsonService = exports.JsonService = function () {
             };
 
             req.onerror = function () {
-                _Log.Log.error("JsonService.getJson: network error");
+                _Log.Log.error();
                 reject(Error("Network Error"));
             };
 
@@ -18927,7 +18927,7 @@ var JsonService = exports.JsonService = function () {
         var _this2 = this;
 
         if (!url) {
-            _Log.Log.error("JsonService.postForm: No url passed");
+            _Log.Log.error();
             throw new Error("url");
         }
 
@@ -18959,7 +18959,7 @@ var JsonService = exports.JsonService = function () {
                                 resolve(JSON.parse(req.responseText));
                                 return;
                             } catch (e) {
-                                _Log.Log.error("JsonService.postForm: Error parsing JSON response", e.message);
+                                _Log.Log.error(e.message);
                                 reject(e);
                                 return;
                             }
@@ -18985,12 +18985,12 @@ var JsonService = exports.JsonService = function () {
                             try {
                                 var payload = JSON.parse(req.responseText);
                                 if (payload && payload.error) {
-                                    _Log.Log.error("JsonService.postForm: Error from server: ", payload.error);
+                                    _Log.Log.error(payload.error);
                                     reject(new Error(payload.error));
                                     return;
                                 }
                             } catch (e) {
-                                _Log.Log.error("JsonService.postForm: Error parsing JSON response", e.message);
+                                _Log.Log.error(e.message);
                                 reject(e);
                                 return;
                             }
@@ -19002,7 +19002,7 @@ var JsonService = exports.JsonService = function () {
             };
 
             req.onerror = function () {
-                _Log.Log.error("JsonService.postForm: network error");
+                _Log.Log.error();
                 reject(Error("Network Error"));
             };
 
@@ -19216,7 +19216,7 @@ var MetadataService = exports.MetadataService = function () {
         _classCallCheck(this, MetadataService);
 
         if (!settings) {
-            _Log.Log.error("MetadataService: No settings passed to MetadataService");
+            _Log.Log.error();
             throw new Error("settings");
         }
 
@@ -19233,7 +19233,7 @@ var MetadataService = exports.MetadataService = function () {
         }
 
         if (!this.metadataUrl) {
-            _Log.Log.error("MetadataService.getMetadata: No authority or metadataUrl configured on settings");
+            _Log.Log.error();
             return Promise.reject(new Error("No authority or metadataUrl configured on settings"));
         }
 
@@ -19294,7 +19294,7 @@ var MetadataService = exports.MetadataService = function () {
                     _Log.Log.warn("MetadataService.getMetadataProperty: Metadata does not contain optional property " + name);
                     return undefined;
                 } else {
-                    _Log.Log.error("MetadataService.getMetadataProperty: Metadata does not contain property " + name);
+                    _Log.Log.error();
                     throw new Error("Metadata does not contain property " + name);
                 }
             }
@@ -19318,7 +19318,7 @@ var MetadataService = exports.MetadataService = function () {
                 _Log.Log.debug("MetadataService.getSigningKeys: key set received", keySet);
 
                 if (!keySet.keys) {
-                    _Log.Log.error("MetadataService.getSigningKeys: Missing keys on keyset");
+                    _Log.Log.error();
                     throw new Error("Missing keys on keyset");
                 }
 
@@ -19494,7 +19494,7 @@ var OidcClient = exports.OidcClient = function () {
         var response = new _SigninResponse.SigninResponse(url, delimiter);
 
         if (!response.state) {
-            _Log.Log.error("OidcClient.readSigninResponseState: No state in response");
+            _Log.Log.error();
             return Promise.reject(new Error("No state in response"));
         }
 
@@ -19504,7 +19504,7 @@ var OidcClient = exports.OidcClient = function () {
 
         return stateApi(response.state).then(function (storedStateString) {
             if (!storedStateString) {
-                _Log.Log.error("OidcClient.readSigninResponseState: No matching state found in storage");
+                _Log.Log.error();
                 throw new Error("No matching state found in storage");
             }
 
@@ -19547,7 +19547,7 @@ var OidcClient = exports.OidcClient = function () {
 
         return this._metadataService.getEndSessionEndpoint().then(function (url) {
             if (!url) {
-                _Log.Log.error("OidcClient.createSignoutRequest: No end session endpoint url returned");
+                _Log.Log.error();
                 throw new Error("no end session endpoint");
             }
 
@@ -19598,7 +19598,7 @@ var OidcClient = exports.OidcClient = function () {
         var stateApi = removeState ? stateStore.remove.bind(stateStore) : stateStore.get.bind(stateStore);
         return stateApi(stateKey).then(function (storedStateString) {
             if (!storedStateString) {
-                _Log.Log.error("OidcClient.readSignoutResponseState: No matching state found in storage");
+                _Log.Log.error();
                 throw new Error("No matching state found in storage");
             }
 
@@ -19796,7 +19796,7 @@ var OidcClientSettings = exports.OidcClientSettings = function () {
                 // one-time set only
                 this._client_id = value;
             } else {
-                _Log.Log.error("OidcClientSettings.set_client_id: client_id has already been assigned.");
+                _Log.Log.error();
                 throw new Error("client_id has already been assigned.");
             }
         }
@@ -19876,7 +19876,7 @@ var OidcClientSettings = exports.OidcClientSettings = function () {
                 // one-time set only
                 this._authority = value;
             } else {
-                _Log.Log.error("OidcClientSettings.set_authority: authority has already been assigned.");
+                _Log.Log.error();
                 throw new Error("authority has already been assigned.");
             }
         }
@@ -20123,7 +20123,7 @@ var PopupWindow = exports.PopupWindow = function () {
     };
 
     PopupWindow.prototype._error = function _error(message) {
-        _Log.Log.error("PopupWindow.error: ", message);
+        _Log.Log.error(message);
 
         this._cleanup();
         this._reject(new Error(message));
@@ -20234,7 +20234,7 @@ var RedirectNavigator = exports.RedirectNavigator = function () {
 
     RedirectNavigator.prototype.navigate = function navigate(params) {
         if (!params || !params.url) {
-            _Log.Log.error("RedirectNavigator.navigate: No url provided");
+            _Log.Log.error();
             return Promise.reject(new Error("No url provided"));
         }
 
@@ -20303,7 +20303,7 @@ var ResponseValidator = exports.ResponseValidator = function () {
         _classCallCheck(this, ResponseValidator);
 
         if (!settings) {
-            _Log.Log.error("ResponseValidator.ctor: No settings passed to ResponseValidator");
+            _Log.Log.error();
             throw new Error("settings");
         }
 
@@ -20333,7 +20333,7 @@ var ResponseValidator = exports.ResponseValidator = function () {
 
     ResponseValidator.prototype.validateSignoutResponse = function validateSignoutResponse(state, response) {
         if (state.id !== response.state) {
-            _Log.Log.error("ResponseValidator.validateSignoutResponse: State does not match");
+            _Log.Log.error();
             return Promise.reject(new Error("State does not match"));
         }
 
@@ -20353,17 +20353,17 @@ var ResponseValidator = exports.ResponseValidator = function () {
 
     ResponseValidator.prototype._processSigninParams = function _processSigninParams(state, response) {
         if (state.id !== response.state) {
-            _Log.Log.error("ResponseValidator._processSigninParams: State does not match");
+            _Log.Log.error();
             return Promise.reject(new Error("State does not match"));
         }
 
         if (!state.client_id) {
-            _Log.Log.error("ResponseValidator._processSigninParams: No client_id on state");
+            _Log.Log.error();
             return Promise.reject(new Error("No client_id on state"));
         }
 
         if (!state.authority) {
-            _Log.Log.error("ResponseValidator._processSigninParams: No authority on state");
+            _Log.Log.error();
             return Promise.reject(new Error("No authority on state"));
         }
 
@@ -20373,7 +20373,7 @@ var ResponseValidator = exports.ResponseValidator = function () {
         }
         // ensure we're using the correct authority if the authority is not loaded from signin state
         else if (this._settings.authority && this._settings.authority !== state.authority) {
-                _Log.Log.error("ResponseValidator._processSigninParams: authority mismatch on settings vs. signin state");
+                _Log.Log.error();
                 return Promise.reject(new Error("authority mismatch on settings vs. signin state"));
             }
         // this allows the client_id to be loaded from the signin state
@@ -20382,7 +20382,7 @@ var ResponseValidator = exports.ResponseValidator = function () {
         }
         // ensure we're using the correct client_id if the client_id is not loaded from signin state
         else if (this._settings.client_id && this._settings.client_id !== state.client_id) {
-                _Log.Log.error("ResponseValidator._processSigninParams: client_id mismatch on settings vs. signin state");
+                _Log.Log.error();
                 return Promise.reject(new Error("client_id mismatch on settings vs. signin state"));
             }
 
@@ -20398,22 +20398,22 @@ var ResponseValidator = exports.ResponseValidator = function () {
         }
 
         if (state.nonce && !response.id_token) {
-            _Log.Log.error("ResponseValidator._processSigninParams: Expecting id_token in response");
+            _Log.Log.error();
             return Promise.reject(new Error("No id_token in response"));
         }
 
         if (!state.nonce && response.id_token) {
-            _Log.Log.error("ResponseValidator._processSigninParams: Not expecting id_token in response");
+            _Log.Log.error();
             return Promise.reject(new Error("Unexpected id_token in response"));
         }
 
         if (state.code_verifier && !response.code) {
-            _Log.Log.error("ResponseValidator._processSigninParams: Expecting code in response");
+            _Log.Log.error();
             return Promise.reject(new Error("No code in response"));
         }
 
         if (!state.code_verifier && response.code) {
-            _Log.Log.error("ResponseValidator._processSigninParams: Not expecting code in response");
+            _Log.Log.error();
             return Promise.reject(new Error("Unexpected code in response"));
         }
 
@@ -20440,7 +20440,7 @@ var ResponseValidator = exports.ResponseValidator = function () {
                     _Log.Log.debug("ResponseValidator._processClaims: user info claims received from user info endpoint");
 
                     if (claims.sub !== response.profile.sub) {
-                        _Log.Log.error("ResponseValidator._processClaims: sub from user info endpoint does not match sub in access_token");
+                        _Log.Log.error();
                         return Promise.reject(new Error("sub from user info endpoint does not match sub in access_token"));
                     }
 
@@ -20571,12 +20571,12 @@ var ResponseValidator = exports.ResponseValidator = function () {
             return _this4._joseUtil.validateJwtAttributes(response.id_token, issuer, audience, clockSkewInSeconds).then(function (payload) {
 
                 if (state.nonce && state.nonce !== payload.nonce) {
-                    _Log.Log.error("ResponseValidator._validateIdTokenAttributes: Invalid nonce in id_token");
+                    _Log.Log.error();
                     return Promise.reject(new Error("Invalid nonce in id_token"));
                 }
 
                 if (!payload.sub) {
-                    _Log.Log.error("ResponseValidator._validateIdTokenAttributes: No sub present in id_token");
+                    _Log.Log.error();
                     return Promise.reject(new Error("No sub present in id_token"));
                 }
 
@@ -20598,18 +20598,18 @@ var ResponseValidator = exports.ResponseValidator = function () {
         var _this6 = this;
 
         if (!state.nonce) {
-            _Log.Log.error("ResponseValidator._validateIdToken: No nonce on state");
+            _Log.Log.error();
             return Promise.reject(new Error("No nonce on state"));
         }
 
         var jwt = this._joseUtil.parseJwt(response.id_token);
         if (!jwt || !jwt.header || !jwt.payload) {
-            _Log.Log.error("ResponseValidator._validateIdToken: Failed to parse id_token", jwt);
+            _Log.Log.error(jwt);
             return Promise.reject(new Error("Failed to parse id_token"));
         }
 
         if (state.nonce !== jwt.payload.nonce) {
-            _Log.Log.error("ResponseValidator._validateIdToken: Invalid nonce in id_token");
+            _Log.Log.error();
             return Promise.reject(new Error("Invalid nonce in id_token"));
         }
 
@@ -20620,7 +20620,7 @@ var ResponseValidator = exports.ResponseValidator = function () {
 
             return _this6._metadataService.getSigningKeys().then(function (keys) {
                 if (!keys) {
-                    _Log.Log.error("ResponseValidator._validateIdToken: No signing keys from metadata");
+                    _Log.Log.error();
                     return Promise.reject(new Error("No signing keys from metadata"));
                 }
 
@@ -20630,7 +20630,7 @@ var ResponseValidator = exports.ResponseValidator = function () {
                     keys = _this6._filterByAlg(keys, jwt.header.alg);
 
                     if (keys.length > 1) {
-                        _Log.Log.error("ResponseValidator._validateIdToken: No kid found in id_token and more than one key found in metadata");
+                        _Log.Log.error();
                         return Promise.reject(new Error("No kid found in id_token and more than one key found in metadata"));
                     } else {
                         // kid is mandatory only when there are multiple keys in the referenced JWK Set document
@@ -20644,7 +20644,7 @@ var ResponseValidator = exports.ResponseValidator = function () {
                 }
 
                 if (!key) {
-                    _Log.Log.error("ResponseValidator._validateIdToken: No key matching kid or alg found in signing keys");
+                    _Log.Log.error();
                     return Promise.reject(new Error("No key matching kid or alg found in signing keys"));
                 }
 
@@ -20657,7 +20657,7 @@ var ResponseValidator = exports.ResponseValidator = function () {
                     _Log.Log.debug("ResponseValidator._validateIdToken: JWT validation successful");
 
                     if (!jwt.payload.sub) {
-                        _Log.Log.error("ResponseValidator._validateIdToken: No sub present in id_token");
+                        _Log.Log.error();
                         return Promise.reject(new Error("No sub present in id_token"));
                     }
 
@@ -20695,55 +20695,55 @@ var ResponseValidator = exports.ResponseValidator = function () {
 
     ResponseValidator.prototype._validateAccessToken = function _validateAccessToken(response) {
         if (!response.profile) {
-            _Log.Log.error("ResponseValidator._validateAccessToken: No profile loaded from id_token");
+            _Log.Log.error();
             return Promise.reject(new Error("No profile loaded from id_token"));
         }
 
         if (!response.profile.at_hash) {
-            _Log.Log.error("ResponseValidator._validateAccessToken: No at_hash in id_token");
+            _Log.Log.error();
             return Promise.reject(new Error("No at_hash in id_token"));
         }
 
         if (!response.id_token) {
-            _Log.Log.error("ResponseValidator._validateAccessToken: No id_token");
+            _Log.Log.error();
             return Promise.reject(new Error("No id_token"));
         }
 
         var jwt = this._joseUtil.parseJwt(response.id_token);
         if (!jwt || !jwt.header) {
-            _Log.Log.error("ResponseValidator._validateAccessToken: Failed to parse id_token", jwt);
+            _Log.Log.error(jwt);
             return Promise.reject(new Error("Failed to parse id_token"));
         }
 
         var hashAlg = jwt.header.alg;
         if (!hashAlg || hashAlg.length !== 5) {
-            _Log.Log.error("ResponseValidator._validateAccessToken: Unsupported alg:", hashAlg);
+            _Log.Log.error(hashAlg);
             return Promise.reject(new Error("Unsupported alg: " + hashAlg));
         }
 
         var hashBits = hashAlg.substr(2, 3);
         if (!hashBits) {
-            _Log.Log.error("ResponseValidator._validateAccessToken: Unsupported alg:", hashAlg, hashBits);
+            _Log.Log.error(hashAlg, hashBits);
             return Promise.reject(new Error("Unsupported alg: " + hashAlg));
         }
 
         hashBits = parseInt(hashBits);
         if (hashBits !== 256 && hashBits !== 384 && hashBits !== 512) {
-            _Log.Log.error("ResponseValidator._validateAccessToken: Unsupported alg:", hashAlg, hashBits);
+            _Log.Log.error(hashAlg, hashBits);
             return Promise.reject(new Error("Unsupported alg: " + hashAlg));
         }
 
         var sha = "sha" + hashBits;
         var hash = this._joseUtil.hashString(response.access_token, sha);
         if (!hash) {
-            _Log.Log.error("ResponseValidator._validateAccessToken: access_token hash failed:", sha);
+            _Log.Log.error(sha);
             return Promise.reject(new Error("Failed to validate at_hash"));
         }
 
         var left = hash.substr(0, hash.length / 2);
         var left_b64u = this._joseUtil.hexToBase64Url(left);
         if (left_b64u !== response.profile.at_hash) {
-            _Log.Log.error("ResponseValidator._validateAccessToken: Failed to validate at_hash", left_b64u, response.profile.at_hash);
+            _Log.Log.error(left_b64u, response.profile.at_hash);
             return Promise.reject(new Error("Failed to validate at_hash"));
         }
 
@@ -20793,7 +20793,7 @@ var SessionMonitor = exports.SessionMonitor = function () {
         _classCallCheck(this, SessionMonitor);
 
         if (!userManager) {
-            _Log.Log.error("SessionMonitor.ctor: No user manager passed to SessionMonitor");
+            _Log.Log.error();
             throw new Error("userManager");
         }
 
@@ -20823,12 +20823,12 @@ var SessionMonitor = exports.SessionMonitor = function () {
                     _this._start(tmpUser);
                 }).catch(function (err) {
                     // catch to suppress errors since we're in a ctor
-                    _Log.Log.error("SessionMonitor ctor: error from querySessionStatus:", err.message);
+                    _Log.Log.error(err.message);
                 });
             }
         }).catch(function (err) {
             // catch to suppress errors since we're in a ctor
-            _Log.Log.error("SessionMonitor ctor: error from getUser:", err.message);
+            _Log.Log.error(err.message);
         });
     }
 
@@ -20866,7 +20866,7 @@ var SessionMonitor = exports.SessionMonitor = function () {
                     }
                 }).catch(function (err) {
                     // catch to suppress errors since we're in non-promise callback
-                    _Log.Log.error("SessionMonitor._start: Error from getCheckSessionIframe:", err.message);
+                    _Log.Log.error(err.message);
                 });
             } else {
                 this._checkSessionIFrame.start(session_state);
@@ -20903,7 +20903,7 @@ var SessionMonitor = exports.SessionMonitor = function () {
                     _this3._start(tmpUser);
                 }).catch(function (err) {
                     // catch to suppress errors since we're in a callback
-                    _Log.Log.error("SessionMonitor: error from querySessionStatus:", err.message);
+                    _Log.Log.error(err.message);
                 });
             }, 1000);
         }
@@ -21035,27 +21035,27 @@ var SigninRequest = exports.SigninRequest = function () {
         _classCallCheck(this, SigninRequest);
 
         if (!url) {
-            _Log.Log.error("SigninRequest.ctor: No url passed");
+            _Log.Log.error();
             throw new Error("url");
         }
         if (!client_id) {
-            _Log.Log.error("SigninRequest.ctor: No client_id passed");
+            _Log.Log.error();
             throw new Error("client_id");
         }
         if (!redirect_uri) {
-            _Log.Log.error("SigninRequest.ctor: No redirect_uri passed");
+            _Log.Log.error();
             throw new Error("redirect_uri");
         }
         if (!response_type) {
-            _Log.Log.error("SigninRequest.ctor: No response_type passed");
+            _Log.Log.error();
             throw new Error("response_type");
         }
         if (!scope) {
-            _Log.Log.error("SigninRequest.ctor: No scope passed");
+            _Log.Log.error();
             throw new Error("scope");
         }
         if (!authority) {
-            _Log.Log.error("SigninRequest.ctor: No authority passed");
+            _Log.Log.error();
             throw new Error("authority");
         }
 
@@ -21424,7 +21424,7 @@ var SignoutRequest = exports.SignoutRequest = function SignoutRequest(_ref) {
     _classCallCheck(this, SignoutRequest);
 
     if (!url) {
-        _Log.Log.error("SignoutRequest.ctor: No url passed");
+        _Log.Log.error();
         throw new Error("url");
     }
 
@@ -21522,7 +21522,7 @@ var SilentRenewService = exports.SilentRenewService = function () {
                 // deliberate nop
             }).catch(function (err) {
                 // catch to suppress errors since we're in a ctor
-                _Log.Log.error("SilentRenewService.start: Error from getUser:", err.message);
+                _Log.Log.error(err.message);
             });
         }
     };
@@ -21540,7 +21540,7 @@ var SilentRenewService = exports.SilentRenewService = function () {
         this._userManager.signinSilent().then(function (user) {
             _Log.Log.debug("SilentRenewService._tokenExpiring: Silent token renewal successful");
         }, function (err) {
-            _Log.Log.error("SilentRenewService._tokenExpiring: Error from signinSilent:", err.message);
+            _Log.Log.error(err.message);
             _this._userManager.events._raiseSilentRenewError(err);
         });
     };
@@ -21638,7 +21638,7 @@ var State = exports.State = function () {
                                 remove = true;
                             }
                         } catch (e) {
-                            _Log.Log.error("State.clearStaleState: Error parsing state for key", key, e.message);
+                            _Log.Log.error(key, e.message);
                             remove = true;
                         }
                     } else {
@@ -21844,7 +21844,7 @@ var TokenClient = exports.TokenClient = function () {
         _classCallCheck(this, TokenClient);
 
         if (!settings) {
-            _Log.Log.error("TokenClient.ctor: No settings passed");
+            _Log.Log.error();
             throw new Error("settings");
         }
 
@@ -21865,19 +21865,19 @@ var TokenClient = exports.TokenClient = function () {
         args.redirect_uri = args.redirect_uri || this._settings.redirect_uri;
 
         if (!args.code) {
-            _Log.Log.error("TokenClient.exchangeCode: No code passed");
+            _Log.Log.error();
             return Promise.reject(new Error("A code is required"));
         }
         if (!args.redirect_uri) {
-            _Log.Log.error("TokenClient.exchangeCode: No redirect_uri passed");
+            _Log.Log.error();
             return Promise.reject(new Error("A redirect_uri is required"));
         }
         if (!args.code_verifier) {
-            _Log.Log.error("TokenClient.exchangeCode: No code_verifier passed");
+            _Log.Log.error();
             return Promise.reject(new Error("A code_verifier is required"));
         }
         if (!args.client_id) {
-            _Log.Log.error("TokenClient.exchangeCode: No client_id passed");
+            _Log.Log.error();
             return Promise.reject(new Error("A client_id is required"));
         }
 
@@ -21903,11 +21903,11 @@ var TokenClient = exports.TokenClient = function () {
         args.client_secret = args.client_secret || this._settings.client_secret;
 
         if (!args.refresh_token) {
-            _Log.Log.error("TokenClient.exchangeRefreshToken: No refresh_token passed");
+            _Log.Log.error();
             return Promise.reject(new Error("A refresh_token is required"));
         }
         if (!args.client_id) {
-            _Log.Log.error("TokenClient.exchangeRefreshToken: No client_id passed");
+            _Log.Log.error();
             return Promise.reject(new Error("A client_id is required"));
         }
 
@@ -21961,7 +21961,7 @@ var TokenRevocationClient = exports.TokenRevocationClient = function () {
         _classCallCheck(this, TokenRevocationClient);
 
         if (!settings) {
-            _Log.Log.error("TokenRevocationClient.ctor: No settings provided");
+            _Log.Log.error();
             throw new Error("No settings provided.");
         }
 
@@ -21976,19 +21976,19 @@ var TokenRevocationClient = exports.TokenRevocationClient = function () {
         var type = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "access_token";
 
         if (!token) {
-            _Log.Log.error("TokenRevocationClient.revoke: No token provided");
+            _Log.Log.error();
             throw new Error("No token provided.");
         }
 
         if (type !== AccessTokenTypeHint && type != RefreshTokenTypeHint) {
-            _Log.Log.error("TokenRevocationClient.revoke: Invalid token type");
+            _Log.Log.error();
             throw new Error("Invalid token type.");
         }
 
         return this._metadataService.getRevocationEndpoint().then(function (url) {
             if (!url) {
                 if (required) {
-                    _Log.Log.error("TokenRevocationClient.revoke: Revocation not supported");
+                    _Log.Log.error();
                     throw new Error("Revocation not supported");
                 }
 
@@ -22114,7 +22114,7 @@ var UrlUtility = exports.UrlUtility = function () {
         while (m = regex.exec(value)) {
             params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
             if (counter++ > 50) {
-                _Log.Log.error("UrlUtility.parseUrlFragment: response exceeded expected number of parameters", value);
+                _Log.Log.error(value);
                 return {
                     error: "Response exceeded expected number of parameters"
                 };
@@ -22271,7 +22271,7 @@ var UserInfoService = exports.UserInfoService = function () {
         _classCallCheck(this, UserInfoService);
 
         if (!settings) {
-            _Log.Log.error("UserInfoService.ctor: No settings passed");
+            _Log.Log.error();
             throw new Error("settings");
         }
 
@@ -22285,7 +22285,7 @@ var UserInfoService = exports.UserInfoService = function () {
         var _this = this;
 
         if (!token) {
-            _Log.Log.error("UserInfoService.getClaims: No token passed");
+            _Log.Log.error();
             return Promise.reject(new Error("A token is required"));
         }
 
@@ -22305,7 +22305,7 @@ var UserInfoService = exports.UserInfoService = function () {
         try {
             var jwt = this._joseUtil.parseJwt(req.responseText);
             if (!jwt || !jwt.header || !jwt.payload) {
-                _Log.Log.error("UserInfoService._getClaimsFromJwt: Failed to parse JWT", jwt);
+                _Log.Log.error(jwt);
                 return Promise.reject(new Error("Failed to parse id_token"));
             }
 
@@ -22329,7 +22329,7 @@ var UserInfoService = exports.UserInfoService = function () {
 
                 return _this2._metadataService.getSigningKeys().then(function (keys) {
                     if (!keys) {
-                        _Log.Log.error("UserInfoService._getClaimsFromJwt: No signing keys from metadata");
+                        _Log.Log.error();
                         return Promise.reject(new Error("No signing keys from metadata"));
                     }
 
@@ -22339,7 +22339,7 @@ var UserInfoService = exports.UserInfoService = function () {
                         keys = _this2._filterByAlg(keys, jwt.header.alg);
 
                         if (keys.length > 1) {
-                            _Log.Log.error("UserInfoService._getClaimsFromJwt: No kid found in id_token and more than one key found in metadata");
+                            _Log.Log.error();
                             return Promise.reject(new Error("No kid found in id_token and more than one key found in metadata"));
                         } else {
                             // kid is mandatory only when there are multiple keys in the referenced JWK Set document
@@ -22353,7 +22353,7 @@ var UserInfoService = exports.UserInfoService = function () {
                     }
 
                     if (!key) {
-                        _Log.Log.error("UserInfoService._getClaimsFromJwt: No key matching kid or alg found in signing keys");
+                        _Log.Log.error();
                         return Promise.reject(new Error("No key matching kid or alg found in signing keys"));
                     }
 
@@ -22370,7 +22370,7 @@ var UserInfoService = exports.UserInfoService = function () {
             });
             return;
         } catch (e) {
-            _Log.Log.error("UserInfoService._getClaimsFromJwt: Error parsing JWT response", e.message);
+            _Log.Log.error(e.message);
             reject(e);
             return;
         }
@@ -22548,7 +22548,7 @@ var UserManager = exports.UserManager = function (_OidcClient) {
         args.request_type = "si:p";
         var url = args.redirect_uri || this.settings.popup_redirect_uri || this.settings.redirect_uri;
         if (!url) {
-            _Log.Log.error("UserManager.signinPopup: No popup_redirect_uri or redirect_uri configured");
+            _Log.Log.error();
             return Promise.reject(new Error("No popup_redirect_uri or redirect_uri configured"));
         }
 
@@ -22584,7 +22584,7 @@ var UserManager = exports.UserManager = function (_OidcClient) {
 
             return user;
         }).catch(function (err) {
-            _Log.Log.error( true && err.message);
+            _Log.Log.error( );
         });
     };
 
@@ -22619,11 +22619,11 @@ var UserManager = exports.UserManager = function (_OidcClient) {
 
         return this._tokenClient.exchangeRefreshToken(args).then(function (result) {
             if (!result) {
-                _Log.Log.error("UserManager._useRefreshToken: No response returned from token endpoint");
+                _Log.Log.error();
                 return Promise.reject("No response returned from token endpoint");
             }
             if (!result.access_token) {
-                _Log.Log.error("UserManager._useRefreshToken: No access token returned from token endpoint");
+                _Log.Log.error();
                 return Promise.reject("No access token returned from token endpoint");
             }
 
@@ -22659,23 +22659,23 @@ var UserManager = exports.UserManager = function (_OidcClient) {
         return this._metadataService.getIssuer().then(function (issuer) {
             return _this6._joseUtil.validateJwtAttributes(id_token, issuer, _this6._settings.client_id, _this6._settings.clockSkew).then(function (payload) {
                 if (!payload) {
-                    _Log.Log.error("UserManager._validateIdTokenFromTokenRefreshToken: Failed to validate id_token");
+                    _Log.Log.error();
                     return Promise.reject(new Error("Failed to validate id_token"));
                 }
                 if (payload.sub !== profile.sub) {
-                    _Log.Log.error("UserManager._validateIdTokenFromTokenRefreshToken: sub in id_token does not match current sub");
+                    _Log.Log.error();
                     return Promise.reject(new Error("sub in id_token does not match current sub"));
                 }
                 if (payload.auth_time && payload.auth_time !== profile.auth_time) {
-                    _Log.Log.error("UserManager._validateIdTokenFromTokenRefreshToken: auth_time in id_token does not match original auth_time");
+                    _Log.Log.error();
                     return Promise.reject(new Error("auth_time in id_token does not match original auth_time"));
                 }
                 if (payload.azp && payload.azp !== profile.azp) {
-                    _Log.Log.error("UserManager._validateIdTokenFromTokenRefreshToken: azp in id_token does not match original azp");
+                    _Log.Log.error();
                     return Promise.reject(new Error("azp in id_token does not match original azp"));
                 }
                 if (!payload.azp && profile.azp) {
-                    _Log.Log.error("UserManager._validateIdTokenFromTokenRefreshToken: azp not in id_token, but present in original id_token");
+                    _Log.Log.error();
                     return Promise.reject(new Error("azp not in id_token, but present in original id_token"));
                 }
             });
@@ -22687,7 +22687,7 @@ var UserManager = exports.UserManager = function (_OidcClient) {
 
         var url = args.redirect_uri || this.settings.silent_redirect_uri || this.settings.redirect_uri;
         if (!url) {
-            _Log.Log.error("UserManager.signinSilent: No silent_redirect_uri configured");
+            _Log.Log.error();
             return Promise.reject(new Error("No silent_redirect_uri configured"));
         }
 
@@ -22774,7 +22774,7 @@ var UserManager = exports.UserManager = function (_OidcClient) {
         args.request_type = "si:s"; // this acts like a signin silent
         var url = args.redirect_uri || this.settings.silent_redirect_uri || this.settings.redirect_uri;
         if (!url) {
-            _Log.Log.error("UserManager.querySessionStatus: No silent_redirect_uri configured");
+            _Log.Log.error();
             return Promise.reject(new Error("No silent_redirect_uri configured"));
         }
 

@@ -18,6 +18,13 @@ public static class Util
     //     return Encoding.UTF8.GetString(aes.DecryptEcb(Convert.FromBase64String(v), PaddingMode.PKCS7));
     // }
 
+    public const string CaptchaId = "CaptchaId";
+    public const string CaptchaTtlKey = "CaptchaId:{0}";
+    public const string PhoneNumberTokenProvider = "PhoneNumberTokenProvider";
+    public const string PurposeLogin = "Login";
+    public const string PurposeResetPassword = "ResetPassword";
+    public const string PurposeRegister = "Register";
+
     public static void GenerateCertificate(string path)
     {
         // 设置证书的有效期

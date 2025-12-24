@@ -3,37 +3,26 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using IdentityServer4.Validation;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
-using SecurityTokenService.Stores;
 
 namespace SecurityTokenService.IdentityServer;
 
-public class PhoneCodeGrantValidator : IExtensionGrantValidator
+public class PhoneCodeGrantValidator(
+    ILogger<PhoneCodeGrantValidator> logger,
+    UserManager<User> userManager,
+    IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions)
+    : IExtensionGrantValidator
 {
-    private readonly UserManager<User> _userManager;
-    private readonly ILogger<PhoneCodeGrantValidator> _logger;
-    private readonly IPhoneCodeStore _phoneCodeStore;
-
-    public PhoneCodeGrantValidator(
-        ILogger<PhoneCodeGrantValidator> logger, UserManager<User> userManager,
-        // IdentityDbContext identityDbContext,
-        IPhoneCodeStore phoneCodeStore)
-    {
-        _logger = logger;
-        _userManager = userManager;
-        // _identityDbContext = identityDbContext;
-        _phoneCodeStore = phoneCodeStore;
-    }
-
     public async Task ValidateAsync(ExtensionGrantValidationContext context)
     {
+        //获取登录参数
+        var phoneNumber = context.Request.Raw["phone_number"];
+        var verificationCode = context.Request.Raw["code"];
         try
         {
-            //获取登录参数
-            var phoneNumber = context.Request.Raw["phone_number"];
-            var verificationCode = context.Request.Raw["code"];
             if (string.IsNullOrWhiteSpace(phoneNumber) || string.IsNullOrWhiteSpace(verificationCode))
             {
                 context.Result = new GrantValidationResult
@@ -45,7 +34,8 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
             }
 
             //根据手机号获取用户信息
-            var user = await GetUserByPhoneNumberAsync(phoneNumber);
+            var user = await userManager.GetUserByPhoneNumberAsync(phoneNumber,
+                identityExtensionOptions.CurrentValue.SoftDeleteColumn);
             if (user == null)
             {
                 context.Result = new GrantValidationResult
@@ -56,7 +46,7 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
                 return;
             }
 
-            if (await _userManager.IsLockedOutAsync(user))
+            if (await userManager.IsLockedOutAsync(user))
             {
                 context.Result = new GrantValidationResult
                 {
@@ -66,23 +56,12 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
                 return;
             }
 
-            var code = await _phoneCodeStore.GetAsync(phoneNumber);
-            //获取手机号对应的缓存验证码
-            if (string.IsNullOrEmpty(code))
+            var isValid = await userManager.VerifyUserTokenAsync(user,
+                userManager.Options.Tokens.AuthenticatorTokenProvider, Util.PurposeLogin, verificationCode);
+
+            if (!isValid)
             {
-                //如果获取不到缓存验证码，说明手机号不存在，或者验证码过期，但是发送验证码时已经验证过手机号是存在的，所以只能是验证码过期
-                context.Result = new GrantValidationResult
-                {
-                    IsError = true, Error = "code_is_expired", ErrorDescription = "验证码过期"
-                };
-
-                return;
-            }
-
-
-            if (verificationCode != code)
-            {
-                await _userManager.AccessFailedAsync(user);
+                await userManager.AccessFailedAsync(user);
                 context.Result = new GrantValidationResult
                 {
                     IsError = true, Error = "invalid_code", ErrorDescription = "验证码不正确"
@@ -93,28 +72,21 @@ public class PhoneCodeGrantValidator : IExtensionGrantValidator
 
             // 授权通过返回
             // 返回角色等？
-            context.Result = new GrantValidationResult(user.Id, "custom",
+            context.Result = new GrantValidationResult(user.Id, "phone_code",
                 customResponse: new Dictionary<string, object>
                 {
                     { "expires_at", DateTimeOffset.Now.ToUnixTimeSeconds() + context.Request.AccessTokenLifetime }
                 });
-            _logger.LogInformation("Grant success");
+            logger.LogInformation("Grant success");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.ToString());
+            logger.LogError(ex, "{Phone} 验证码 {Code} 登录失败", phoneNumber, verificationCode);
             context.Result = new GrantValidationResult
             {
                 IsError = true, Error = "unknown_error", ErrorDescription = ex.Message
             };
         }
-    }
-
-    //根据手机号获取用户信息
-    private async Task<User> GetUserByPhoneNumberAsync(string phoneNumber)
-    {
-        var user = await _userManager.Users.AsNoTracking().FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber);
-        return user;
     }
 
     public string GrantType => "phone_code";

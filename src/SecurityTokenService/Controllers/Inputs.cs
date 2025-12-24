@@ -9,18 +9,18 @@ public static class Inputs
 {
     public static class V1
     {
-        public class ResetPasswordByOldPasswordInput
+        public class ResetPasswordByOriginPasswordInput
         {
             /// <summary>
             /// 用户名或邮箱或手机号
             /// </summary>
-            [Required, StringLength(50)]
+            [Required, StringLength(50, ErrorMessage = "用户名长度不能超过 50 位")]
             public string UserName { get; set; }
 
             /// <summary>
             /// 新密码
             /// </summary>
-            [Required, StringLength(32)]
+            [Required, StringLength(32, ErrorMessage = "密码长度不能超过 32 位")]
             public string NewPassword { get; set; }
 
             /// <summary>
@@ -33,8 +33,14 @@ public static class Inputs
             /// <summary>
             /// 旧密码
             /// </summary>
-            [Required, StringLength(50)]
+            [Required, StringLength(50, ErrorMessage = "密码长度不能超过 32 位")]
             public string OldPassword { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            [StringLength(10), Required(ErrorMessage = "验证码不正确")]
+            public string CaptchaCode { get; set; }
         }
 
         public class ResetPasswordByPhoneNumberInput
@@ -61,11 +67,11 @@ public static class Inputs
             /// <summary>
             /// 验证码
             /// </summary>
-            [Required(ErrorMessage = "请填写验证码"), StringLength(6, ErrorMessage = "验证码长度不正确")]
+            [Required(ErrorMessage = "请填写验证码"), StringLength(8, ErrorMessage = "验证码长度不正确")]
             public string VerifyCode { get; set; }
         }
 
-        public class SendSmsCode
+        public class SendCode
         {
             /// <summary>
             /// 
@@ -78,6 +84,18 @@ public static class Inputs
             /// </summary>
             [StringLength(10, ErrorMessage = "国家地区码长度不正确")]
             public string CountryCode { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            [StringLength(20, ErrorMessage = "参数长度不正确")]
+            public string Scenario { get; set; } = "Login";
+
+            /// <summary>
+            /// Login | ResetPassword | Register
+            /// </summary>
+            [StringLength(10), Required(ErrorMessage = "验证码不正确")]
+            public string CaptchaCode { get; set; }
         }
 
         public class ConsentInput
@@ -175,6 +193,12 @@ public static class Inputs
             /// </summary>
             [StringLength(5)]
             public string Button { get; set; }
+
+            /// <summary>
+            /// 
+            /// </summary>
+            [StringLength(10), Required(ErrorMessage = "验证码不正确")]
+            public string CaptchaCode { get; set; }
         }
 
         public class LogoutInput

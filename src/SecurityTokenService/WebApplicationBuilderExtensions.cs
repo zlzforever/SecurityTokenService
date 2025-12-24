@@ -19,7 +19,6 @@ using SecurityTokenService.Identity;
 using SecurityTokenService.IdentityServer;
 using SecurityTokenService.Options;
 using SecurityTokenService.Sms;
-using SecurityTokenService.Stores;
 using Serilog;
 using Serilog.Events;
 
@@ -130,7 +129,8 @@ public static class WebApplicationBuilderExtensions
                 throw new ArgumentException($"ProtectKeysWithCert： {protectKeysWithCertPath} 文件不存在");
             }
 
-            dataProtectionBuilder.ProtectKeysWithCertificate(new X509Certificate2(protectKeysWithCertPath));
+            dataProtectionBuilder.ProtectKeysWithCertificate(
+                X509CertificateLoader.LoadCertificateFromFile(protectKeysWithCertPath));
         }
 
         if ("mysql".Equals(builder.Configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
@@ -145,17 +145,22 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// TODO: 需要调整为多 SMS 支持
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
     public static WebApplicationBuilder AddSmsSender(this WebApplicationBuilder builder)
     {
-        // 注册短信平台
-        switch (builder.Configuration["SecurityTokenService:SmsProvider"])
+        var securityTokenServiceOptions =
+            builder.Configuration.GetSection("SecurityTokenService").Get<SecurityTokenServiceOptions>();
+        if ("TencentCloud".Equals(securityTokenServiceOptions.SmsProvider, StringComparison.OrdinalIgnoreCase))
         {
-            case "TencentCloud":
-                builder.Services.AddTransient<ISmsSender, TencentCloudSmsSender>();
-                break;
-            default:
-                builder.Services.AddTransient<ISmsSender, AliyunSmsSender>();
-                break;
+            builder.Services.AddTransient<ISmsSender, TencentCloudSmsSender>();
+        }
+        else
+        {
+            builder.Services.AddTransient<ISmsSender, AliyunSmsSender>();
         }
 
         return builder;
@@ -163,7 +168,21 @@ public static class WebApplicationBuilderExtensions
 
     public static WebApplicationBuilder AddIdentity(this WebApplicationBuilder builder)
     {
-        var identityBuilder = builder.Services.AddIdentity<User, IdentityRole>();
+        var identityBuilder = builder.Services.AddIdentity<User, IdentityRole>(x =>
+        {
+            x.Tokens.PasswordResetTokenProvider = Util.PhoneNumberTokenProvider;
+            x.Tokens.ProviderMap.Add(Util.PhoneNumberTokenProvider, new TokenProviderDescriptor(
+                typeof(PhoneNumberTokenProvider<User>)
+            ));
+        });
+        var tokenLifespan = builder.Configuration.GetSection("DataProtectionTokenProviderOptions:TokenLifespan")
+            .Get<int?>();
+        if (tokenLifespan.HasValue)
+        {
+            builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+                options.TokenLifespan = TimeSpan.FromSeconds(tokenLifespan.Value));
+        }
+
         identityBuilder.AddDefaultTokenProviders()
             .AddErrorDescriber<SecurityTokenServiceIdentityErrorDescriber>();
 
@@ -198,7 +217,7 @@ public static class WebApplicationBuilderExtensions
             .AddProfileService<ProfileService>()
             .AddResourceOwnerValidator<ResourceOwnerPasswordValidator>();
 
-        identityServerBuilder.Services.AddScoped<IPhoneCodeStore, PhoneCodeStore>();
+        // identityServerBuilder.Services.AddScoped<IPhoneCodeStore, PhoneCodeStore>();
 
         if ("mysql".Equals(builder.Configuration.GetDatabaseType(), StringComparison.OrdinalIgnoreCase))
         {

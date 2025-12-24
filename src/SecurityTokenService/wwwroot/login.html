@@ -23,6 +23,20 @@
         .tab-content {
             padding-top: 15px;
         }
+
+        #captcha-img {
+            width: 140px;
+            height: 34px;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            cursor: pointer; /* 鼠标悬浮显示手型，提示可点击 */
+            transition: opacity 0.2s; /* 刷新时添加过渡动画 */
+        }
+
+        #captcha-img:hover {
+            border-color: #409eff; /* 悬浮时高亮边框，增强交互提示 */
+        }
+
     </style>
 </head>
 <body>
@@ -81,6 +95,18 @@
                                        name="password"/>
                             </div>
                             <div class="form-group">
+                                <label for="captchaCode">
+                                    Captcha
+                                </label>
+                                <input type="text" class="form-control" placeholder="CaptchaCode"
+                                       autoComplete="off"
+                                       id="captchaCode"
+                                       name="captchaCode"/>
+                                <div class="captcha-container">
+                                    <img id="captcha-img" alt="验证码" title="点击刷新验证码" src=""/>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="true"
                                            id="rememberLogin"
@@ -109,12 +135,6 @@
                                 </button>
                             </div>
                             <div class="form-group">
-                                <label for="verifyCode">VerifyCode</label>
-                                <input type="text" class="form-control" placeholder="VerifyCode"
-                                       autocomplete="off"
-                                       id="verifyCode"
-                                       name="verifyCode"/>
-
                             </div>
                             <button class="btn btn-primary" name="button" id="smsLoginBtn" value="login">Login</button>
                         </form>

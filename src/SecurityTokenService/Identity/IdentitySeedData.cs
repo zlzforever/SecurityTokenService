@@ -7,7 +7,7 @@ using SecurityTokenService.Data;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
 using SecurityTokenService.Extensions;
-using SecurityTokenService.Stores;
+// using SecurityTokenService.Stores;
 
 namespace SecurityTokenService.Identity;
 
@@ -35,8 +35,8 @@ public static class IdentitySeedData
             securityTokenServiceDbContext.Database.Migrate();
         }
 
-        var phoneCodeStore = scope.ServiceProvider.GetService<IPhoneCodeStore>();
-        phoneCodeStore?.InitializeAsync().Wait();
+        // var phoneCodeStore = scope.ServiceProvider.GetService<IPhoneCodeStore>();
+        // phoneCodeStore?.InitializeAsync().Wait();
 
         var seedData = scope.ServiceProvider.GetRequiredService<SeedData>();
         seedData.Load();

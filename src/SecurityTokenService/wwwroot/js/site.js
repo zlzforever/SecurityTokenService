@@ -390,6 +390,39 @@ function initLogin() {
             },
         });
     });
+
+    const captchaImg = document.getElementById('captcha-img');
+    // 点击验证码图片触发刷新
+    captchaImg.addEventListener('click', refreshCaptcha);
+    refreshCaptcha()
+}
+
+// 加载/刷新验证码的核心函数
+function refreshCaptcha() {
+    const captchaImg = document.getElementById('captcha-img');
+    captchaImg.style.opacity = 0;
+    const url = `/api/v1.0/captcha/generate?_t=${Date.now()}`;
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'blob'; // 关键！指定响应类型为Blob
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            // 二进制数据在xhr.response中（而非responseText）
+            const blobData = xhr.response;
+            captchaImg.src = URL.createObjectURL(blobData);
+            captchaImg.style.opacity = 1;
+        } else {
+            captchaImg.alt = '加载失败， 点击重试';
+            console.error(xhr.status);
+        }
+    };
+
+    xhr.onerror = function () {
+        captchaImg.alt = '网络错误， 点击重试';
+        console.error();
+    };
+
+    xhr.send();
 }
 
 function initChangePassword() {
@@ -434,7 +467,7 @@ function initChangePassword() {
                     type: "POST",
                     url: "account/resetPassword2",
                     data: data,
-                    success: function (res, a, b) {
+                    success: function (res) {
                         if (res.code !== 200) {
                             message.show();
                             if (!res.message) {
@@ -447,7 +480,7 @@ function initChangePassword() {
                                     if (!message) {
                                         continue;
                                     }
-                                    html += i == 0 ? message : '<br/>' + message;
+                                    html += i === 0 ? message : '<br/>' + message;
                                 }
                                 message.html(html)
                             }
@@ -456,7 +489,7 @@ function initChangePassword() {
                             window.location.href = "/";
                         }
                     },
-                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    error: function () {
                         message.show();
                         message.text('服务器出小差')
                     }
@@ -473,13 +506,13 @@ function initLogout() {
 
 function initSession() {
     $.get("session", (res) => {
-        if (res.data && res.data.some(x => x.type == "sub")) {
+        if (res.data && res.data.some(x => x.type === "sub")) {
             const user = $("#user");
             user.attr("sub", res.data.sub);
-            let claims = res.data.filter(x => x.type == "name");
-            let name = '';
-            if (claims.length == 0) {
-                claims = res.data.filter(x => x.type == "email");
+            let claims = res.data.filter(x => x.type === "name");
+            let name;
+            if (claims.length === 0) {
+                claims = res.data.filter(x => x.type === "email");
             }
             name = claims[0].value;
             user.prepend(name);
@@ -490,6 +523,5 @@ function initSession() {
 
 function getQueryParam(queryName) {
     const urlSearchParams = new URLSearchParams(window.location.search);
-    const value = urlSearchParams.get(queryName);
-    return value;
+    return urlSearchParams.get(queryName);
 }

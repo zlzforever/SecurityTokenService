@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -21,7 +20,6 @@ using Microsoft.Extensions.Options;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 using SecurityTokenService.Sms;
-using SecurityTokenService.Stores;
 
 namespace SecurityTokenService.Controllers;
 
@@ -37,8 +35,8 @@ public class AccountController(
     UserManager<User> userManager,
     ILogger<AccountController> logger,
     IHostEnvironment hostEnvironment,
-    IPhoneCodeStore phoneCodeStore,
-    // IPasswordValidator<User> passwordValidator,
+    // IPhoneCodeStore phoneCodeStore,
+    IPasswordValidator<User> passwordValidator,
     ISmsSender smsSender,
     IMemoryCache memoryCache)
     : ControllerBase
@@ -51,9 +49,9 @@ public class AccountController(
     /// 要提供用户名
     /// </summary>
     /// <returns></returns>
-    [HttpPost("ResetPassword2")]
-    public async Task<IActionResult> ResetPasswordByOldPasswordAsync(
-        Inputs.V1.ResetPasswordByOldPasswordInput input)
+    [HttpPost("ResetPwdByOriginPwd")]
+    public async Task<IActionResult> ResetPasswordByOriginPassword(
+        Inputs.V1.ResetPasswordByOriginPasswordInput input)
     {
         var modelErrorResult = BuildModelValidResult();
         if (modelErrorResult != null)
@@ -61,40 +59,26 @@ public class AccountController(
             return modelErrorResult;
         }
 
+        var checkCaptchaResult = CheckCaptcha(input.CaptchaCode);
+        if (checkCaptchaResult != null)
+        {
+            return new ObjectResult(checkCaptchaResult);
+        }
+
         var user = await userManager.FindAsync(input.UserName,
             _identityExtensionOptions.SoftDeleteColumn);
 
-        if (user == null)
+        var availableResult = await CheckUserAvailableAsync(user);
+        if (availableResult != null)
         {
-            return new ObjectResult(new ApiResult
-            {
-                Code = Errors.IdentityUserIsNotExist, Success = false, Message = "用户不存在"
-            });
+            return new ObjectResult(availableResult);
         }
-
-        if (await userManager.IsLockedOutAsync(user))
-        {
-            return new ObjectResult(new ApiResult
-            {
-                Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "用户被锁定"
-            });
-        }
-
-        // var passwordValidateResult =
-        //     await passwordValidator.ValidateAsync(userManager, user, input.NewPassword);
-        // if (!passwordValidateResult.Succeeded)
-        // {
-        //     var msg = string.Join(Environment.NewLine, passwordValidateResult.Errors.Select(x => x.Description));
-        //     return new ObjectResult(new ApiResult
-        //     {
-        //         Code = Errors.PasswordValidateFailed, Success = false, Message = msg
-        //     });
-        // }
 
         var checkPasswordResult = await userManager.CheckPasswordAsync(user, input.OldPassword);
         if (checkPasswordResult)
         {
             var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            // 若设置了密码策略此方法内部会校验
             var result = await userManager.ResetPasswordAsync(user, token, input.ConfirmNewPassword);
             if (result.Succeeded)
             {
@@ -102,8 +86,10 @@ public class AccountController(
             }
 
             var msg = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+            logger.LogError("用户 {User} 重置密码失败: {Info} ", input.UserName, msg);
+
             return new ObjectResult(
-                new ApiResult { Code = Errors.ChangePasswordFailed, Success = false, Message = msg });
+                new ApiResult { Code = Errors.ChangePasswordFailed, Success = false, Message = "重置密码失败" });
         }
 
         return new ObjectResult(new ApiResult
@@ -117,8 +103,8 @@ public class AccountController(
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    [HttpPost("ResetPassword")]
-    public async Task<IActionResult> ResetPasswordAsync(
+    [HttpPost("ResetPwd")]
+    public async Task<IActionResult> ResetPassword(
         [FromBody] Inputs.V1.ResetPasswordByPhoneNumberInput input)
     {
         var modelErrorResult = BuildModelValidResult();
@@ -130,59 +116,28 @@ public class AccountController(
         var user = await userManager.FindAsync(input.PhoneNumber,
             _identityExtensionOptions.SoftDeleteColumn);
 
-        if (user == null)
+        var availableResult = await CheckUserAvailableAsync(user);
+        if (availableResult != null)
         {
-            return new ObjectResult(new ApiResult
-            {
-                Code = Errors.IdentityUserIsNotExist, Success = false, Message = "用户不存在"
-            });
+            return new ObjectResult(availableResult);
         }
 
-        if (await userManager.IsLockedOutAsync(user))
-        {
-            return new ObjectResult(new ApiResult
-            {
-                Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "用户被锁定"
-            });
-        }
-
-        // var passwordValidateResult =
-        //     await passwordValidator.ValidateAsync(userManager, user, input.NewPassword);
-        // if (!passwordValidateResult.Succeeded)
-        // {
-        //     var msg = string.Join(Environment.NewLine, passwordValidateResult.Errors.Select(x => x.Description));
-        //     return new ObjectResult(new ApiResult
-        //     {
-        //         Code = Errors.PasswordValidateFailed, Success = false, Message = msg
-        //     });
-        // }
-
-        var code = await phoneCodeStore.GetAsync(input.PhoneNumber);
-        //获取手机号对应的缓存验证码
-        if (string.IsNullOrEmpty(code) || input.VerifyCode != code)
-        {
-            return new ObjectResult(new ApiResult
-            {
-                Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "验证码不正确"
-            });
-        }
-
-        var token = await userManager.GeneratePasswordResetTokenAsync(user);
-        var result = await userManager.ResetPasswordAsync(user, token, input.ConfirmNewPassword);
+        var result = await userManager.ResetPasswordAsync(user, input.VerifyCode, input.ConfirmNewPassword);
 
         if (!result.Succeeded)
         {
             var msg = string.Join(Environment.NewLine, result.Errors.Select(x => x.Description));
+            // TODO: 手机号脱敏存日志
+            logger.LogError("用户 {User} 重置密码失败: {Info} ", input.PhoneNumber, msg);
             return new ObjectResult(
-                new ApiResult { Code = Errors.ChangePasswordFailed, Success = false, Message = msg });
+                new ApiResult { Code = Errors.ChangePasswordFailed, Success = false, Message = "重置密码失败" });
         }
 
-        await phoneCodeStore.UpdateAsync(input.PhoneNumber, "");
         return new ObjectResult(new ApiResult { Message = "修改成功" });
     }
 
     [HttpPost("Login")]
-    public async Task<IActionResult> LoginAsync(Inputs.V1.LoginInput model)
+    public async Task<IActionResult> Login(Inputs.V1.LoginInput model)
     {
         var modelErrorResult = BuildModelValidResult();
         if (modelErrorResult != null)
@@ -190,16 +145,18 @@ public class AccountController(
             return modelErrorResult;
         }
 
-        // var passwordValidateResult = await passwordValidator.ValidateAsync(userManager, new User(""), model.Password);
-        // if (!passwordValidateResult.Succeeded)
-        // {
-        //     var message = string.Join(Environment.NewLine,
-        //         passwordValidateResult.Errors.Select(x => x.Description));
-        //     return new ObjectResult(new ApiResult
-        //     {
-        //         Code = Errors.PasswordValidateFailed, Success = false, Message = $"{message}\n请先修改密码后再登录"
-        //     });
-        // }
+        if (_options.ForcePasswordSecurityPolicy)
+        {
+            var passwordValidateResult =
+                await passwordValidator.ValidateAsync(userManager, new User(""), model.Password);
+            if (!passwordValidateResult.Succeeded)
+            {
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.PasswordValidateFailed, Success = false, Message = "密码不符合安全要求， 请先修改密码"
+                });
+            }
+        }
 
         var context = await interaction.GetAuthorizationContextAsync(model.ReturnUrl);
         // the user clicked the "cancel" button
@@ -231,6 +188,12 @@ public class AccountController(
 
             // since we don't have a valid context, then we just go back to the home page
             return new ObjectResult(new RedirectResult("/"));
+        }
+
+        var checkCaptchaResult = CheckCaptcha(model.CaptchaCode);
+        if (checkCaptchaResult != null)
+        {
+            return new ObjectResult(checkCaptchaResult);
         }
 
         var user = await userManager.FindAsync(model.Username, _identityExtensionOptions.SoftDeleteColumn);
@@ -315,12 +278,12 @@ public class AccountController(
     }
 
     /// <summary>
-    /// 通过短信登录
+    /// 通过验证码登录
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
-    [HttpPost("LoginBySms")]
-    public async Task<IActionResult> LoginBySmsAsync(Inputs.V1.LoginBySmsInput model)
+    [HttpPost("LoginByCode")]
+    public async Task<IActionResult> LoginByCode(Inputs.V1.LoginBySmsInput model)
     {
         if (!ModelState.IsValid)
         {
@@ -385,9 +348,9 @@ public class AccountController(
             });
         }
 
-        var code = await phoneCodeStore.GetAsync(model.PhoneNumber);
-        //获取手机号对应的缓存验证码
-        if (string.IsNullOrEmpty(code) || model.VerifyCode != code)
+        var isValid = await userManager.VerifyUserTokenAsync(user, Util.PhoneNumberTokenProvider, Util.PurposeLogin,
+            model.VerifyCode);
+        if (!isValid)
         {
             return new ObjectResult(new ApiResult
             {
@@ -396,6 +359,7 @@ public class AccountController(
         }
 
         await signInManager.SignInAsync(user, true);
+        await userManager.UpdateSecurityStampAsync(user);
 
         await events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
             clientId: context?.Client.ClientId));
@@ -414,10 +378,8 @@ public class AccountController(
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    [HttpPost("SendSmsCode")]
-    [HttpPost("sms")]
-    // [EnableRateLimiting("sliding")]
-    public async Task<ApiResult> SendSmsCodeAsync([FromBody] Inputs.V1.SendSmsCode input)
+    [HttpPost("SendCode")]
+    public async Task<ApiResult> SendCode([FromBody] Inputs.V1.SendCode input)
     {
         var modelErrorResult = BuildModelValidApiResult();
         if (modelErrorResult != null)
@@ -430,44 +392,49 @@ public class AccountController(
         var now = DateTimeOffset.Now.ToUnixTimeSeconds();
         if (timestamp != null && now - timestamp < 60)
         {
-            return new ApiResult { Code = 429, Message = "验证码发送过于频繁， 请稍后再试", Success = false };
+            // TODO: 手机号要脱敏
+            logger.LogWarning("{Phone} 验证码发送过于频繁", input.PhoneNumber);
+            return new ApiResult { Code = 429, Message = "验证码发送过于频繁，请稍后再试", Success = false };
         }
 
-        // 不存在也应该发短信， 因为可以是通过短信注册的
-        // var user = await _userManager.FindAsync(input.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
-        // if (user != null)
-        // {
-        //     if (await _userManager.IsLockedOutAsync(user))
-        //     {
-        //         return new ApiResult { Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "帐号被锁定" };
-        //     }
-        // }
-        var codeLength = _options.GetSmsCodeNumberLength();
-        // 范围是10^(n-1)到10^n,如果是4,则生成的范围是1000到9999,以此类推
-        var code = RandomNumberGenerator.GetInt32((int)Math.Pow(10, codeLength - 1), (int)Math.Pow(10, codeLength))
-            .ToString();
-
-        var countryCode = string.IsNullOrWhiteSpace(input.CountryCode) ? "+86" : input.CountryCode;
-        var phoneNumber = $"{countryCode} {input.PhoneNumber}";
-        await phoneCodeStore.UpdateAsync(input.PhoneNumber, code);
-
-        if (hostEnvironment.IsDevelopment())
+        var checkCaptchaResult = CheckCaptcha(input.CaptchaCode);
+        if (checkCaptchaResult != null)
         {
-            logger.LogInformation($"Send sms code to {input.PhoneNumber}: {code}");
-            memoryCache.Set(key, now, TimeSpan.FromSeconds(60));
-            return new ApiResult { Success = true };
+            return checkCaptchaResult;
         }
 
-        try
+        if ("Login".Equals(input.Scenario, StringComparison.OrdinalIgnoreCase))
         {
-            await smsSender.SendAsync(phoneNumber, code);
-            memoryCache.Set(key, now, TimeSpan.FromSeconds(60));
-            return new ApiResult { Success = true, Message = "发送成功" };
+            var user = await userManager.FindAsync(input.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
+            var availableResult = await CheckUserAvailableAsync(user);
+            if (availableResult != null)
+            {
+                return availableResult;
+            }
+
+            return await SendCodeAsync(key, user, input, Util.PurposeLogin);
         }
-        catch (FriendlyException fe)
+
+        if ("ResetPassword".Equals(input.Scenario, StringComparison.OrdinalIgnoreCase))
         {
-            return new ApiResult { Message = fe.Message, Success = false, Code = Errors.SendSmsFailed };
+            var user = await userManager.FindAsync(input.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
+            var availableResult = await CheckUserAvailableAsync(user);
+            if (availableResult != null)
+            {
+                return availableResult;
+            }
+
+            var code = await userManager.GeneratePasswordResetTokenAsync(user);
+            return await SendCodeAsync(key, input, code);
         }
+
+        if ("Register".Equals(input.Scenario, StringComparison.OrdinalIgnoreCase))
+        {
+            // TODO
+            return await SendCodeAsync(key, null, input, Util.PurposeRegister);
+        }
+
+        return new ApiResult { Code = 404, Message = "参数错误", Success = false };
     }
 
     [HttpGet("Logout")]
@@ -612,5 +579,77 @@ public class AccountController(
     {
         var apiErrorResult = BuildModelValidApiResult();
         return apiErrorResult == null ? null : new ObjectResult(apiErrorResult);
+    }
+
+    private async Task<ApiResult> SendCodeAsync(string key, User user, Inputs.V1.SendCode input, string purpose)
+    {
+        var code = await userManager.GenerateUserTokenAsync(user, Util.PhoneNumberTokenProvider, purpose);
+        return await SendCodeAsync(key, input, code);
+    }
+
+    private async Task<ApiResult> SendCodeAsync(string key, Inputs.V1.SendCode input, string code)
+    {
+        var countryCode = string.IsNullOrWhiteSpace(input.CountryCode) ? "+86" : input.CountryCode;
+        var phoneNumber = $"{countryCode} {input.PhoneNumber}";
+
+        try
+        {
+            if (hostEnvironment.IsDevelopment())
+            {
+                logger.LogWarning("Send short message to {PhoneNumber}: {Code} success", input.PhoneNumber, code);
+            }
+            else
+            {
+                await smsSender.SendAsync(phoneNumber, code);
+            }
+
+            memoryCache.Set(key, DateTimeOffset.Now.ToUnixTimeSeconds(), TimeSpan.FromSeconds(60));
+            return new ApiResult { Success = true, Message = "发送成功" };
+        }
+        catch (FriendlyException fe)
+        {
+            return new ApiResult { Message = fe.Message, Success = false, Code = Errors.SendSmsFailed };
+        }
+    }
+
+    private ApiResult CheckCaptcha(string captchaCode)
+    {
+        var captchaId = Request.Cookies["CaptchaId"];
+        if (string.IsNullOrEmpty(captchaId))
+        {
+            return new ApiResult { Code = Errors.VerifyCodeIsExpired, Success = false, Message = "验证码已过期， 请刷新" };
+        }
+
+        var cacheKey = string.Format(Util.CaptchaTtlKey, captchaId);
+        var realCaptchaCode = memoryCache.Get<string>(cacheKey);
+        // 步骤3：校验验证码
+        if (string.IsNullOrEmpty(realCaptchaCode))
+        {
+            return new ApiResult { Code = Errors.VerifyCodeIsExpired, Success = false, Message = "验证码已过期， 请刷新" };
+        }
+
+        if (!string.Equals(realCaptchaCode, captchaCode, StringComparison.OrdinalIgnoreCase))
+        {
+            return new ApiResult { Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "验证码错误" };
+        }
+
+        // 步骤4：验证码验证通过后，删除缓存（防止重复使用）
+        memoryCache.Remove(cacheKey);
+        return null;
+    }
+
+    private async Task<ApiResult> CheckUserAvailableAsync(User user)
+    {
+        if (user == null)
+        {
+            return new ApiResult { Code = Errors.IdentityUserIsNotExist, Success = false, Message = "用户不存在" };
+        }
+
+        if (await userManager.IsLockedOutAsync(user))
+        {
+            return new ApiResult { Code = Errors.IdentityUserIsLockedOut, Success = false, Message = "用户被锁定" };
+        }
+
+        return null;
     }
 }
