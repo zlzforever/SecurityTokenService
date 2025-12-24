@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
+using SecurityTokenService.Utils;
 
 namespace SecurityTokenService.IdentityServer;
 

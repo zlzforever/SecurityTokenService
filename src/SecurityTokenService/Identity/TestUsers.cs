@@ -7,7 +7,7 @@ using IdentityServer4.Test;
 
 namespace SecurityTokenService.Identity;
 
-public class TestUsers
+public static class TestUsers
 {
     public static List<TestUser> Users
     {

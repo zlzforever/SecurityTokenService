@@ -8,12 +8,12 @@ using SecurityTokenService.Options;
 
 namespace SecurityTokenService.Sms;
 
-public class AliyunSmsSender(
-    IOptionsMonitor<AliyunOptions> aliyunOptions,
-    ILogger<AliyunSmsSender> logger)
+public class AliYunSmsSender(
+    IOptionsMonitor<AliYunOptions> aliyunOptions,
+    ILogger<AliYunSmsSender> logger)
     : ISmsSender
 {
-    private readonly AliyunOptions _aliyunOptions = aliyunOptions.CurrentValue;
+    private readonly AliYunOptions _aliYunOptions = aliyunOptions.CurrentValue;
 
     public async Task SendAsync(string number, string code)
     {
@@ -25,7 +25,7 @@ public class AliyunSmsSender(
         }
 
         var countryCode = pieces[0];
-        var template = _aliyunOptions.Sms.Templates.GetOrDefault(countryCode);
+        var template = _aliYunOptions.Sms.Templates.GetOrDefault(countryCode);
         if (string.IsNullOrEmpty(template))
         {
             logger.LogError($"CountryCode {countryCode} no sms template");
@@ -38,7 +38,7 @@ public class AliyunSmsSender(
             new AlibabaCloud.SDK.Dysmsapi20170525.Models.SendSmsRequest
             {
                 PhoneNumbers = phone,
-                SignName = _aliyunOptions.Sms.SignName,
+                SignName = _aliYunOptions.Sms.SignName,
                 TemplateCode = template,
                 TemplateParam = JsonSerializer.Serialize(new { code })
             };
@@ -73,10 +73,10 @@ public class AliyunSmsSender(
         var config = new AlibabaCloud.OpenApiClient.Models.Config
         {
             // 您的AccessKey ID
-            AccessKeyId = _aliyunOptions.AccessKey,
+            AccessKeyId = _aliYunOptions.AccessKey,
             // 您的AccessKey Secret
-            AccessKeySecret = _aliyunOptions.Secret,
-            Endpoint = _aliyunOptions.Endpoint,
+            AccessKeySecret = _aliYunOptions.Secret,
+            Endpoint = _aliYunOptions.Endpoint,
         };
         // 访问的域名
         return new AlibabaCloud.SDK.Dysmsapi20170525.Client(config);

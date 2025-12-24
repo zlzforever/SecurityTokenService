@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using IdentityModel;
@@ -20,6 +20,7 @@ using Microsoft.Extensions.Options;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 using SecurityTokenService.Sms;
+using SecurityTokenService.Utils;
 
 namespace SecurityTokenService.Controllers;
 
@@ -53,10 +54,10 @@ public class AccountController(
     public async Task<IActionResult> ResetPasswordByOriginPassword(
         Inputs.V1.ResetPasswordByOriginPasswordInput input)
     {
-        var modelErrorResult = BuildModelValidResult();
+        var modelErrorResult = BuildModelValidApiResult();
         if (modelErrorResult != null)
         {
-            return modelErrorResult;
+            return new ObjectResult(modelErrorResult);
         }
 
         var checkCaptchaResult = CheckCaptcha(input.CaptchaCode);
@@ -107,14 +108,13 @@ public class AccountController(
     public async Task<IActionResult> ResetPassword(
         [FromBody] Inputs.V1.ResetPasswordByPhoneNumberInput input)
     {
-        var modelErrorResult = BuildModelValidResult();
+        var modelErrorResult = BuildModelValidApiResult();
         if (modelErrorResult != null)
         {
-            return modelErrorResult;
+            return new ObjectResult(modelErrorResult);
         }
 
-        var user = await userManager.FindAsync(input.PhoneNumber,
-            _identityExtensionOptions.SoftDeleteColumn);
+        var user = await userManager.FindAsync(input.PhoneNumber, _identityExtensionOptions.SoftDeleteColumn);
 
         var availableResult = await CheckUserAvailableAsync(user);
         if (availableResult != null)
@@ -139,10 +139,10 @@ public class AccountController(
     [HttpPost("Login")]
     public async Task<IActionResult> Login(Inputs.V1.LoginInput model)
     {
-        var modelErrorResult = BuildModelValidResult();
+        var modelErrorResult = BuildModelValidApiResult();
         if (modelErrorResult != null)
         {
-            return modelErrorResult;
+            return new ObjectResult(modelErrorResult);
         }
 
         if (_options.ForcePasswordSecurityPolicy)
@@ -285,23 +285,10 @@ public class AccountController(
     [HttpPost("LoginByCode")]
     public async Task<IActionResult> LoginByCode(Inputs.V1.LoginBySmsInput model)
     {
-        if (!ModelState.IsValid)
+        var modelErrorResult = BuildModelValidApiResult();
+        if (modelErrorResult != null)
         {
-            var messageBuilder = new StringBuilder();
-            foreach (var stateEntry in ModelState)
-            {
-                if (stateEntry.Value.ValidationState != ModelValidationState.Invalid)
-                {
-                    continue;
-                }
-
-                foreach (var error in stateEntry.Value.Errors)
-                {
-                    messageBuilder.AppendLine(error.ErrorMessage);
-                }
-            }
-
-            return new ObjectResult(new ApiResult { Code = 400, Success = false, Message = messageBuilder.ToString() });
+            return new ObjectResult(modelErrorResult);
         }
 
         var context = await interaction.GetAuthorizationContextAsync(model.ReturnUrl);
@@ -553,7 +540,7 @@ public class AccountController(
     {
         if (!ModelState.IsValid)
         {
-            var messageBuilder = new StringBuilder();
+            var errors = new List<ModelError>();
             foreach (var stateEntry in ModelState)
             {
                 if (stateEntry.Value.ValidationState != ModelValidationState.Invalid)
@@ -563,23 +550,22 @@ public class AccountController(
 
                 foreach (var error in stateEntry.Value.Errors)
                 {
-                    messageBuilder.AppendLine(error.ErrorMessage);
+                    errors.Add(error);
                 }
             }
 
-            return new ApiResult { Code = 400, Success = false, Message = messageBuilder.ToString() };
+            var msg = string.Join("\n", errors.Select(x => x.ErrorMessage));
+            return new ApiResult { Code = 400, Success = false, Message = msg };
         }
-        else
-        {
-            return null;
-        }
+
+        return null;
     }
 
-    private ObjectResult BuildModelValidResult()
-    {
-        var apiErrorResult = BuildModelValidApiResult();
-        return apiErrorResult == null ? null : new ObjectResult(apiErrorResult);
-    }
+    // private ObjectResult BuildModelValidResult()
+    // {
+    //     var apiErrorResult = BuildModelValidApiResult();
+    //     return apiErrorResult == null ? null : new ObjectResult(apiErrorResult);
+    // }
 
     private async Task<ApiResult> SendCodeAsync(string key, User user, Inputs.V1.SendCode input, string purpose)
     {
@@ -596,7 +582,7 @@ public class AccountController(
         {
             if (hostEnvironment.IsDevelopment())
             {
-                logger.LogWarning("Send short message to {PhoneNumber}: {Code} success", input.PhoneNumber, code);
+                logger.LogWarning("[SMS] Send to {PhoneNumber} {Code} success", input.PhoneNumber, code);
             }
             else
             {

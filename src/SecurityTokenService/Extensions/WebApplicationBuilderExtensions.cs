@@ -14,15 +14,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SecurityTokenService.Data.MySql;
 using SecurityTokenService.Data.PostgreSql;
-using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 using SecurityTokenService.IdentityServer;
 using SecurityTokenService.Options;
 using SecurityTokenService.Sms;
+using SecurityTokenService.Utils;
 using Serilog;
 using Serilog.Events;
 
-namespace SecurityTokenService;
+namespace SecurityTokenService.Extensions;
 
 public static class WebApplicationBuilderExtensions
 {
@@ -160,7 +160,7 @@ public static class WebApplicationBuilderExtensions
         }
         else
         {
-            builder.Services.AddTransient<ISmsSender, AliyunSmsSender>();
+            builder.Services.AddTransient<ISmsSender, AliYunSmsSender>();
         }
 
         return builder;
@@ -264,7 +264,7 @@ public static class WebApplicationBuilderExtensions
             builder.Configuration.GetSection("IdentityServerExternalCookieAuthentication"));
         builder.Services.Configure<CookieAuthenticationOptions>(IdentityServerConstants.DefaultCheckSessionCookieName,
             builder.Configuration.GetSection("IdentityServerCheckSessionCookieAuthentication"));
-        builder.Services.Configure<AliyunOptions>(builder.Configuration.GetSection("Aliyun"));
+        builder.Services.Configure<AliYunOptions>(builder.Configuration.GetSection("Aliyun"));
         return builder;
     }
 }

@@ -17,6 +17,6 @@ jobs:
       - name: Login docker regsitry
         run: docker login -u zlzforever -p  ${{ secrets.DOCKER_USER_PASSWORD }}
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag zlzforever/security-token-service:20251224.2
+        run: docker build . --file Dockerfile --tag zlzforever/security-token-service:20251224.3
       - name: Publish the Docker image
-        run: docker push zlzforever/security-token-service:20251224.2
+        run: docker push zlzforever/security-token-service:20251224.3

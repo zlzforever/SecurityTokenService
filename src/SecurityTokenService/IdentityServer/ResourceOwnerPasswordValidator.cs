@@ -9,35 +9,26 @@ using SecurityTokenService.Identity;
 
 namespace SecurityTokenService.IdentityServer;
 
-public class ResourceOwnerPasswordValidator : IResourceOwnerPasswordValidator
+public class ResourceOwnerPasswordValidator(
+    IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
+    UserManager<User> userManager,
+    SignInManager<User> signInManager)
+    : IResourceOwnerPasswordValidator
 {
-    private readonly IdentityExtensionOptions _identityExtensionOptions;
-    private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
-    
-    public ResourceOwnerPasswordValidator(
-        IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
-        UserManager<User> userManager,
-        SignInManager<User> signInManager
-        )
-    {
-        _identityExtensionOptions = identityExtensionOptions.CurrentValue;
-        _userManager = userManager;
-        _signInManager = signInManager;
-    }
+    private readonly IdentityExtensionOptions _identityExtensionOptions = identityExtensionOptions.CurrentValue;
 
     public async Task ValidateAsync(ResourceOwnerPasswordValidationContext context)
     {
         User user;
         if (string.IsNullOrWhiteSpace(_identityExtensionOptions.SoftDeleteColumn))
         {
-            user = await _userManager.Users.FirstOrDefaultAsync(x =>
+            user = await userManager.Users.FirstOrDefaultAsync(x =>
                 x.UserName == context.UserName || x.Email == context.UserName ||
                 x.PhoneNumber == context.UserName);
         }
         else
         {
-            user = await _userManager.Users
+            user = await userManager.Users
                 .FirstOrDefaultAsync(x =>
                     EF.Property<bool>(x, _identityExtensionOptions.SoftDeleteColumn) == false &&
                     (x.UserName == context.UserName || x.Email == context.UserName ||
@@ -52,7 +43,7 @@ public class ResourceOwnerPasswordValidator : IResourceOwnerPasswordValidator
             return;
         }
         
-        var result = await _signInManager.PasswordSignInAsync(user, context.Password,
+        var result = await signInManager.PasswordSignInAsync(user, context.Password,
             false, false);
         if (result.Succeeded)
         {

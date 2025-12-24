@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-namespace SecurityTokenService;
+namespace SecurityTokenService.Utils;
 
 public static class Util
 {
@@ -22,7 +22,6 @@ public static class Util
     public const string CaptchaTtlKey = "CaptchaId:{0}";
     public const string PhoneNumberTokenProvider = "PhoneNumberTokenProvider";
     public const string PurposeLogin = "Login";
-    public const string PurposeResetPassword = "ResetPassword";
     public const string PurposeRegister = "Register";
 
     public static void GenerateCertificate(string path)

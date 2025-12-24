@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SecurityTokenService.Utils;
 
 namespace SecurityTokenService.Controllers;
 
@@ -22,15 +23,13 @@ public class CaptchaController(
     [HttpGet("generate")]
     public IActionResult Generate()
     {
-        // 2. 生成唯一验证码ID（用于前端提交时关联）
         string captchaId = Guid.NewGuid().ToString("N");
         var code = VerifyCodeHelper.GenerateCode(securityTokenServiceOptions.CurrentValue.GetVerifyCodeLength());
-        // var cacheKey = $"Captcha:{captchaId}";
         var cacheKey = string.Format(Util.CaptchaTtlKey, captchaId);
         Response.Cookies.Append(Util.CaptchaId, captchaId);
         var bytes = VerifyCodeHelper.GetVerifyCode(code);
         memoryCache.Set(cacheKey, code, TimeSpan.FromMinutes(2));
-        logger.LogDebug("{CaptchaId} is {CaptchaCode}", captchaId, code);
+        logger.LogDebug("[CAPTCHA] {CaptchaId} {CaptchaCode}", captchaId, code);
         return File(bytes, "image/png");
     }
 }
