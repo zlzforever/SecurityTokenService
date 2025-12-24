@@ -16,8 +16,11 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 ENV LANG zh_CN.UTF-8
 EXPOSE 8080
+RUN apt-get update &&\
+    apt-get install -y fontconfig iputils-ping net-tools curl && apt-get clean
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+COPY TimesNewRoman.ttf /usr/share/fonts/truetype/deng/
 COPY --from=build /app/out .
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["dotnet", "SecurityTokenService.dll"]

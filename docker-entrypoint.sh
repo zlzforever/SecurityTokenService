@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# 在这里添加你需要执行的命令
+# 例如，运行数据库迁移、配置检查等
+fc-cache -f -v
+
 generate() {
     # 输入文件名
     input_file="$1"

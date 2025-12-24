@@ -59,6 +59,11 @@ public static class VerifyCodeHelper
         // 2. 加载字体（自动查找系统中的 Times New Roman 字体）
         if (!SystemFonts.TryGet("Times New Roman", out var fontFamily))
         {
+            if (!SystemFonts.Families.Any())
+            {
+                throw new ArgumentException("No font family found.");
+            }
+
             // 降级使用默认字体（防止字体不存在）
             fontFamily = SystemFonts.Families.First();
         }
