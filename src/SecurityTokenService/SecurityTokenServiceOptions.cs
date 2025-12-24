@@ -32,7 +32,7 @@ public class SecurityTokenServiceOptions
     /// <summary>
     /// 验证码长度
     /// </summary>
-    public int VerifyCodeLength { get; set; }
+    public int? VerifyCodeLength { get; set; }
 
     /// <summary>
     /// 短信服务供应商
@@ -47,6 +47,8 @@ public class SecurityTokenServiceOptions
     public int GetVerifyCodeLength()
     {
         // 必须小于等于9, 否则整数会溢出
-        return VerifyCodeLength <= 0 ? 4 : VerifyCodeLength >= 9 ? 9 : VerifyCodeLength;
+        return VerifyCodeLength.HasValue
+            ? (VerifyCodeLength.Value <= 0 ? 4 : VerifyCodeLength.Value >= 9 ? 9 : VerifyCodeLength.Value)
+            : 6;
     }
 }

@@ -24,7 +24,7 @@ public class CaptchaController(
     {
         // 2. 生成唯一验证码ID（用于前端提交时关联）
         string captchaId = Guid.NewGuid().ToString("N");
-        var code = VerifyCodeHelper.GenerateCode(securityTokenServiceOptions.CurrentValue.VerifyCodeLength);
+        var code = VerifyCodeHelper.GenerateCode(securityTokenServiceOptions.CurrentValue.GetVerifyCodeLength());
         // var cacheKey = $"Captcha:{captchaId}";
         var cacheKey = string.Format(Util.CaptchaTtlKey, captchaId);
         Response.Cookies.Append(Util.CaptchaId, captchaId);
