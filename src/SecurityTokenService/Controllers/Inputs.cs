@@ -39,7 +39,7 @@ public static class Inputs
             /// <summary>
             /// 
             /// </summary>
-            [StringLength(10), Required(ErrorMessage = "验证码不正确")]
+            [StringLength(10), Required(ErrorMessage = "请填写验证码")]
             public string CaptchaCode { get; set; }
         }
 
@@ -88,13 +88,13 @@ public static class Inputs
             /// <summary>
             /// 
             /// </summary>
-            [StringLength(20, ErrorMessage = "参数长度不正确")]
+            [StringLength(20, ErrorMessage = "场景长度不正确")]
             public string Scenario { get; set; } = "Login";
 
             /// <summary>
             /// Login | ResetPassword | Register
             /// </summary>
-            [StringLength(10), Required(ErrorMessage = "验证码不正确")]
+            [StringLength(10, ErrorMessage = "验证码长度超长"), Required(ErrorMessage = "请填写验证码")]
             public string CaptchaCode { get; set; }
         }
 
@@ -138,7 +138,7 @@ public static class Inputs
             /// <summary>
             /// 验证码
             /// </summary>
-            [Required(ErrorMessage = "请填写验证码"), StringLength(6, ErrorMessage = "验证码长度不正确")]
+            [Required(ErrorMessage = "请填写验证码"), StringLength(6, ErrorMessage = "验证码长度超长")]
             public string VerifyCode { get; set; }
 
             /// <summary>
@@ -197,7 +197,7 @@ public static class Inputs
             /// <summary>
             /// 
             /// </summary>
-            [StringLength(10), Required(ErrorMessage = "验证码不正确")]
+            [StringLength(10, ErrorMessage = "验证码长度超长"), Required(ErrorMessage = "请输入验证码")]
             public string CaptchaCode { get; set; }
         }
 

@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Identity.Sm;
@@ -16,6 +15,7 @@ using SecurityTokenService.Data;
 using SecurityTokenService.Extensions;
 using SecurityTokenService.Identity;
 using SecurityTokenService.IdentityServer;
+using SecurityTokenService.Middlewares;
 using Serilog;
 
 namespace SecurityTokenService;
@@ -54,6 +54,8 @@ public static class Program
             app.UsePathBase(path);
         }
 
+        // 解密请求体
+        app.UseMiddleware<DecryptRequestMiddleware>();
         app.UseHealthChecks("/healthz");
         app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Lax });
         app.UseFileServer();
@@ -136,10 +138,13 @@ public static class Program
     {
         if (args.Contains("--g-aes-key"))
         {
-            using Aes aes = Aes.Create();
-            aes.KeySize = 128; // 可以设置为 128、192 或 256 位
-            aes.GenerateKey();
-            Console.WriteLine("生成的 AES 密钥: " + Convert.ToBase64String(aes.Key));
+            Console.WriteLine("生成的 AES 密钥: " + Utils.Util.CreateAesKey());
+
+            // var origin = "17Th3f67y1rqTgC0AQqGag==";
+            // var adjust = "y280cOf9vq111111dX9L3AvG0qIA==";
+            // var ad     = "17Th3f67y1zzzzzzrqTgC0AQqGag=="
+            // var b = DecryptRequestMiddleware.GetRealKey(adjust);
+            // var r = origin == b;
         }
     }
 }

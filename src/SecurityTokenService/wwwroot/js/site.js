@@ -241,7 +241,7 @@ function initLogin() {
                                 if (!message) {
                                     continue;
                                 }
-                                html += i == 0 ? message : '<br/>' + message;
+                                html += i === 0 ? message : '<br/>' + message;
                             }
                             message.html(html)
                         }
@@ -286,7 +286,7 @@ function initLogin() {
                     type: "POST",
                     url: "account/login",
                     data: data,
-                    success: function (res, a, b) {
+                    success: function (res) {
                         if (res.location) {
                             const url = res.location;
                             let win = window;
@@ -305,7 +305,7 @@ function initLogin() {
                                     if (!message) {
                                         continue;
                                     }
-                                    html += i == 0 ? message : '<br/>' + message;
+                                    html += i === 0 ? message : '<br/>' + message;
                                 }
                                 message.html(html)
                             }
@@ -352,7 +352,7 @@ function initLogin() {
                     type: "POST",
                     url: "account/loginBySms",
                     data: data,
-                    success: function (res, a, b) {
+                    success: function (res) {
                         if (res.location) {
                             const url = res.location;
                             let win = window;
@@ -371,7 +371,7 @@ function initLogin() {
                                     if (!message) {
                                         continue;
                                     }
-                                    html += i == 0 ? message : '<br/>' + message;
+                                    html += i === 0 ? message : '<br/>' + message;
                                 }
                                 message.html(html)
                             }
@@ -401,7 +401,7 @@ function initLogin() {
 function refreshCaptcha() {
     const captchaImg = document.getElementById('captcha-img');
     captchaImg.style.opacity = 0;
-    const url = `/api/v1.0/captcha/generate?_t=${Date.now()}`;
+    const url = `api/v1.0/captcha/generate?_t=${Date.now()}`;
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.responseType = 'blob'; // 关键！指定响应类型为Blob

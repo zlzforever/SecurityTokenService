@@ -52,7 +52,7 @@ public class AccountController(
     /// <returns></returns>
     [HttpPost("ResetPwdByOriginPwd")]
     public async Task<IActionResult> ResetPasswordByOriginPassword(
-        Inputs.V1.ResetPasswordByOriginPasswordInput input)
+        [FromBody] Inputs.V1.ResetPasswordByOriginPasswordInput input)
     {
         var modelErrorResult = BuildModelValidApiResult();
         if (modelErrorResult != null)
@@ -137,7 +137,7 @@ public class AccountController(
     }
 
     [HttpPost("Login")]
-    public async Task<IActionResult> Login(Inputs.V1.LoginInput model)
+    public async Task<IActionResult> Login([FromBody] Inputs.V1.LoginInput model)
     {
         var modelErrorResult = BuildModelValidApiResult();
         if (modelErrorResult != null)
@@ -283,7 +283,7 @@ public class AccountController(
     /// <param name="model"></param>
     /// <returns></returns>
     [HttpPost("LoginByCode")]
-    public async Task<IActionResult> LoginByCode(Inputs.V1.LoginBySmsInput model)
+    public async Task<IActionResult> LoginByCode([FromBody] Inputs.V1.LoginBySmsInput model)
     {
         var modelErrorResult = BuildModelValidApiResult();
         if (modelErrorResult != null)
@@ -341,11 +341,12 @@ public class AccountController(
         {
             return new ObjectResult(new ApiResult
             {
-                Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "验证码不正确"
+                Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "手机验证码不正确"
             });
         }
 
         await signInManager.SignInAsync(user, true);
+        // 清除 TOKEN 有效
         await userManager.UpdateSecurityStampAsync(user);
 
         await events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
@@ -616,6 +617,8 @@ public class AccountController(
 
         if (!string.Equals(realCaptchaCode, captchaCode, StringComparison.OrdinalIgnoreCase))
         {
+            logger.LogError("图形验证码校验失败, {CaptchaId} {RealCaptchaCode} {Actual}", captchaId, realCaptchaCode,
+                captchaCode);
             return new ApiResult { Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "验证码错误" };
         }
 
