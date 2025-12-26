@@ -55,7 +55,8 @@ public class DecryptRequestMiddleware(RequestDelegate next)
 
                 using var ase = Util.CreateAesEcb(encryptKey);
                 // 前端固定对称加密的 KEY，仅应用对 WF 对一些敏感数据的拦截。
-                await DecryptV1Body(context, ase);
+                await DecryptV1Body(context, ase, logger);
+                context.Request.EnableBuffering();
             }
             catch (Exception e)
             {
@@ -84,7 +85,7 @@ public class DecryptRequestMiddleware(RequestDelegate next)
         return encryptKey;
     }
 
-    private static async Task DecryptV1Body(HttpContext context, Aes aes)
+    private static async Task DecryptV1Body(HttpContext context, Aes aes, ILogger<DecryptRequestMiddleware> logger)
     {
         using var streamReader = new StreamReader(context.Request.Body);
         var bodyContent = await streamReader.ReadToEndAsync();
@@ -94,6 +95,7 @@ public class DecryptRequestMiddleware(RequestDelegate next)
             var replaceBodyContent = bodyContent.Replace("\"", "");
             // 解密请求body
             var decryptedBody = Util.AesEcbDecrypt(aes, replaceBodyContent);
+            logger.LogDebug($"DecryptRequestMiddleware_V1_解密:{System.Text.Encoding.UTF8.GetString(decryptedBody)}");
             context.Request.Body = new MemoryStream(decryptedBody);
         }
     }
