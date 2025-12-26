@@ -56,7 +56,6 @@ public class DecryptRequestMiddleware(RequestDelegate next)
                 using var ase = Util.CreateAesEcb(encryptKey);
                 // 前端固定对称加密的 KEY，仅应用对 WF 对一些敏感数据的拦截。
                 await DecryptV1Body(context, ase, logger);
-                context.Request.EnableBuffering();
             }
             catch (Exception e)
             {
