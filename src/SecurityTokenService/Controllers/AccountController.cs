@@ -397,7 +397,7 @@ public class AccountController(
             var availableResult = await CheckUserAvailableAsync(user);
             if (availableResult != null)
             {
-                logger.LogWarning($"{input.PhoneNumber} 手机用户:{availableResult.Message}");
+                logger.LogWarning($"{input.PhoneNumber} 手机用户:{availableResult?.Message ?? "验证失败"}");
                 switch (availableResult.Code)
                 {
                     case Errors.IdentityUserIsNotExist:
