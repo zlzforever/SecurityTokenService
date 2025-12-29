@@ -397,11 +397,11 @@ public class AccountController(
             var availableResult = await CheckUserAvailableAsync(user);
             if (availableResult != null)
             {
+                logger.LogWarning($"{input.PhoneNumber} 手机用户:{availableResult.Message}");
                 switch (availableResult.Code)
                 {
                     case Errors.IdentityUserIsNotExist:
                         // 用户不存在只返回成功不发送验证码
-                        logger.LogWarning($"{input.PhoneNumber} 手机用户:{availableResult.Message}");
                         return new ApiResult { Success = true, Message = "发送成功" };
                     default:
                         return availableResult;
