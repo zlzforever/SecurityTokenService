@@ -24,7 +24,7 @@
             padding-top: 15px;
         }
 
-        #captcha-img {
+        .captcha-img {
             width: 140px;
             height: 34px;
             border: 1px solid #e5e5e5;
@@ -33,7 +33,7 @@
             transition: opacity 0.2s; /* 刷新时添加过渡动画 */
         }
 
-        #captcha-img:hover {
+        .captcha-img:hover {
             border-color: #409eff; /* 悬浮时高亮边框，增强交互提示 */
         }
 
@@ -100,10 +100,9 @@
                                 </label>
                                 <input type="text" class="form-control" placeholder="CaptchaCode"
                                        autoComplete="off"
-                                       id="captchaCode"
                                        name="captchaCode"/>
                                 <div class="captcha-container">
-                                    <img id="captcha-img" alt="验证码" title="点击刷新验证码" src=""/>
+                                    <img class="captcha-img" alt="验证码" title="点击刷新验证码" src=""/>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -128,13 +127,31 @@
                                 <input class="form-control" placeholder="PhoneNumber" autofocus type="text"
                                        id="phoneNumber"
                                        name="phoneNumber"
-                                       value=""/>
+                                       value="" />
+                                <div class="form-group">
+                                    <label for="captchaCode">
+                                        Captcha
+                                    </label>
+                                    <input type="text" class="form-control" placeholder="CaptchaCode"
+                                           autoComplete="off"
+                                           name="captchaCode" />
+                                    <div class="captcha-container">
+                                        <img class="captcha-img" alt="验证码" title="点击刷新验证码" src="" />
+                                    </div>
+                                </div>
                                 <button class="btn btn-primary" name="button" id="sendSmsBtn"
                                         data-container="body" data-toggle="popover" data-placement="right"
-                                        data-content="发送成功">Send SMS
+                                        data-content="发送成功">
+                                    Send SMS
                                 </button>
                             </div>
                             <div class="form-group">
+                                <label for="verifyCode">
+                                    SmsCode
+                                </label>
+                                <input type="text" class="form-control" placeholder="VerifyCode"
+                                       autoComplete="off"
+                                       name="verifyCode" />
                             </div>
                             <button class="btn btn-primary" name="button" id="smsLoginBtn" value="login">Login</button>
                         </form>
@@ -147,6 +164,7 @@
 <script src="lib/jquery/dist/jquery.min.js"></script>
 <script src="lib/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="lib/crypto-js.min.js"></script>
 <script src="js/site.js?_v=2023031208"></script>
 </body>
 </html>

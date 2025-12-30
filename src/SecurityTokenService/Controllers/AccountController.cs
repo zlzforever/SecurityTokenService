@@ -612,6 +612,11 @@ public class AccountController(
         var captchaId = Request.Cookies["CaptchaId"];
         if (string.IsNullOrEmpty(captchaId))
         {
+            captchaId = Request.Headers["Z-CaptchaId"];
+        }
+
+        if (string.IsNullOrEmpty(captchaId))
+        {
             return new ApiResult { Code = Errors.VerifyCodeIsExpired, Success = false, Message = "验证码已过期， 请刷新" };
         }
 
