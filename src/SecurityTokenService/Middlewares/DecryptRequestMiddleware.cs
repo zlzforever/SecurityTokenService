@@ -14,6 +14,9 @@ public class DecryptRequestMiddleware(RequestDelegate next)
     private const string VersionHeader = "Z-Encrypt-Version";
     private const string KeyHeader = "Z-Encrypt-Key";
 
+    private static readonly bool ForceEncryptedBody =
+        bool.Parse(Environment.GetEnvironmentVariable("STS_FORCE_ENCRYPTED_BODY") ?? "false");
+
     public async Task InvokeAsync(HttpContext context, ILogger<DecryptRequestMiddleware> logger)
     {
         var encryptVersion = context.Request.Headers[VersionHeader].ElementAtOrDefault(0);
@@ -21,6 +24,17 @@ public class DecryptRequestMiddleware(RequestDelegate next)
 
         var encryptVersionIsNullOrEmpty = string.IsNullOrEmpty(encryptVersion);
         var encryptKeyIsNullOrEmpty = string.IsNullOrEmpty(encryptKey);
+        var path = context.Request.Path.Value;
+        if (
+            ForceEncryptedBody && path != null &&
+            path.Contains("/account/", StringComparison.InvariantCultureIgnoreCase) &&
+            (encryptVersionIsNullOrEmpty || encryptKeyIsNullOrEmpty)
+        )
+        {
+            // 检查到开启强制加密时，account 路由必须参数加密
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
+        }
 
         // 若未传加密版本号和加密密钥， 则不解密
         if (encryptVersionIsNullOrEmpty && encryptKeyIsNullOrEmpty)
