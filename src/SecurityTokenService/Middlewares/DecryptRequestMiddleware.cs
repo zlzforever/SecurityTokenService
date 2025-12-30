@@ -24,7 +24,7 @@ public class DecryptRequestMiddleware(RequestDelegate next)
 
         var encryptVersionIsNullOrEmpty = string.IsNullOrEmpty(encryptVersion);
         var encryptKeyIsNullOrEmpty = string.IsNullOrEmpty(encryptKey);
-        var path = context.Request.Path.Value?.ToLowerInvariant();
+        var path = context.Request.Path.Value;
         if (
             ForceEncryptedBody && path != null &&
             path.Contains("/account/", StringComparison.InvariantCultureIgnoreCase) &&
