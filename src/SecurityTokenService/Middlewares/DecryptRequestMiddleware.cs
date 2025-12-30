@@ -34,23 +34,17 @@ public class DecryptRequestMiddleware(RequestDelegate next)
         {
             try
             {
-                switch (encryptVersion)
+                if ("v1.0".Equals(encryptVersion, StringComparison.OrdinalIgnoreCase))
                 {
-                    case "v1.0":
-                    {
-                        // KEY 不做转换
-                        break;
-                    }
-                    case "v1.1":
-                    {
-                        encryptKey = GetRealKeyV11(encryptKey);
-                        break;
-                    }
-                    default:
-                    {
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        return;
-                    }
+                }
+                else if ("v1.1".Equals(encryptVersion, StringComparison.OrdinalIgnoreCase))
+                {
+                    encryptKey = GetRealKeyV11(encryptKey);
+                }
+                else
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    return;
                 }
 
                 using var ase = Util.CreateAesEcb(encryptKey);

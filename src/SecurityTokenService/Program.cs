@@ -57,7 +57,7 @@ public static class Program
         // 解密请求体
         app.UseMiddleware<DecryptRequestMiddleware>();
         app.UseHealthChecks("/healthz");
-        app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Lax });
+        app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.None });
         app.UseFileServer();
         // app.UseRateLimiter();
         app.UseRouting();
@@ -141,7 +141,6 @@ public static class Program
             Console.WriteLine("生成的 AES 密钥: " + Utils.Util.CreateAesKey());
 
             // var origin = "17Th3f67y1rqTgC0AQqGag==";
-            // var adjust = "y280cOf9vq111111dX9L3AvG0qIA==";
             // var ad     = "17Th3f67y1zzzzzzrqTgC0AQqGag=="
             // var b = DecryptRequestMiddleware.GetRealKey(adjust);
             // var r = origin == b;
