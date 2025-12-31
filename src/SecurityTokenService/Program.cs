@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Identity.Sm;
@@ -58,7 +57,15 @@ public static class Program
         // 解密请求体
         app.UseMiddleware<DecryptRequestMiddleware>();
         app.UseHealthChecks("/healthz");
-        app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Lax });
+        app.UseCookiePolicy(new CookiePolicyOptions
+        {
+            MinimumSameSitePolicy = app.Configuration["CookiePolicy:MinimumSameSitePolicy"] == null
+                ? SameSiteMode.Lax
+                : Enum.Parse<SameSiteMode>(app.Configuration["CookiePolicy:MinimumSameSitePolicy"]),
+            Secure = app.Configuration["CookiePolicy:Secure"] == null
+                ? CookieSecurePolicy.None
+                : Enum.Parse<CookieSecurePolicy>(app.Configuration["CookiePolicy:Secure"])
+        });
         app.UseFileServer();
         // app.UseRateLimiter();
         app.UseRouting();
