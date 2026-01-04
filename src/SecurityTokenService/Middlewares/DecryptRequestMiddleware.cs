@@ -70,7 +70,7 @@ public class DecryptRequestMiddleware(RequestDelegate next)
                     return;
                 }
 
-                using var ase = Util.CreateAesEcb(encryptKey);
+                using var ase = Util.CreateAes(encryptKey);
                 // 前端固定对称加密的 KEY，仅应用对 WF 对一些敏感数据的拦截。
                 await DecryptV1Body(context, ase, logger);
             }
@@ -110,7 +110,7 @@ public class DecryptRequestMiddleware(RequestDelegate next)
             // 处理兼容问题,替换掉双引号的字符串
             var replaceBodyContent = bodyContent.Replace("\"", "");
             // 解密请求body
-            var decryptedBody = Util.AesEcbDecrypt(aes, replaceBodyContent);
+            var decryptedBody = Util.AesDecrypt(aes, replaceBodyContent);
             logger.LogDebug($"DecryptRequestMiddleware_V1_解密:{System.Text.Encoding.UTF8.GetString(decryptedBody)}");
             context.Request.Body = new MemoryStream(decryptedBody);
         }

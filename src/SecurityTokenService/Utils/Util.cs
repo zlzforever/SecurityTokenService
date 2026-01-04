@@ -2,6 +2,11 @@ using System;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using SecurityTokenService.Controllers;
+
 
 namespace SecurityTokenService.Utils;
 
@@ -24,6 +29,40 @@ public static class Util
     public const string PhoneNumberTokenProvider = "PhoneNumberTokenProvider";
     public const string PurposeLogin = "Login";
     public const string PurposeRegister = "Register";
+
+    public static ApiResult CheckCaptcha(IMemoryCache memoryCache, ILogger logger, HttpRequest request,
+        string captchaCode)
+    {
+        var captchaId = request.Cookies["CaptchaId"];
+        if (string.IsNullOrEmpty(captchaId))
+        {
+            captchaId = request.Headers["Z-CaptchaId"];
+        }
+
+        if (string.IsNullOrEmpty(captchaId))
+        {
+            return new ApiResult { Code = Errors.VerifyCodeIsExpired, Success = false, Message = "验证码已过期， 请刷新" };
+        }
+
+        var cacheKey = string.Format(CaptchaTtlKey, captchaId);
+        var realCaptchaCode = memoryCache.Get<string>(cacheKey);
+        // 步骤3：校验验证码
+        if (string.IsNullOrEmpty(realCaptchaCode))
+        {
+            return new ApiResult { Code = Errors.VerifyCodeIsExpired, Success = false, Message = "验证码已过期， 请刷新" };
+        }
+
+        if (!string.Equals(realCaptchaCode, captchaCode, StringComparison.OrdinalIgnoreCase))
+        {
+            logger.LogError("图形验证码校验失败, {CaptchaId} {RealCaptchaCode} {Actual}", captchaId, realCaptchaCode,
+                captchaCode);
+            return new ApiResult { Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "验证码错误" };
+        }
+
+        // 步骤4：验证码验证通过后，删除缓存（防止重复使用）
+        memoryCache.Remove(cacheKey);
+        return null;
+    }
 
     public static void GenerateCertificate(string path)
     {
@@ -50,27 +89,29 @@ public static class Util
         System.IO.File.WriteAllBytes(path, certBytes);
     }
 
-    public static Aes CreateAesEcb(string key)
+    public static Aes CreateAes(string key, CipherMode cipherMode = CipherMode.ECB,
+        PaddingMode paddingMode = PaddingMode.PKCS7)
     {
         var keyArray = Encoding.UTF8.GetBytes(key);
         var aes = Aes.Create();
         aes.Key = keyArray;
-        aes.Mode = CipherMode.ECB;
-        aes.Padding = PaddingMode.PKCS7;
+        aes.Mode = cipherMode;
+        aes.Padding = paddingMode;
         return aes;
     }
 
-    public static string CreateAesKey()
+    public static string CreateAesKey(CipherMode cipherMode = CipherMode.ECB,
+        PaddingMode paddingMode = PaddingMode.PKCS7, int size = 128)
     {
         var aes = Aes.Create();
-        aes.Mode = CipherMode.ECB;
-        aes.Padding = PaddingMode.PKCS7;
-        aes.KeySize = 128; // 可以设置为 128、192 或 256 位
+        aes.Mode = cipherMode;
+        aes.Padding = paddingMode;
+        aes.KeySize = size; // 可以设置为 128、192 或 256 位
         aes.GenerateKey();
         return Convert.ToBase64String(aes.Key);
     }
 
-    public static byte[] AesEcbDecrypt(Aes aes, string text)
+    public static byte[] AesDecrypt(Aes aes, string text)
     {
         var toEncryptArray = Convert.FromBase64String(text);
         using var decrypt = aes.CreateDecryptor();

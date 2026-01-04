@@ -60,7 +60,7 @@ public class AccountController(
             return new ObjectResult(modelErrorResult);
         }
 
-        var checkCaptchaResult = CheckCaptcha(input.CaptchaCode);
+        var checkCaptchaResult = Util.CheckCaptcha(memoryCache, logger, Request, input.CaptchaCode);
         if (checkCaptchaResult != null)
         {
             return new ObjectResult(checkCaptchaResult);
@@ -190,7 +190,7 @@ public class AccountController(
             return new ObjectResult(new RedirectResult("/"));
         }
 
-        var checkCaptchaResult = CheckCaptcha(model.CaptchaCode);
+        var checkCaptchaResult = Util.CheckCaptcha(memoryCache, logger, Request, model.CaptchaCode);
         if (checkCaptchaResult != null)
         {
             return new ObjectResult(checkCaptchaResult);
@@ -385,7 +385,7 @@ public class AccountController(
             return new ApiResult { Code = 429, Message = "验证码发送过于频繁，请稍后再试", Success = false };
         }
 
-        var checkCaptchaResult = CheckCaptcha(input.CaptchaCode);
+        var checkCaptchaResult = Util.CheckCaptcha(memoryCache, logger, Request, input.CaptchaCode);
         if (checkCaptchaResult != null)
         {
             return checkCaptchaResult;
@@ -607,38 +607,6 @@ public class AccountController(
         }
     }
 
-    private ApiResult CheckCaptcha(string captchaCode)
-    {
-        var captchaId = Request.Cookies["CaptchaId"];
-        if (string.IsNullOrEmpty(captchaId))
-        {
-            captchaId = Request.Headers["Z-CaptchaId"];
-        }
-
-        if (string.IsNullOrEmpty(captchaId))
-        {
-            return new ApiResult { Code = Errors.VerifyCodeIsExpired, Success = false, Message = "验证码已过期， 请刷新" };
-        }
-
-        var cacheKey = string.Format(Util.CaptchaTtlKey, captchaId);
-        var realCaptchaCode = memoryCache.Get<string>(cacheKey);
-        // 步骤3：校验验证码
-        if (string.IsNullOrEmpty(realCaptchaCode))
-        {
-            return new ApiResult { Code = Errors.VerifyCodeIsExpired, Success = false, Message = "验证码已过期， 请刷新" };
-        }
-
-        if (!string.Equals(realCaptchaCode, captchaCode, StringComparison.OrdinalIgnoreCase))
-        {
-            logger.LogError("图形验证码校验失败, {CaptchaId} {RealCaptchaCode} {Actual}", captchaId, realCaptchaCode,
-                captchaCode);
-            return new ApiResult { Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "验证码错误" };
-        }
-
-        // 步骤4：验证码验证通过后，删除缓存（防止重复使用）
-        memoryCache.Remove(cacheKey);
-        return null;
-    }
 
     private async Task<ApiResult> CheckUserAvailableAsync(User user)
     {

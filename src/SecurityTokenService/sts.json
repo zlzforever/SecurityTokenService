@@ -102,7 +102,8 @@
       "AllowAccessTokensViaBrowser": true,
       "RequireConsent": false,
       "AllowedGrantTypes": [
-        "authorization_code"
+        "authorization_code",
+        "password"
       ],
       "AllowOfflineAccess": true,
       "IdentityTokenLifetime": 108000,
