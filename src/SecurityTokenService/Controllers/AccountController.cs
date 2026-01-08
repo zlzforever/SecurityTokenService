@@ -45,6 +45,9 @@ public class AccountController(
     private readonly SecurityTokenServiceOptions _options = options.CurrentValue;
     private readonly IdentityExtensionOptions _identityExtensionOptions = identityExtensionOptions.CurrentValue;
 
+    private static readonly bool PasswordLoginTwoFactorEnable =
+        bool.Parse(Environment.GetEnvironmentVariable("STS_PASSWORD_LOGIN_TWOFACTOR") ?? "false");
+
     /// <summary>
     /// 通过旧密码修改密码
     /// 要提供用户名
@@ -214,6 +217,19 @@ public class AccountController(
         {
             await events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
                 clientId: context?.Client.ClientId));
+            if (PasswordLoginTwoFactorEnable)
+            {
+                var isValid = await userManager.VerifyUserTokenAsync(user, Util.PhoneNumberTokenProvider,
+                    Util.PurposeLogin,
+                    model.VerifyCode);
+                if (!isValid)
+                {
+                    return new ObjectResult(new ApiResult
+                    {
+                        Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "手机验证码不正确"
+                    });
+                }
+            }
 
             if (context != null)
             {

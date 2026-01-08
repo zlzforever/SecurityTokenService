@@ -199,6 +199,12 @@ public static class Inputs
             /// </summary>
             [StringLength(10, ErrorMessage = "验证码长度超长"), Required(ErrorMessage = "请输入验证码")]
             public string CaptchaCode { get; set; }
+            
+            /// <summary>
+            /// 验证码
+            /// </summary>
+            [StringLength(8, ErrorMessage = "验证码长度不正确")]
+            public string VerifyCode { get; set; }
         }
 
         public class LogoutInput
