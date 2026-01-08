@@ -45,6 +45,9 @@ public class AccountController(
     private readonly SecurityTokenServiceOptions _options = options.CurrentValue;
     private readonly IdentityExtensionOptions _identityExtensionOptions = identityExtensionOptions.CurrentValue;
 
+    private static readonly bool PasswordLoginTwoFactorEnable =
+        bool.Parse(Environment.GetEnvironmentVariable("STS_PASSWORD_LOGIN_TWOFACTOR") ?? "false");
+
     /// <summary>
     /// 通过旧密码修改密码
     /// 要提供用户名
@@ -190,10 +193,13 @@ public class AccountController(
             return new ObjectResult(new RedirectResult("/"));
         }
 
-        var checkCaptchaResult = Util.CheckCaptcha(memoryCache, logger, Request, model.CaptchaCode);
-        if (checkCaptchaResult != null)
+        if (!PasswordLoginTwoFactorEnable)
         {
-            return new ObjectResult(checkCaptchaResult);
+            var checkCaptchaResult = Util.CheckCaptcha(memoryCache, logger, Request, model.CaptchaCode);
+            if (checkCaptchaResult != null)
+            {
+                return new ObjectResult(checkCaptchaResult);
+            }
         }
 
         var user = await userManager.FindAsync(model.Username, _identityExtensionOptions.SoftDeleteColumn);
@@ -208,12 +214,27 @@ public class AccountController(
             });
         }
 
+        if (PasswordLoginTwoFactorEnable)
+        {
+            var isValid = await userManager.VerifyUserTokenAsync(user, Util.PhoneNumberTokenProvider,
+                Util.PurposeLogin,
+                model.VerifyCode);
+            if (!isValid)
+            {
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.VerifyCodeIsInCorrect, Success = false, Message = "手机验证码不正确"
+                });
+            }
+        }
+
         var result = await signInManager.PasswordSignInAsync(user, model.Password,
             model.RememberLogin, true);
         if (result.Succeeded)
         {
             await events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName,
                 clientId: context?.Client.ClientId));
+
 
             if (context != null)
             {
