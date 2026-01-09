@@ -195,6 +195,13 @@ public class AccountController(
 
         if (!PasswordLoginTwoFactorEnable)
         {
+            if (model.CaptchaCode.IsNullOrEmpty())
+            {
+                return new ObjectResult(new ApiResult
+                {
+                    Code = Errors.IdentityInvalidCredentials, Success = false, Message = "请输入验证码"
+                });
+            }
             var checkCaptchaResult = Util.CheckCaptcha(memoryCache, logger, Request, model.CaptchaCode);
             if (checkCaptchaResult != null)
             {

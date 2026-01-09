@@ -197,7 +197,7 @@ public static class Inputs
             /// <summary>
             /// 
             /// </summary>
-            [StringLength(10, ErrorMessage = "验证码长度超长"), Required(ErrorMessage = "请输入验证码")]
+            [StringLength(10, ErrorMessage = "验证码长度超长")]
             public string CaptchaCode { get; set; }
             
             /// <summary>
