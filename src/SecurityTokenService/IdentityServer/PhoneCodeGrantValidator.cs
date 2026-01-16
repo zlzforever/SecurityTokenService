@@ -57,9 +57,8 @@ public class PhoneCodeGrantValidator(
                 return;
             }
 
-            var isValid = await userManager.VerifyUserTokenAsync(user,
-                userManager.Options.Tokens.AuthenticatorTokenProvider, Util.PurposeLogin, verificationCode);
-
+            var isValid = await userManager.VerifyUserTokenAsync(user, Util.PhoneNumberTokenProvider, Util.PurposeLogin,
+                verificationCode);
             if (!isValid)
             {
                 await userManager.AccessFailedAsync(user);
