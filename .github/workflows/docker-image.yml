@@ -5,6 +5,15 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker image tag'
+        required: true
+        default: '20260128.0'
+
+env:
+  TAG: ${{ github.event.inputs.tag || '20260128.0' }}
 
 jobs:
 
@@ -17,6 +26,6 @@ jobs:
       - name: Login docker regsitry
         run: docker login -u zlzforever -p  ${{ secrets.DOCKER_USER_PASSWORD }}
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag zlzforever/security-token-service:20251224.8
+        run: docker build . --file Dockerfile --tag zlzforever/security-token-service:${{ env.TAG }}
       - name: Publish the Docker image
-        run: docker push zlzforever/security-token-service:20251224.8
+        run: docker push zlzforever/security-token-service:${{ env.TAG }}
