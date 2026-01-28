@@ -30,7 +30,7 @@ public class ResourceOwnerPasswordValidator(
         {
             context.Result = new GrantValidationResult(
                 TokenRequestErrors.InvalidRequest,
-                "invalid_request");
+                "系统无法处理请求！");
             return;
         }
 
@@ -41,7 +41,7 @@ public class ResourceOwnerPasswordValidator(
         {
             context.Result = new GrantValidationResult(
                 TokenRequestErrors.InvalidRequest,
-                "invalid_captcha_code");
+                "验证码有误！");
             return;
         }
 
@@ -65,7 +65,7 @@ public class ResourceOwnerPasswordValidator(
         {
             context.Result = new GrantValidationResult(
                 TokenRequestErrors.InvalidGrant,
-                "invalid_username");
+                "帐号或密码有误!");
             return;
         }
 
@@ -81,6 +81,6 @@ public class ResourceOwnerPasswordValidator(
 
         context.Result = new GrantValidationResult(
             TokenRequestErrors.InvalidGrant,
-            "invalid_password");
+            "帐号或密码有误!");
     }
 }
