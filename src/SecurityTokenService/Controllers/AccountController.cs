@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -410,7 +410,8 @@ public class AccountController(
         {
             // TODO: 手机号要脱敏
             logger.LogWarning("{Phone} 验证码发送过于频繁", input.PhoneNumber);
-            return new ApiResult { Code = 429, Message = "验证码发送过于频繁，请稍后再试", Success = false };
+            //提示发送成功，防止爆破
+            return new ApiResult { Success = true, Message = "发送成功" };
         }
 
         var checkCaptchaResult = Util.CheckCaptcha(memoryCache, logger, Request, input.CaptchaCode);
