@@ -15,6 +15,7 @@ namespace SecurityTokenService.IdentityServer;
 
 public class ResourceOwnerPasswordValidator(
     IOptionsMonitor<IdentityExtensionOptions> identityExtensionOptions,
+    IOptions<IdentityServerExtensionOptions> identityServerExtensionOptions,
     UserManager<User> userManager,
     IMemoryCache memoryCache,
     ILogger<ResourceOwnerPasswordValidator> logger,
@@ -35,14 +36,20 @@ public class ResourceOwnerPasswordValidator(
         }
 
         var request = contextAccessor.HttpContext.Request;
-        var captchaCode = context.Request.Raw["CaptchaCode"];
-        var checkCaptchaResult = Util.CheckCaptcha(memoryCache, logger, request, captchaCode);
-        if (checkCaptchaResult != null)
+
+        var enableCaptcha = identityServerExtensionOptions.Value.ResourceOwnerPassword?.EnableCaptcha;
+        // 没有设置认为是启用
+        if (enableCaptcha == null || enableCaptcha.Value)
         {
-            context.Result = new GrantValidationResult(
-                TokenRequestErrors.InvalidRequest,
-                "验证码有误！");
-            return;
+            var captchaCode = context.Request.Raw["CaptchaCode"];
+            var checkCaptchaResult = Util.CheckCaptcha(memoryCache, logger, request, captchaCode);
+            if (checkCaptchaResult != null)
+            {
+                context.Result = new GrantValidationResult(
+                    TokenRequestErrors.InvalidRequest,
+                    "验证码有误！");
+                return;
+            }
         }
 
         User user;
