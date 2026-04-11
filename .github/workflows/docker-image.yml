@@ -10,10 +10,10 @@ on:
       tag:
         description: 'Docker image tag'
         required: true
-        default: '20260411.1'
+        default: 'dev'
 
 env:
-  TAG: ${{ github.event.inputs.tag || '20260128.1' }}
+  TAG: ${{ github.event.inputs.tag || 'dev' }}
 
 jobs:
 
