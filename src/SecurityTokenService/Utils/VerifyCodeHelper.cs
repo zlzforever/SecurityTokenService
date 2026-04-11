@@ -8,7 +8,7 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace SecurityTokenService;
+namespace SecurityTokenService.Utils;
 
 public static class VerifyCodeHelper
 {

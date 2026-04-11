@@ -5,31 +5,32 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AlibabaCloud.SDK.Dysmsapi20170525" Version="2.0.24" />
-    <PackageReference Include="Dapper" Version="2.1.66" />
-    <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
-    <PackageReference Include="Identity.Sm" Version="1.0.1" />
-    <PackageReference Include="IdentityServer4.Storage" Version="4.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="8.0.6" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="AlibabaCloud.SDK.Dysmsapi20170525" Version="2.0.24"/>
+    <PackageReference Include="Dapper" Version="2.1.72" />
+    <PackageReference Include="BuildBundlerMinifier" Version="3.2.449"/>
+    <PackageReference Include="Identity.Sm" Version="1.0.1"/>
+    <PackageReference Include="IdentityServer4.Storage" Version="4.1.2"/>
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="8.0.6"/>
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0"/>
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1"/>
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0"/>
     <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0"/>
-    <PackageReference Include="Serilog.Expressions" Version="4.0.0" />
+    <PackageReference Include="Serilog.Expressions" Version="4.0.0"/>
     <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0"/>
-    <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.1" />
-    <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.2" />
-    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.2" />
+    <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.1"/>
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0"/>
+    <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.2"/>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.2"/>
+    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.2"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
-    <PackageReference Include="EFCore.NamingConventions" Version="8.0.2" />
-    <PackageReference Include="Dapr.AspNetCore" Version="1.12.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2"/>
+    <PackageReference Include="EFCore.NamingConventions" Version="8.0.2"/>
+    <PackageReference Include="Dapr.AspNetCore" Version="1.17.3" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12"/>
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -40,14 +41,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\MySql\Migrations\SecurityTokenService" />
-    <Folder Include="Data\PostgreSql\Migrations\SecurityTokenService" />
-    <Folder Include="KEYS" />
+    <Folder Include="Data\MySql\Migrations\SecurityTokenService"/>
+    <Folder Include="Data\PostgreSql\Migrations\SecurityTokenService"/>
+    <Folder Include="KEYS"/>
   </ItemGroup>
-  
+
   <ItemGroup>
-    <Compile Remove="Identity\IPasswordSecurityInfoStore.cs" />
-    <Compile Remove="Identity\PasswordSecurityInfoStore.cs" />
+    <Compile Remove="Identity\IPasswordSecurityInfoStore.cs"/>
+    <Compile Remove="Identity\PasswordSecurityInfoStore.cs"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="tempkey.jwk">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
